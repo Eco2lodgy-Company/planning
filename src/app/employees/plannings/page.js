@@ -5,8 +5,8 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import timeGridPlugin from '@fullcalendar/timegrid';
-import { useRouter, usePathname } from "next/navigation"; // ✅ Next.js
-import Link from "next/link"; // ✅ Next.js
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import {
   Home,
   Calendar,
@@ -22,7 +22,7 @@ import { toast } from "sonner";
 
 export default function PlanningPage() {
   const router = useRouter();
-  const pathname = usePathname(); // ✅ Remplace useLocation()
+  const pathname = usePathname();
   
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState('dayGridMonth');
@@ -66,9 +66,9 @@ export default function PlanningPage() {
   };
 
   const navigationItems = [
-    { name: "Dashboard", icon: Home, path: "/dashboard" },
-    { name: "Plannings", icon: Calendar, path: "/" },
-    { name: "Tâches", icon: CircleCheckBig, path: "/tasks" },
+    { name: "Dashboard", icon: Home, path: "/employees" },
+    { name: "Plannings", icon: Calendar, path: "/employees/plannings" },
+    { name: "Tâches", icon: CircleCheckBig, path: "/employees/tasks" },
     { name: "Utilisateurs", icon: Users, path: "/users" },
     { name: "Permissions", icon: Shield, path: "/permissions" },
     { name: "Paramètres", icon: Settings, path: "/settings" },
@@ -98,7 +98,7 @@ export default function PlanningPage() {
           {navigationItems.map((item) => (
             <Link
               key={item.name}
-              href={item.path} // ✅ Next.js
+              href={item.path}
               className={`flex items-center gap-3 py-3 px-4 rounded-lg transition ${
                 pathname === item.path ? "bg-blue-600" : "bg-gray-800 hover:bg-blue-600"
               }`}
@@ -115,22 +115,26 @@ export default function PlanningPage() {
         <header className="flex items-center justify-between p-6 bg-white shadow">
           <h2 className="text-xl font-bold text-gray-800">Calendrier des interventions</h2>
           <div className="flex gap-2">
-            <button 
+            <motion.button 
               className={`py-2 px-4 flex items-center gap-2 text-white rounded-lg transition ${
                 currentView === 'dayGridMonth' ? 'bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'
               }`}
               onClick={() => setCurrentView('dayGridMonth')}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <Grid size={18} /> Mois
-            </button>
-            <button 
+            </motion.button>
+            <motion.button 
               className={`py-2 px-4 flex items-center gap-2 text-white rounded-lg transition ${
                 currentView === 'timeGridWeek' ? 'bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'
               }`}
               onClick={() => setCurrentView('timeGridWeek')}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <List size={18} /> Semaine
-            </button>
+            </motion.button>
           </div>
         </header>
 
