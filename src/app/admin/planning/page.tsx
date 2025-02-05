@@ -1,221 +1,262 @@
-"use client"
+"use client";
+
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { 
-  Calendar as CalendarIcon, 
-  Plus, 
-  ChevronLeft, 
-  ChevronRight,
-  Users,
-  Clock,
-  Calendar as CalendarLucide
-} from "lucide-react";
+import { Calendar, Home, Plus, Settings, Users } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
-const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-const HOURS = Array.from({ length: 12 }, (_, i) => i + 8); // 8:00 to 19:00
-
-type Task = {
-  id: string;
-  title: string;
-  start: number;
-  duration: number;
-  assignee: string;
-  color: string;
-};
-
-const SAMPLE_TASKS: Task[] = [
-  {
-    id: '1',
-    title: 'Réunion équipe',
-    start: 9,
-    duration: 1,
-    assignee: 'Marie L.',
-    color: 'bg-blue-500'
-  },
-  {
-    id: '2',
-    title: 'Formation React',
-    start: 14,
-    duration: 2,
-    assignee: 'Jean D.',
-    color: 'bg-green-500'
-  },
-  {
-    id: '3',
-    title: 'Review projet',
-    start: 11,
-    duration: 1.5,
-    assignee: 'Sophie M.',
-    color: 'bg-purple-500'
-  }
-];
+const daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
+const employees = ["Alice", "Bob", "Charlie", "Diana", "Eve"];
 
 export default function Planning() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [tasks, setTasks] = useState([]);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const goToPreviousWeek = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() - 7);
-    setCurrentDate(newDate);
-  };
+  const [newTask, setNewTask] = useState({
+    employee: employees[0],
+    day: daysOfWeek[0],
+    title: "",
+    difficulty: "Facile",
+    startDate: "",
+    duration: "",
+  });
 
-  const goToNextWeek = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() + 7);
-    setCurrentDate(newDate);
-  };
-
-  const getWeekDates = () => {
-    const dates = [];
-    const startOfWeek = new Date(currentDate);
-    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay() + 1);
-
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startOfWeek);
-      date.setDate(startOfWeek.getDate() + i);
-      dates.push(date);
-    }
-    return dates;
+  const handleAddTask = () => {
+    setTasks([...tasks, newTask]);
+    setNewTask({
+      employee: employees[0],
+      day: daysOfWeek[0],
+      title: "",
+      difficulty: "Facile",
+      startDate: "",
+      duration: "",
+    });
+    setIsPopoverOpen(false);
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 p-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <CalendarIcon className="text-blue-500" />
-            Planning hebdomadaire
-          </h1>
-          <div className="flex items-center gap-2 bg-white rounded-lg shadow px-3 py-2">
-            <button
-              onClick={goToPreviousWeek}
-              className="p-1 hover:bg-gray-100 rounded"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <span className="font-medium">
-              {currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
-            </span>
-            <button
-              onClick={goToNextWeek}
-              className="p-1 hover:bg-gray-100 rounded"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
-        </div>
-        <button className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition">
-          <Plus size={20} />
-          Nouvelle tâche
-        </button>
-      </div>
-
-      {/* Calendar Grid */}
-      <div className="bg-white rounded-lg shadow overflow-auto">
-        {/* Days header */}
-        <div className="grid grid-cols-8 border-b">
-          <div className="p-4 font-medium text-gray-500 border-r">Heures</div>
-          {DAYS.map((day, index) => (
-            <div key={day} className="p-4 font-medium text-gray-800 text-center border-r last:border-r-0">
-              <div>{day}</div>
-              <div className="text-sm text-gray-500">
-                {getWeekDates()[index].getDate()}/{getWeekDates()[index].getMonth() + 1}
-              </div>
+    <div className="flex h-screen bg-gray-100">
+      {/* Sidebar */}
+         {/* Sidebar */}
+         <AnimatePresence>
+        {(isSidebarOpen || window.innerWidth >= 1024) && (
+          <motion.aside
+            initial={{ x: -280 }}
+            animate={{ x: 0 }}
+            exit={{ x: -280 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+            className="fixed lg:static z-40 w-64 bg-white shadow-lg h-screen"
+          >
+            <div className="p-6">
+              <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <Calendar className="text-blue-500" /> Gestion Planning
+              </h1>
             </div>
-          ))}
-        </div>
+            <nav className="mt-8">
+              <ul className="flex flex-col">
+                <li>
+                  <a
+                    href="/admin"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
+                  >
+                    <Home /> Dashboard
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/admin/planning"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
+                  >
+                    <Calendar /> Plannings
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/admin/users"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
+                  >
+                    <Users /> Utilisateurs
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/admin/params"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
+                  >
+                    <Settings /> Paramètres
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </motion.aside>
+        )}
+      </AnimatePresence>
 
-        {/* Time slots */}
-        <div className="relative">
-          {HOURS.map((hour) => (
-            <div key={hour} className="grid grid-cols-8">
-              <div className="p-4 border-r text-sm text-gray-500">
-                {hour}:00
-              </div>
-              {DAYS.map((day, dayIndex) => (
-                <div
-                  key={`${hour}-${day}`}
-                  className="p-2 border-r last:border-r-0 border-b min-h-[100px] relative"
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <header className="h-16 bg-white shadow-md flex items-center justify-between px-6">
+          <h1 className="text-lg font-bold">Planning Hebdomadaire</h1>
+          <button
+            onClick={() => setIsPopoverOpen(true)}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
+          >
+            <Plus /> Ajouter une Tâche
+          </button>
+        </header>
+
+        <div className="flex flex-1">
+          {/* Employees List */}
+          {/* <aside className="w-48 bg-white shadow-md flex flex-col">
+            <h2 className="text-lg font-semibold p-4 border-b">Employés</h2>
+            <ul className="flex-1 overflow-auto">
+              {employees.map((employee, index) => (
+                <li
+                  key={index}
+                  className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
                 >
-                  {SAMPLE_TASKS.filter(task => task.start === hour).map((task) => (
-                    <motion.div
-                      key={task.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={`absolute left-2 right-2 ${task.color} rounded-lg p-2 cursor-pointer`}
-                      style={{
-                        height: `${task.duration * 100}px`,
-                        top: '0'
-                      }}
-                      onClick={() => setSelectedTask(task)}
-                    >
-                      <div className="text-white font-medium text-sm">{task.title}</div>
-                      <div className="flex items-center gap-1 text-white/90 text-xs mt-1">
-                        <Users size={12} />
-                        {task.assignee}
-                      </div>
-                      <div className="flex items-center gap-1 text-white/90 text-xs">
-                        <Clock size={12} />
-                        {task.duration}h
-                      </div>
-                    </motion.div>
-                  ))}
+                  {employee}
+                </li>
+              ))}
+            </ul>
+          </aside> */}
+
+          {/* Tasks Table */}
+          <main className="flex-1 p-4">
+            <div className="grid grid-cols-5 gap-2">
+              {daysOfWeek.map((day, dayIndex) => (
+                <div key={dayIndex} className="bg-white shadow-md rounded-lg">
+                  <h2 className="text-center bg-gray-200 py-2 font-semibold">
+                    {day}
+                  </h2>
+                  <div className="p-2 space-y-2">
+                    {tasks
+                      .filter((task) => task.day === day)
+                      .map((task, index) => (
+                        <div
+                          key={index}
+                          className={`p-2 rounded-lg text-white ${
+                            task.difficulty === "Facile"
+                              ? "bg-green-500"
+                              : task.difficulty === "Moyenne"
+                              ? "bg-orange-500"
+                              : "bg-red-500"
+                          }`}
+                        >
+                          <p className="font-bold">{task.title}</p>
+                          <p className="text-sm">{task.employee}</p>
+                          <p className="text-xs">
+                            {task.startDate} | {task.duration} jours
+                          </p>
+                        </div>
+                      ))}
+                  </div>
                 </div>
               ))}
             </div>
-          ))}
+          </main>
         </div>
       </div>
 
-      {/* Task Details Modal */}
-      {selectedTask && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-          onClick={() => setSelectedTask(null)}
-        >
-          <motion.div
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            className="bg-white rounded-lg p-6 max-w-md w-full"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between mb-4">
-              <h3 className="text-xl font-bold text-gray-800">{selectedTask.title}</h3>
-              <button
-                onClick={() => setSelectedTask(null)}
-                className="text-gray-500 hover:text-gray-700"
+      {/* Popover for Adding Task */}
+      {isPopoverOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-lg font-bold mb-4">Ajouter une Tâche</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAddTask();
+              }}
+              className="space-y-4"
+            >
+              <select
+                className="w-full p-2 border rounded"
+                value={newTask.employee}
+                onChange={(e) =>
+                  setNewTask({ ...newTask, employee: e.target.value })
+                }
+                required
               >
-                ✕
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <CalendarLucide size={20} className="text-gray-500" />
-                <span>{selectedTask.start}:00 - {selectedTask.start + selectedTask.duration}:00</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users size={20} className="text-gray-500" />
-                <span>{selectedTask.assignee}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock size={20} className="text-gray-500" />
-                <span>{selectedTask.duration} heures</span>
-              </div>
-              <div className="flex gap-2 mt-6">
-                <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-                  Modifier
+                {employees.map((employee, index) => (
+                  <option key={index} value={employee}>
+                    {employee}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="w-full p-2 border rounded"
+                value={newTask.day}
+                onChange={(e) =>
+                  setNewTask({ ...newTask, day: e.target.value })
+                }
+                required
+              >
+                {daysOfWeek.map((day, index) => (
+                  <option key={index} value={day}>
+                    {day}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                placeholder="Titre de la tâche"
+                className="w-full p-2 border rounded"
+                value={newTask.title}
+                onChange={(e) =>
+                  setNewTask({ ...newTask, title: e.target.value })
+                }
+                required
+              />
+              <select
+                className="w-full p-2 border rounded"
+                value={newTask.difficulty}
+                onChange={(e) =>
+                  setNewTask({ ...newTask, difficulty: e.target.value })
+                }
+                required
+              >
+                <option value="Facile">Facile</option>
+                <option value="Moyenne">Moyenne</option>
+                <option value="Difficile">Difficile</option>
+              </select>
+              <input
+                type="date"
+                className="w-full p-2 border rounded"
+                value={newTask.startDate}
+                onChange={(e) =>
+                  setNewTask({ ...newTask, startDate: e.target.value })
+                }
+                required
+              />
+              <input
+                type="number"
+                placeholder="Durée (jours)"
+                className="w-full p-2 border rounded"
+                value={newTask.duration}
+                onChange={(e) =>
+                  setNewTask({ ...newTask, duration: e.target.value })
+                }
+                required
+              />
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setIsPopoverOpen(false)}
+                  className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+                >
+                  Annuler
                 </button>
-                <button className="px-4 py-2 text-red-600 hover:bg-red-50 rounded transition">
-                  Supprimer
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                >
+                  Ajouter
                 </button>
               </div>
-            </div>
-          </motion.div>
-        </motion.div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
