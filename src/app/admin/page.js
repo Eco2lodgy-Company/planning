@@ -1,16 +1,51 @@
 "use client"
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Home, Calendar, Users, Settings, PlusCircle, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Home, Calendar, Users, Settings, PlusCircle, Menu, X } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
-export default function PlanningDashboard() {
+function App() {
   const [loading, setLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Simulate loading time
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1500);
     return () => clearTimeout(timer);
   }, []);
+
+  const stats = [
+    { title: "Employés actifs", value: 50, color: "bg-indigo-500" },
+    { title: "Tâches assignées", value: 120, color: "bg-blue-500" },
+    { title: "Projets terminés", value: 8, color: "bg-green-500" },
+    { title: "Heures travaillées", value: 650, color: "bg-purple-500" },
+  ];
+
+  const projectData = [
+    { name: "Projets terminés", value: 8 },
+    { name: "Projets en cours", value: 5 },
+    { name: "Projets en attente", value: 2 },
+  ];
+
+  const workloadData = [
+    { name: "Lundi", Tâches: 10, Complétées: 6 },
+    { name: "Mardi", Tâches: 12, Complétées: 9 },
+    { name: "Mercredi", Tâches: 15, Complétées: 11 },
+    { name: "Jeudi", Tâches: 8, Complétées: 7 },
+    { name: "Vendredi", Tâches: 20, Complétées: 15 },
+    { name: "Samedi", Tâches: 5, Complétées: 4 },
+    { name: "Dimanche", Tâches: 2, Complétées: 1 },
+  ];
 
   if (loading) {
     return (
@@ -21,63 +56,90 @@ export default function PlanningDashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <motion.aside
-        initial={{ x: -200 }}
-        animate={{ x: 0 }}
-        transition={{ type: "spring", stiffness: 60 }}
-        className="w-64 bg-white shadow-lg"
+    <div className="flex min-h-screen bg-gray-100">
+      {/* Mobile Sidebar Toggle */}
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="lg:hidden fixed z-50 top-4 left-4 p-2 bg-white rounded-lg shadow-lg"
       >
-        <div className="p-6">
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <Calendar className="text-blue-500" /> Gestion Planning
-          </h1>
-        </div>
-        <nav className="mt-8">
-          <ul>
-            <li>
-              <a
-                href="#"
-                className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
-              >
-                <Home /> Dashboard
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
-              >
-                <Calendar /> Plannings
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
-              >
-                <Users /> Utilisateurs
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
-              >
-                <Settings /> Paramètres
-              </a>
-            </li>
-          </ul>
-        </nav>
-      </motion.aside>
+        {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
+
+      {/* Sidebar */}
+      <AnimatePresence mode="wait">
+        {(isSidebarOpen || window.innerWidth >= 1024) && (
+          <motion.aside
+            initial={{ x: -280 }}
+            animate={{ x: 0 }}
+            exit={{ x: -280 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+            className="fixed lg:static z-40 w-64 bg-white shadow-lg h-screen"
+          >
+            <div className="p-6 mt-14 lg:mt-0">
+              <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <Calendar className="text-blue-500" /> Gestion Planning
+              </h1>
+            </div>
+            <nav className="mt-8">
+              <ul className="flex flex-col">
+                <li>
+                  <a
+                    href="#"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
+                  >
+                    <Home /> Dashboard
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
+                  >
+                    <Calendar /> Plannings
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
+                  >
+                    <Users /> Utilisateurs
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
+                  >
+                    <Settings /> Paramètres
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+
+      {/* Overlay for mobile */}
+      {isSidebarOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+        />
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="flex items-center justify-between p-6 bg-white shadow">
-          <h2 className="text-xl font-bold text-gray-800">Tableau de bord</h2>
-          <button className="py-2 px-4 flex items-center gap-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+        <header className="flex flex-col sm:flex-row items-center justify-between p-6 bg-white shadow gap-4">
+          <div className="flex items-center w-full">
+            <div className="lg:hidden w-8" /> {/* Spacer for mobile */}
+            <h2 className="text-xl font-bold text-gray-800 ml-4">Tableau de bord</h2>
+          </div>
+          <button className="w-full sm:w-auto py-2 px-4 flex items-center justify-center gap-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
             <PlusCircle /> Ajouter un planning
           </button>
         </header>
@@ -87,61 +149,56 @@ export default function PlanningDashboard() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
-          className="flex-1 p-6"
+          className="flex-1 p-6 overflow-auto"
         >
-          {/* Calendar Section */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Planning hebdomadaire</h3>
-            <div className="grid grid-cols-7 gap-4">
-              {[
-                "Lundi",
-                "Mardi",
-                "Mercredi",
-                "Jeudi",
-                "Vendredi",
-                "Samedi",
-                "Dimanche",
-              ].map((day, index) => (
-                <motion.div
-                  key={index}
-                  whileHover={{ scale: 1.05 }}
-                  className="bg-gray-50 rounded-lg p-4 text-center border border-gray-200 shadow hover:shadow-lg transition"
-                >
-                  <h4 className="text-md font-semibold text-gray-600">{day}</h4>
-                  <p className="text-sm text-gray-500 mt-2">Aucune tâche</p>
-                  <button className="mt-4 py-1 px-3 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">
-                    Ajouter
-                  </button>
-                </motion.div>
-              ))}
-            </div>
+          {/* Cards Section */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={index}
+                whileHover={{ scale: 1.02 }}
+                className={`rounded-lg shadow-lg p-6 text-white ${stat.color}`}
+              >
+                <h3 className="text-lg font-bold">{stat.title}</h3>
+                <p className="text-4xl font-semibold mt-4">{stat.value}</p>
+              </motion.div>
+            ))}
           </div>
 
-          {/* Task List Section */}
-          <div className="mt-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Tâches à venir</h3>
-            <div className="bg-white rounded-lg shadow">
-              <ul>
-                {[
-                  { id: 1, task: "Réunion avec l'équipe", time: "Lundi - 10h" },
-                  { id: 2, task: "Présentation client", time: "Mercredi - 14h" },
-                  { id: 3, task: "Préparation rapport", time: "Vendredi - 16h" },
-                ].map((item) => (
-                  <motion.li
-                    key={item.id}
-                    whileHover={{ scale: 1.02 }}
-                    className="flex justify-between items-center p-4 border-b last:border-none"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">{item.task}</p>
-                      <p className="text-xs text-gray-500">{item.time}</p>
-                    </div>
-                    <button className="py-1 px-3 flex items-center gap-1 bg-red-500 text-white text-xs rounded hover:bg-red-600">
-                      <Trash2 /> Supprimer
-                    </button>
-                  </motion.li>
-                ))}
-              </ul>
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Bar Chart Section */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">État des projets</h3>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer>
+                  <BarChart data={projectData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Line Chart Section */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Évolution de la charge de travail</h3>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer>
+                  <LineChart data={workloadData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="Tâches" stroke="#8884d8" />
+                    <Line type="monotone" dataKey="Complétées" stroke="#82ca9d" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </motion.main>
@@ -149,3 +206,5 @@ export default function PlanningDashboard() {
     </div>
   );
 }
+
+export default App;
