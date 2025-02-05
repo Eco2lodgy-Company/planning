@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import {
   Home,
   Calendar,
+  CircleCheckBig,    
   Users,
   Settings,
   PlusCircle,
@@ -60,13 +61,13 @@ export default function EmployeeDashboard() {
           <Calendar className="text-blue-500" aria-hidden="true" /> Tableau de bord
         </h1>
         <nav className="mt-8 space-y-4">
-          {["Dashboard", "Plannings", "Utilisateurs", "Paramètres"].map((item, index) => (
+          {["Dashboard", "Plannings","Tâches", "Utilisateurs", "Paramètres"].map((item, index) => (
             <a
               key={item} // Utilisez un identifiant unique si possible
               href="#"
               className="flex items-center gap-3 py-3 px-4 rounded-lg transition bg-gray-800 hover:bg-blue-600"
             >
-              {[<Home aria-hidden="true" />, <Calendar aria-hidden="true" />, <Users aria-hidden="true" />, <Settings aria-hidden="true" />][index]} {item}
+              {[<Home aria-hidden="true" />, <Calendar aria-hidden="true" />,<CircleCheckBig aria-hidden="true" /> ,<Users aria-hidden="true" />, <Settings aria-hidden="true" />][index]} {item}
             </a>
           ))}
         </nav>
