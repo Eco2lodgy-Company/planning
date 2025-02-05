@@ -12,6 +12,7 @@ import {
   List,
   Grid,
   Shield,
+  ClipboardMinus,
   CheckCircle,
   Trash,
 } from 'lucide-react';
@@ -84,6 +85,7 @@ export default function TaskPage() {
     { name: 'Tâches', icon: CircleCheckBig, path: '/employees/tasks' },
     { name: 'Utilisateurs', icon: Users, path: '/users' },
     { name: 'Permissions', icon: Shield, path: '/permissions' },
+    { name: 'Rapports', icon: ClipboardMinus, path: '/permissions' },
     { name: 'Paramètres', icon: Settings, path: '/settings' },
   ];
 
