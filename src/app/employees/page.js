@@ -1,11 +1,16 @@
 'use client';
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
+
+
 import {
   Home,
   Calendar,
   CircleCheckBig,    
   Users,
+  ClipboardMinus,
   Settings,
   PlusCircle,
   Trash2,
@@ -13,12 +18,15 @@ import {
   Clock,
   AlertCircle,
   BarChart3,
+  Shield,
   PieChart,
   ListTodo
 } from "lucide-react";
 
 export default function EmployeeDashboard() {
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
+
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1200);
@@ -40,6 +48,8 @@ export default function EmployeeDashboard() {
     { id: 5, title: "Documentation API", status: "En cours", deadline: "2024-03-22", priority: "Moyenne" }
   ];
 
+ 
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-900">
@@ -50,29 +60,7 @@ export default function EmployeeDashboard() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <motion.aside
-        initial={{ x: -200 }}
-        animate={{ x: 0 }}
-        transition={{ type: "spring", stiffness: 60 }}
-        className="w-72 bg-gray-900 text-white shadow-lg p-6 flex flex-col"
-      >
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Calendar className="text-blue-500" aria-hidden="true" /> Tableau de bord
-        </h1>
-        <nav className="mt-8 space-y-4">
-          {["Dashboard", "Plannings","Tâches", "Utilisateurs", "Paramètres"].map((item, index) => (
-            <a
-              key={item} // Utilisez un identifiant unique si possible
-              href="#"
-              className="flex items-center gap-3 py-3 px-4 rounded-lg transition bg-gray-800 hover:bg-blue-600"
-            >
-              {[<Home aria-hidden="true" />, <Calendar aria-hidden="true" />,<CircleCheckBig aria-hidden="true" /> ,<Users aria-hidden="true" />, <Settings aria-hidden="true" />][index]} {item}
-            </a>
-          ))}
-        </nav>
-      </motion.aside>
-
+     
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
