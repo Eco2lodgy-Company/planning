@@ -12,43 +12,43 @@ import {
   Shield,
   ClipboardMinus,
   Plus,
-  CheckCircle,
+  FileText,
   Trash,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function PermissionPage() {
+export default function ReportPage() {
   const router = useRouter();
   const pathname = usePathname();
 
   const [loading, setLoading] = useState(true);
-  const [permissions, setPermissions] = useState([
+  const [reports, setReports] = useState([
     {
       id: '1',
-      type: 'Congé annuel',
-      description: 'Demande de congé annuel pour raisons personnelles.',
+      title: 'Rapport mensuel',
+      description: 'Rapport sur les performances de l\'équipe pour le mois de mars.',
       date: '2024-03-18',
-      status: 'En attente',
+      status: 'Publié',
     },
     {
       id: '2',
-      type: 'Télétravail',
-      description: 'Demande de télétravail pour raisons médicales.',
+      title: 'Rapport de sécurité',
+      description: 'Rapport sur les incidents de sécurité pour le trimestre.',
       date: '2024-03-20',
-      status: 'Accordé',
+      status: 'En révision',
     },
     {
       id: '3',
-      type: 'Congé maladie',
-      description: 'Demande de congé maladie pour une opération chirurgicale.',
+      title: 'Rapport financier',
+      description: 'Rapport sur les dépenses et les revenus pour le mois de février.',
       date: '2024-03-22',
-      status: 'Refusé',
+      status: 'Brouillon',
     },
   ]);
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [newPermission, setNewPermission] = useState({
-    type: '',
+  const [newReport, setNewReport] = useState({
+    title: '',
     description: '',
     date: '',
   });
@@ -58,23 +58,23 @@ export default function PermissionPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleRequestPermission = () => {
+  const handleCreateReport = () => {
     setIsPopupOpen(true);
   };
 
-  const handleSubmitPermission = () => {
-    if (newPermission.type && newPermission.description && newPermission.date) {
-      setPermissions((prevPermissions) => [
-        ...prevPermissions,
+  const handleSubmitReport = () => {
+    if (newReport.title && newReport.description && newReport.date) {
+      setReports((prevReports) => [
+        ...prevReports,
         {
-          id: (prevPermissions.length + 1).toString(),
-          ...newPermission,
-          status: 'En attente',
+          id: (prevReports.length + 1).toString(),
+          ...newReport,
+          status: 'Brouillon',
         },
       ]);
       setIsPopupOpen(false);
-      setNewPermission({ type: '', description: '', date: '' });
-      toast('Permission demandée avec succès');
+      setNewReport({ title: '', description: '', date: '' });
+      toast('Rapport créé avec succès');
     } else {
       toast('Veuillez remplir tous les champs');
     }
@@ -82,12 +82,12 @@ export default function PermissionPage() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'En attente':
+      case 'Brouillon':
         return 'bg-yellow-500 text-white';
-      case 'Accordé':
+      case 'En révision':
+        return 'bg-blue-500 text-white';
+      case 'Publié':
         return 'bg-green-500 text-white';
-      case 'Refusé':
-        return 'bg-red-500 text-white';
       default:
         return 'bg-gray-500 text-white';
     }
@@ -105,17 +105,18 @@ export default function PermissionPage() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-     
+    
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="flex items-center justify-between p-6 bg-white shadow">
-          <h2 className="text-xl font-bold text-gray-800">Permissions des employés</h2>
+          <h2 className="text-xl font-bold text-gray-800">Rapports des employés</h2>
           <button
-            onClick={handleRequestPermission}
+            onClick={handleCreateReport}
             className="bg-blue-500 text-white p-2 rounded-lg flex items-center gap-2"
           >
-            <Plus /> Demander permission
+            <Plus /> Créer un rapport
           </button>
         </header>
 
@@ -127,29 +128,29 @@ export default function PermissionPage() {
           className="flex-1 p-6 overflow-y-auto"
         >
           <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h3 className="text-lg font-semibold mb-4">Liste des permissions</h3>
+            <h3 className="text-lg font-semibold mb-4">Liste des rapports</h3>
             <table className="min-w-full table-auto border-collapse">
               <thead>
                 <tr>
-                  <th className="px-4 py-2 border-b">Type</th>
+                  <th className="px-4 py-2 border-b">Titre</th>
                   <th className="px-4 py-2 border-b">Description</th>
                   <th className="px-4 py-2 border-b">Date</th>
                   <th className="px-4 py-2 border-b">Statut</th>
                 </tr>
               </thead>
               <tbody>
-                {permissions.map((permission) => (
-                  <tr key={permission.id} className="text-sm">
-                    <td className="px-4 py-2 border-b text-gray-800">{permission.type}</td>
-                    <td className="px-4 py-2 border-b text-gray-600">{permission.description}</td>
-                    <td className="px-4 py-2 border-b text-gray-600">{permission.date}</td>
+                {reports.map((report) => (
+                  <tr key={report.id} className="text-sm">
+                    <td className="px-4 py-2 border-b text-gray-800">{report.title}</td>
+                    <td className="px-4 py-2 border-b text-gray-600">{report.description}</td>
+                    <td className="px-4 py-2 border-b text-gray-600">{report.date}</td>
                     <td className="px-4 py-2 border-b">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                          permission.status
+                          report.status
                         )}`}
                       >
-                        {permission.status}
+                        {report.status}
                       </span>
                     </td>
                   </tr>
@@ -164,22 +165,22 @@ export default function PermissionPage() {
       {isPopupOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-bold mb-4">Demander une permission</h2>
+            <h2 className="text-xl font-bold mb-4">Créer un rapport</h2>
             <form>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Type de permission</label>
+                <label className="block text-sm font-medium text-gray-700">Titre du rapport</label>
                 <input
                   type="text"
-                  value={newPermission.type}
-                  onChange={(e) => setNewPermission({ ...newPermission, type: e.target.value })}
+                  value={newReport.title}
+                  onChange={(e) => setNewReport({ ...newReport, title: e.target.value })}
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-lg"
                 />
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">Description</label>
                 <textarea
-                  value={newPermission.description}
-                  onChange={(e) => setNewPermission({ ...newPermission, description: e.target.value })}
+                  value={newReport.description}
+                  onChange={(e) => setNewReport({ ...newReport, description: e.target.value })}
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-lg"
                 />
               </div>
@@ -187,8 +188,8 @@ export default function PermissionPage() {
                 <label className="block text-sm font-medium text-gray-700">Date</label>
                 <input
                   type="date"
-                  value={newPermission.date}
-                  onChange={(e) => setNewPermission({ ...newPermission, date: e.target.value })}
+                  value={newReport.date}
+                  onChange={(e) => setNewReport({ ...newReport, date: e.target.value })}
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-lg"
                 />
               </div>
@@ -202,7 +203,7 @@ export default function PermissionPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={handleSubmitPermission}
+                  onClick={handleSubmitReport}
                   className="bg-blue-500 text-white p-2 rounded-lg"
                 >
                   Soumettre
