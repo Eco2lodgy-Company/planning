@@ -13,7 +13,7 @@ const navigationItems = [
   { name: 'Utilisateurs', icon: Users, path: '/employees/users' },
   { name: 'Permissions', icon: Shield, path: '/employees/permission' },
   { name: 'Rapports', icon: ClipboardMinus, path: '/employees/rapport' },
-  { name: 'Paramètres', icon: Settings, path: '/settings' },
+  { name: 'Profile', icon: Users, path: '/employees/profile' },
 ];
 
 export default function EmpSidebar() {
