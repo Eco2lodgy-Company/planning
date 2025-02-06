@@ -10,9 +10,9 @@ const navigationItems = [
   { name: 'Dashboard', icon: Home, path: '/employees' },
   { name: 'Plannings', icon: Calendar, path: '/employees/plannings' },
   { name: 'Tâches', icon: CircleCheckBig, path: '/employees/tasks' },
-  { name: 'Utilisateurs', icon: Users, path: '/users' },
-  { name: 'Permissions', icon: Shield, path: '/permissions' },
-  { name: 'Rapports', icon: ClipboardMinus, path: '/permissions' },
+  { name: 'Utilisateurs', icon: Users, path: '/employees/users' },
+  { name: 'Permissions', icon: Shield, path: '/employees/permissions' },
+  { name: 'Rapports', icon: ClipboardMinus, path: '/employees/rapport' },
   { name: 'Paramètres', icon: Settings, path: '/settings' },
 ];
 
@@ -27,7 +27,7 @@ export default function EmpSidebar() {
       className="w-72 bg-gray-900 text-white shadow-lg p-6 flex flex-col"
     >
       <h1 className="text-2xl font-bold flex items-center gap-2">
-        <Calendar className="text-blue-500" /> Planning
+        <Calendar className="text-blue-500" /> ECOLO2LODGY
       </h1>
       <nav className="mt-8 space-y-4">
         {navigationItems.map((item) => (
