@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Calendar, Home, Settings, Users } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import REGISTERFORM from "@/app/components/forms/registerform";
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
@@ -102,12 +103,12 @@ export default function UsersPage() {
         </div>
 
         {/* Popover */}
-        <AnimatePresence>
+        {/* <AnimatePresence>
           {isPopoverOpen && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+              exit={{ opacity: 50, scale: 0.9 }}
               className="absolute top-20 left-1/4 bg-white shadow-lg p-6 rounded-lg w-1/2"
             >
               <h2 className="text-xl font-bold mb-4">Ajouter un utilisateur</h2>
@@ -217,7 +218,8 @@ export default function UsersPage() {
               </form>
             </motion.div>
           )}
-        </AnimatePresence>
+        </AnimatePresence> */}
+        <REGISTERFORM/>
 
         {/* Users Table */}
         <table className="min-w-full bg-white rounded-lg">
