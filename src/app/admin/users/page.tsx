@@ -97,6 +97,7 @@ export default function UsersPage() {
           <button
             onClick={() => setIsPopoverOpen(!isPopoverOpen)}
             className="p-2 bg-blue-500 text-white rounded-lg"
+            
           >
             Ajouter un utilisateur
           </button>

@@ -1,3 +1,4 @@
+import { a } from "framer-motion/client";
 import LOGINFORM from "../components/forms/loginForm";
 
 export default function LOGIN(){
@@ -46,4 +47,5 @@ export default function LOGIN(){
       //   </div>
       // </div>
       <LOGINFORM/>)
+   
 }

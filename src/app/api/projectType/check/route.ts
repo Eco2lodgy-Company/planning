@@ -1,22 +1,27 @@
-import { supabase } from "@/lib/SupabaseClient";
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/SupabaseClient";
+
+
 
 export async function POST(req:Request) {
   try {
+    // Lire le corps de la requête
     const body = await req.json();
-    const { id_user } = body;
+    const { id_type } = body;
 
-    if (!id_user) {
+    if (!id_type) {
       return NextResponse.json(
-        { error: "Le champ 'id_user' est obligatoire." },
+        { error: "Le champ 'id_type' est obligatoire." },
         { status: 400 }
       );
     }
 
+    // Rechercher le type correspondant
     const { data, error } = await supabase
-      .from("users")
-      .select("id_user")
-      .eq("id_user", id_user)
+      .from("typeprojet")
+      .select("*")
+      .eq("id_type", id_type)
       .single();
 
     if (error) {
@@ -25,12 +30,12 @@ export async function POST(req:Request) {
 
     if (!data) {
       return NextResponse.json(
-        { exists: false, message: "Utilisateur non trouvé." },
+        { error: "Aucun type trouvé avec cet ID." },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ exists: true, message: "Utilisateur trouvé." }, { status: 200 });
+    return NextResponse.json(data, { status: 200 },);
   } catch (error) {
     console.error("Erreur serveur :", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
