@@ -58,6 +58,14 @@ export default function AgentListPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-transparent">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen bg-gray-100 p-6">
       <header className="flex items-center justify-between p-4 bg-white shadow rounded-md">
