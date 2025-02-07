@@ -7,15 +7,15 @@ import {
 } from "lucide-react";
 
 const navigationItems = [
-  { name: "Dashboard", icon: Home, path: "/responsible" },
-  { name: "Plannings", icon: Calendar, path: "/responsible/plannings" },
-  { name: "Projets", icon: FolderKanban, path: "/responsible/projects" },
-  { name: "Tâches", icon: CheckCircle, path: "/responsible/tasks" },
-  { name: "Employés", icon: Users, path: "/responsible/employees" },
-  { name: "Permissions", icon: Shield, path: "/responsible/permissions" },
-  { name: "Absences", icon: ClipboardMinus, path: "/responsible/absences" },
-  { name: "Retards", icon: AlarmClock, path: "/responsible/retards" },
-  { name: "Profil", icon: User, path: "/responsible/profile" },
+  { name: "Dashboard", icon: Home, path: "/TeamHead" },
+  { name: "Plannings", icon: Calendar, path: "/TeamHead/plannings" },
+  { name: "Projets", icon: FolderKanban, path: "/TeamHead/projects" },
+  { name: "Tâches", icon: CheckCircle, path: "/TeamHead/tasks" },
+  { name: "Employés", icon: Users, path: "/TeamHead/employees" },
+  { name: "Permissions", icon: Shield, path: "/TeamHead/permissions" },
+  { name: "Absences", icon: ClipboardMinus, path: "/TeamHead/absences" },
+  { name: "Retards", icon: AlarmClock, path: "/TeamHead/retards" },
+  { name: "Profil", icon: User, path: "/TeamHead/profile" },
 ];
 
 export default function RespSidebar() {

@@ -11,7 +11,7 @@ CREATE TABLE users (
     departement VARCHAR(30) NOT NULL,
     poste VARCHAR(50) not null,
     password TEXT NOT NULL,
-    role VARCHAR(50) NOT NULL,
+    role VARCHAR(50) NOT     NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 CREATE TABLE typeProjet(
