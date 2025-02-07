@@ -11,7 +11,7 @@ const navigationItems = [
   { name: "Plannings", icon: Calendar, path: "/TeamHead/plannings" },
   { name: "Projets", icon: FolderKanban, path: "/TeamHead/projects" },
   { name: "Tâches", icon: CheckCircle, path: "/TeamHead/tasks" },
-  { name: "Employés", icon: Users, path: "/TeamHead/employees" },
+  { name: "Employés", icon: Users, path: "/TeamHead/agents" },
   { name: "Permissions", icon: Shield, path: "/TeamHead/permissions" },
   { name: "Absences", icon: ClipboardMinus, path: "/TeamHead/absences" },
   { name: "Retards", icon: AlarmClock, path: "/TeamHead/retards" },
