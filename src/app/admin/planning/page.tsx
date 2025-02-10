@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Home, Plus, Settings, Users } from "lucide-react";
+import { Calendar, Home, Menu, Plus, Settings, Users, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
@@ -36,61 +36,7 @@ export default function Planning() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-         {/* Sidebar */}
-         <AnimatePresence>
-        {(isSidebarOpen || window.innerWidth >= 1024) && (
-          <motion.aside
-            initial={{ x: -280 }}
-            animate={{ x: 0 }}
-            exit={{ x: -280 }}
-            transition={{ type: "spring", stiffness: 100, damping: 20 }}
-            className="fixed lg:static z-40 w-64 bg-white shadow-lg h-screen"
-          >
-            <div className="p-6">
-              <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <Calendar className="text-blue-500" /> Gestion Planning
-              </h1>
-            </div>
-            <nav className="mt-8">
-              <ul className="flex flex-col">
-                <li>
-                  <a
-                    href="/admin"
-                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
-                  >
-                    <Home /> Dashboard
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/admin/planning"
-                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
-                  >
-                    <Calendar /> Plannings
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/admin/users"
-                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
-                  >
-                    <Users /> Utilisateurs
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/admin/params"
-                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200"
-                  >
-                    <Settings /> Paramètres
-                  </a>
-                </li>
-              </ul>
-            </nav>
-          </motion.aside>
-        )}
-      </AnimatePresence>
+      
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
