@@ -29,8 +29,8 @@ export async function POST(req:Request) {
     JSON.stringify({
       message: 'Connexion réussie.',
       user: {
-        role:data.role
-        // id_user: data.id_user,
+        role:data.role,
+       id_user: data.id_user,
         // nom_complet: data.nom_complet,
         // mail: data.mail,
       },
