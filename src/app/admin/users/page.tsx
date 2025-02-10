@@ -56,7 +56,7 @@ export default function UsersPage() {
         </div>
 
         {/* Popover */}
-        {/* <AnimatePresence>
+        <AnimatePresence>
           {isPopoverOpen && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -171,8 +171,8 @@ export default function UsersPage() {
               </form>
             </motion.div>
           )}
-        </AnimatePresence> */}
-        <REGISTERFORM/>
+        </AnimatePresence>
+        {/* <REGISTERFORM/> */}
 
         {/* Users Table */}
         <table className="min-w-full bg-white rounded-lg">
