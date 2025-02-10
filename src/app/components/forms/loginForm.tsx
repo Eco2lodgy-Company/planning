@@ -42,10 +42,10 @@ export default function LoginForm() {
 
         if (role === "admin") {
           router.push("/admin"); // Redirige vers le tableau de bord admin
-        } else if (role === "user") {
-          router.push("/employees"); // Redirige vers la page d'accueil utilisateur
+        } else if (role === "resp") {
+          router.push("/TeamHead"); // Redirige vers la page d'accueil utilisateur
         } else {
-          router.push("/default"); // Redirige vers une page par défaut si nécessaire
+          router.push("/employees"); // Redirige vers une page par défaut si nécessaire
         }
       } else {
         console.error("Erreur :", result.message);
