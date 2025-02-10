@@ -2,12 +2,14 @@
 
 import { usePathname } from "next/navigation";
 import EmpSidebar from "./EmpSidebar";
+import RespSidebar from "./teamHeadSidebar";
 
 export default function SidebarWrapper() {
   const pathname = usePathname(); // Récupérer l'URL actuelle
   const isEmployeesPage = pathname.startsWith("/employees"); // Vérifie si l'URL commence par /employees
+  const isResponsiblePage = pathname.startsWith("/TeamHead");
+  if (!(isEmployeesPage || isResponsiblePage)) {return null;} // N'affiche rien si on n'est pas dans /employees
+    if (isResponsiblePage) {return <RespSidebar />;}
+    else{ return <EmpSidebar />;}
 
-  if (!isEmployeesPage) return null; // N'affiche rien si on n'est pas dans /employees
-
-  return <EmpSidebar />;
 }
