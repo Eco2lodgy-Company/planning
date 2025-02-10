@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { PlusCircle } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Liste des employés (exemple)
 const employees = [
@@ -169,6 +170,9 @@ export default function RetardListPage() {
           </div>
         </div>
       )}
+
+      {/* Ajoutez le ToastContainer ici */}
+      <ToastContainer />
     </div>
   );
 }
