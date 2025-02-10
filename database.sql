@@ -11,7 +11,7 @@ CREATE TABLE users (
     departement VARCHAR(30) NOT NULL,
     poste VARCHAR(50) not null,
     password TEXT NOT NULL,
-    role VARCHAR(50) NOT     NULL,
+    role VARCHAR(50) NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 CREATE TABLE typeProjet(
@@ -27,6 +27,7 @@ CREATE TABLE projets (
     partenaire VARCHAR(255),
     echeance INTEGER not null,
     chef_projet INT REFERENCES users(id_user) ON DELETE SET NULL,
+    status VARCHAR(50) DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -37,10 +38,10 @@ CREATE TABLE taches (
     niveau INT NOT NULL,
     id_user INT REFERENCES users(id_user) ON DELETE CASCADE,
     id_projet INT REFERENCES projets(id_projet) ON DELETE CASCADE,
-    departement VARCHAR(100),
+    departement VARCHAR(100),--###
     echeance INT not null,
     dateDebut DATE not null,
-    status VARCHAR(50) DEFAULT 'En attente',
+    status VARCHAR(50) DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -51,7 +52,7 @@ CREATE TABLE permissions (
     dateDebut DATE,
     dateFin DATE,
     motif VARCHAR(255),
-    status BOOLEAN DEFAULT FALSE,
+    status VARCHAR(50) DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT NOW()
 );
 

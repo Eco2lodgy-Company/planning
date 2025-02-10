@@ -77,10 +77,18 @@ export default function SIDEBAR() {
                 </li>
                 <li>
                   <a
-                    href="/admin/users"
+                    href="/admin/rapport"
                     className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
                   >
                     <Users /> Utilisateurs
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/admin/users"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
+                  >
+                    <Users /> Rapport
                   </a>
                 </li>
                 <li>

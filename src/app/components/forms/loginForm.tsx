@@ -37,8 +37,12 @@ export default function LoginForm() {
       const result = await response.json();
 
       if (response.ok) {
+        
         console.log("Connexion réussie :", result);
-        const { role } = result.user;
+        const { role, id_user } = result.user;
+
+      // Stocker l'ID dans le Local Storage
+      localStorage.setItem("userId", id_user);
 
         if (role === "admin") {
           router.push("/admin"); // Redirige vers le tableau de bord admin
