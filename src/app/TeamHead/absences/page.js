@@ -11,7 +11,6 @@ const sampleAbsences = [
   { id: 2, employe: 'Marie Martin', date: '2024-01-15', raison: 'Vacances' }
 ];
 
-const employees = ['Jean Dupont', 'Marie Martin', 'Paul Durand', 'Sophie Leroy'];
 
 export default function AbsenceListPage() {
   const [loading, setLoading] = useState(true);
@@ -58,14 +57,31 @@ export default function AbsenceListPage() {
       return;
     }
     setSubmitting(true);
-    setTimeout(() => {
-      setAbsences([...absences, { id: absences.length + 1, ...newAbsence }]);
-      toast.success('Absence ajoutée avec succès');
-      setShowModal(false);
-      setNewAbsence({ employe: '', date: '', raison: '' });
-      setSubmitting(false);
-    }, 1500);
+  
+    // Envoi des données à l'API
+    fetch('/api/headside/absences/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newAbsence), // Envoi des données sous forme de JSON
+    })
+      .then(response => response.json()) // Assurer que la réponse soit au format JSON
+      .then(data => {
+        // Après avoir reçu une réponse positive de l'API
+        //setAbsences([...absences, { id: data.id, ...newAbsence }]); // Utilise l'ID de la réponse
+        toast.success('Absence ajoutée avec succès');
+        setShowModal(false);
+        setNewAbsence({ employe: '', date: '', raison: '' });
+        setSubmitting(false);
+      })
+      .catch(error => {
+        // En cas d'erreur dans l'envoi des données
+        toast.error('Erreur lors de l\'ajout de l\'absence');
+        setSubmitting(false);
+      });
   };
+  
 
   return (
     <div className="flex flex-col h-screen bg-gray-100 p-6">
