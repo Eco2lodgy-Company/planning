@@ -33,7 +33,7 @@ export default function RespSidebar() {
       </h1>
       <nav className="mt-8 space-y-4">
         {navigationItems.map((item) => {
-          const Icon = item.icon; // Convertir en composant
+          const Icon = item.icon; 
           return (
             <Link
               key={item.name}

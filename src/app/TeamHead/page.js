@@ -25,10 +25,12 @@ import {
 export default function TeamLeaderDashboard() {
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
-
+  const [user, setLocalUser] = useState('');
   useEffect(() => {
+    setLocalUser(localStorage.getItem('userId'));
     const timer = setTimeout(() => setLoading(false), 1200);
     return () => clearTimeout(timer);
+
   }, []);
 
   const tasks = {
@@ -73,7 +75,7 @@ export default function TeamLeaderDashboard() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="flex items-center justify-between p-6 bg-white shadow">
-          <h2 className="text-xl font-bold text-gray-800">Vue d'ensemble du département</h2>
+          <h2 className="text-xl font-bold text-gray-800">Vue d'ensemble du département {user}</h2>
           <button className="py-2 px-4 flex items-center gap-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
             <PlusCircle aria-hidden="true" /> Nouvelle tâche
           </button>

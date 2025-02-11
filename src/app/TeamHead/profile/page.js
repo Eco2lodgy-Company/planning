@@ -11,22 +11,31 @@ export default function ProfilePage() {
   const pathname = usePathname();
 
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState({
-    id: '1',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    role: 'Administrateur',
-    joinedDate: '2023-01-15',
-    lastLogin: '2024-03-15',
-  });
+  const [user, setUser] = useState([]);
+  const [userId, setUserId] = useState('');
+
+
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(user.name);
   const [editedEmail, setEditedEmail] = useState(user.email);
-
+const userIdd=localStorage.getItem('userId');
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
+    
+    const fetchAgents = async () => {
+      try {
+        const response = await fetch('/api/profile/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setUser(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAgents();
   }, []);
 
   const handleEdit = () => {
@@ -80,7 +89,7 @@ export default function ProfilePage() {
                     className="border rounded p-2"
                   />
                 ) : (
-                  <span className="text-gray-800">{user.name}</span>
+                  <span className="text-gray-800">{user.nom_complet}</span>
                 )}
               </div>
               <div className="flex items-center">
@@ -93,7 +102,7 @@ export default function ProfilePage() {
                     className="border rounded p-2"
                   />
                 ) : (
-                  <span className="text-gray-800">{user.email}</span>
+                  <span className="text-gray-800">{user.mail}</span>
                 )}
               </div>
               <div className="flex items-center">
@@ -102,7 +111,7 @@ export default function ProfilePage() {
               </div>
               <div className="flex items-center">
                 <Calendar className="w-5 h-5 mr-2 text-gray-600" />
-                <span className="text-gray-800">Membre depuis le {user.joinedDate}</span>
+                <span className="text-gray-800">Membre depuis le {user.created_at}</span>
               </div>
               <div className="flex items-center">
                 <CircleCheckBig className="w-5 h-5 mr-2 text-gray-600" />
