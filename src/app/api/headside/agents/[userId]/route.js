@@ -1,4 +1,4 @@
-import { supabase } from "../../../../lib/SupabaseClient";
+import { supabase } from "@/lib/SupabaseClient";
 import { NextResponse } from "next/server";
 
 export async function GET(req, { params }) {
@@ -10,10 +10,7 @@ export async function GET(req, { params }) {
 
     try {
         const { data, error } = await supabase
-            .from("users")
-            .select("*")
-            .eq("id_user", userId)
-            .single();
+            .rpc('get_users_by_responsable', {p_id_user: userId});
 
         if (error) {
             return NextResponse.json({ error: error.message }, { status: 500 });

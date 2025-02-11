@@ -12,11 +12,12 @@ const statusColors = {
 export default function AgentListPage() {
   const [loading, setLoading] = useState(true);
   const [agents, setAgents] = useState([]);
+  const userIdd=localStorage.getItem('userId');
 
   useEffect(() => {
     const fetchAgents = async () => {
       try {
-        const response = await fetch('/api/headside/agents');
+        const response = await fetch('/api/headside/agents/'+userIdd);
         if (!response.ok) throw new Error('Erreur lors de la récupération des agents');
         const data = await response.json();
         setAgents(data);
