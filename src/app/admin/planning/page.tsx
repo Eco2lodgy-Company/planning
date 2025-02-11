@@ -1,209 +1,216 @@
 "use client";
 
-import { useState } from "react";
-import { Calendar, Home, Menu, Plus, Settings, Users, X } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useState, useEffect, useMemo } from "react";
+import { format, startOfWeek, addDays, parseISO } from "date-fns";
+import { fr } from "date-fns/locale";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
 
-const daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
-const employees = ["Alice", "Bob", "Charlie", "Diana", "Eve"];
+interface Task {
+  id: number;
+  libelle: string;
+  niveau: number;
+  id_user: number | null;
+  id_projet: number | null;
+  departement: string | null;
+  echeance: number;
+  datedebut: string;
+  status: string;
+}
 
-export default function Planning() {
-  const [tasks, setTasks] = useState([]);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+interface User {
+  id_user: number;
+  nom_complet: string;
+}
 
-  const [newTask, setNewTask] = useState({
-    employee: employees[0],
-    day: daysOfWeek[0],
-    title: "",
-    difficulty: "Facile",
-    startDate: "",
-    duration: "",
-  });
+export default function Calendar() {
+  const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAddTask = () => {
-    setTasks([...tasks, newTask]);
-    setNewTask({
-      employee: employees[0],
-      day: daysOfWeek[0],
-      title: "",
-      difficulty: "Facile",
-      startDate: "",
-      duration: "",
+  // Fetch a single user by id_user
+  const fetchUser = async (id_user: number) => {
+    try {
+      const response = await fetch("/api/users/byid", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_user }),
+      });
+      const result = await response.json();
+      if (response.ok) {
+        return result.user;
+      } else {
+        console.error(`Erreur pour id_user ${id_user}:`, result.message);
+        return { id_user, nom_complet: "Utilisateur inconnu" };
+      }
+    } catch (error) {
+      console.error(`Erreur réseau pour id_user ${id_user}:`, error);
+      return { id_user, nom_complet: "Erreur réseau" };
+    }
+  };
+
+  // Fetch all unique users for tasks
+  const fetchUsersForTasks = async (tasks: Task[]) => {
+    const uniqueIds = [...new Set(tasks.map((task) => task.id_user).filter(Boolean))];
+    const usersData = await Promise.all(uniqueIds.map((id) => fetchUser(id as number)));
+    return usersData;
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+
+        // Fetch tasks
+        const tasksResponse = await fetch("/api/tache");
+        const tasksResult = await tasksResponse.json();
+        if (tasksResult.data) setTasks(tasksResult.data);
+
+        // Fetch users for tasks
+        const usersData = await fetchUsersForTasks(tasksResult.data || []);
+        setUsers(usersData);
+      } catch (error) {
+        setError("Erreur lors de la récupération des données.");
+        toast.error("Erreur lors de la récupération des données.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const tasksByDay = useMemo(() => {
+    const result: { [date: string]: Task[] } = {};
+    tasks.forEach((task) => {
+      const taskDate = parseISO(task.datedebut);
+      const dateKey = format(taskDate, "yyyy-MM-dd");
+      if (!result[dateKey]) {
+        result[dateKey] = [];
+      }
+      result[dateKey].push(task);
     });
-    setIsPopoverOpen(false);
+    return result;
+  }, [tasks]);
+
+  const getWeekDays = () => {
+    const start = startOfWeek(currentWeek, { weekStartsOn: 1 });
+    return Array.from({ length: 5 }).map((_, i) => addDays(start, i));
+  };
+
+  const getTasksForDay = (date: Date) => {
+    const dateKey = format(date, "yyyy-MM-dd");
+    return tasksByDay[dateKey] || [];
+  };
+
+  const getPriorityColor = (niveau: number) => {
+    switch (niveau) {
+      case 1:
+        return "bg-red-100 border-red-200";
+      case 2:
+        return "bg-orange-100 border-orange-200";
+        default:
+        return "bg-green-100 border-green-200";
+      
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "bg-green-500";
+      case "in_progress":
+        return "bg-blue-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
+  const getUserName = (userId: number | null) => {
+    const user = users.find((user) => user.id_user === userId);
+    return user ? user.nom_complet : "Utilisateur inconnu";
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      
+    <div className="flex flex-col h-screen bg-gray-50">
+      <header className="bg-white shadow-sm px-6 py-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">Calendrier des Tâches</h1>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setCurrentWeek((prev) => addDays(prev, -7))}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <span className="font-medium">
+              Semaine du {format(getWeekDays()[0], "d MMMM yyyy", { locale: fr })}
+            </span>
+            <button
+              onClick={() => setCurrentWeek((prev) => addDays(prev, 7))}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </header>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="h-16 bg-white shadow-md flex items-center justify-between px-6">
-          <h1 className="text-lg font-bold">Planning Hebdomadaire</h1>
-          <button
-            onClick={() => setIsPopoverOpen(true)}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
-          >
-            <Plus /> Ajouter une Tâche
-          </button>
-        </header>
-
-        <div className="flex flex-1">
-          {/* Employees List */}
-          {/* <aside className="w-48 bg-white shadow-md flex flex-col">
-            <h2 className="text-lg font-semibold p-4 border-b">Employés</h2>
-            <ul className="flex-1 overflow-auto">
-              {employees.map((employee, index) => (
-                <li
-                  key={index}
-                  className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+      <div className="flex-1 overflow-auto p-6">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        ) : error ? (
+          <div className="flex justify-center items-center h-full">
+            <p className="text-red-500">{error}</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow">
+            <div className="grid grid-cols-6 border-b">
+              {getWeekDays().map((day) => (
+                <div
+                  key={day.toString()}
+                  className="p-4 font-medium text-gray-500 text-center border-r"
                 >
-                  {employee}
-                </li>
-              ))}
-            </ul>
-          </aside> */}
-
-          {/* Tasks Table */}
-          <main className="flex-1 p-4">
-            <div className="grid grid-cols-5 gap-2">
-              {daysOfWeek.map((day, dayIndex) => (
-                <div key={dayIndex} className="bg-white shadow-md rounded-lg">
-                  <h2 className="text-center bg-gray-200 py-2 font-semibold">
-                    {day}
-                  </h2>
-                  <div className="p-2 space-y-2">
-                    {tasks
-                      .filter((task) => task.day === day)
-                      .map((task, index) => (
-                        <div
-                          key={index}
-                          className={`p-2 rounded-lg text-white ${
-                            task.difficulty === "Facile"
-                              ? "bg-green-500"
-                              : task.difficulty === "Moyenne"
-                              ? "bg-orange-500"
-                              : "bg-red-500"
-                          }`}
-                        >
-                          <p className="font-bold">{task.title}</p>
-                          <p className="text-sm">{task.employee}</p>
-                          <p className="text-xs">
-                            {task.startDate} | {task.duration} jours
-                          </p>
-                        </div>
-                      ))}
-                  </div>
+                  {format(day, "EEEE d/MM", { locale: fr })}
                 </div>
               ))}
             </div>
-          </main>
-        </div>
-      </div>
 
-      {/* Popover for Adding Task */}
-      {isPopoverOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-lg font-bold mb-4">Ajouter une Tâche</h2>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleAddTask();
-              }}
-              className="space-y-4"
-            >
-              <select
-                className="w-full p-2 border rounded"
-                value={newTask.employee}
-                onChange={(e) =>
-                  setNewTask({ ...newTask, employee: e.target.value })
-                }
-                required
-              >
-                {employees.map((employee, index) => (
-                  <option key={index} value={employee}>
-                    {employee}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="w-full p-2 border rounded"
-                value={newTask.day}
-                onChange={(e) =>
-                  setNewTask({ ...newTask, day: e.target.value })
-                }
-                required
-              >
-                {daysOfWeek.map((day, index) => (
-                  <option key={index} value={day}>
-                    {day}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="text"
-                placeholder="Titre de la tâche"
-                className="w-full p-2 border rounded"
-                value={newTask.title}
-                onChange={(e) =>
-                  setNewTask({ ...newTask, title: e.target.value })
-                }
-                required
-              />
-              <select
-                className="w-full p-2 border rounded"
-                value={newTask.difficulty}
-                onChange={(e) =>
-                  setNewTask({ ...newTask, difficulty: e.target.value })
-                }
-                required
-              >
-                <option value="Facile">Facile</option>
-                <option value="Moyenne">Moyenne</option>
-                <option value="Difficile">Difficile</option>
-              </select>
-              <input
-                type="date"
-                className="w-full p-2 border rounded"
-                value={newTask.startDate}
-                onChange={(e) =>
-                  setNewTask({ ...newTask, startDate: e.target.value })
-                }
-                required
-              />
-              <input
-                type="number"
-                placeholder="Durée (jours)"
-                className="w-full p-2 border rounded"
-                value={newTask.duration}
-                onChange={(e) =>
-                  setNewTask({ ...newTask, duration: e.target.value })
-                }
-                required
-              />
-              <div className="flex justify-end space-x-4">
-                <button
-                  type="button"
-                  onClick={() => setIsPopoverOpen(false)}
-                  className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
-                  Ajouter
-                </button>
-              </div>
-            </form>
+            <div className="grid grid-cols-6 border-b">
+              {getWeekDays().map((day) => {
+                const dayTasks = getTasksForDay(day);
+                return (
+                  <div key={day.toString()} className="p-2 border-r min-h-[120px]">
+                    {dayTasks.map((task) => (
+                      <div
+                        key={task.id}
+                        className={`mb-2 p-2 rounded border ${getPriorityColor(task.niveau)}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">{task.libelle}</span>
+                          <span
+                            className={`w-2 h-2 rounded-full ${getStatusColor(task.status)}`}
+                          />
+                        </div>
+                        <span className="text-xs text-gray-500 block mt-1">
+                          {getUserName(task.id_user)}
+                        </span>
+                        {task.departement && (
+                          <span className="text-xs text-gray-500">{task.departement}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
