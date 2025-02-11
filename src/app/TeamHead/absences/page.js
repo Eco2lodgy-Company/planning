@@ -2,7 +2,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { PlusCircle, X, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 const sampleAbsences = [
   { id: 1, employe: 'Jean Dupont', date: '2024-02-01', raison: 'Congé maladie' },
@@ -17,11 +19,33 @@ export default function AbsenceListPage() {
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [newAbsence, setNewAbsence] = useState({ employe: '', date: '', raison: '' });
+  const [agents, setAgents] = useState([]);
+
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
-  }, []);
+
+      const timer = setTimeout(() => setLoading(false), 1200);
+      return () => clearTimeout(timer);
+    }, []);
+
+
+    useEffect(() => {
+      const userIdd=localStorage.getItem('userId');
+      const fetchAgents = async () => {
+        try {
+          const response = await fetch('/api/headside/agents/'+userIdd);
+          if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+          const data = await response.json();
+          setAgents(data);
+        } catch (error) {
+          toast.error(error.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchAgents();
+    },[]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -101,8 +125,8 @@ export default function AbsenceListPage() {
                 className="border p-2 rounded-md w-full"
               >
                 <option value="">Sélectionner un employé</option>
-                {employees.map((emp, index) => (
-                  <option key={index} value={emp}>{emp}</option>
+                {agents.map((emp, index) => (
+                  <option key={index} value={emp.id_user}>{emp.nom_complet}</option>
                 ))}
               </select>
               <input 
@@ -133,6 +157,8 @@ export default function AbsenceListPage() {
           </motion.div>
         </div>
       )}
+            <ToastContainer />
+
     </div>
   );
 }
