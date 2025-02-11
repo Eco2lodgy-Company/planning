@@ -6,15 +6,15 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 
-const sampleAbsences = [
-  { id: 1, employe: 'Jean Dupont', date: '2024-02-01', raison: 'Congé maladie' },
-  { id: 2, employe: 'Marie Martin', date: '2024-01-15', raison: 'Vacances' }
-];
+// const sampleAbsences = [
+//   { id: 1, employe: 'Jean Dupont', date: '2024-02-01', raison: 'Congé maladie' },
+//   { id: 2, employe: 'Marie Martin', date: '2024-01-15', raison: 'Vacances' }
+// ];
 
 
 export default function AbsenceListPage() {
   const [loading, setLoading] = useState(true);
-  const [absences, setAbsences] = useState(sampleAbsences);
+  const [absences, setAbsences] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [newAbsence, setNewAbsence] = useState({ employe: '', date: '', raison: '' });
@@ -30,6 +30,7 @@ export default function AbsenceListPage() {
 
     useEffect(() => {
       const userIdd=localStorage.getItem('userId');
+
       const fetchAgents = async () => {
         try {
           const response = await fetch('/api/headside/agents/'+userIdd);
@@ -44,6 +45,30 @@ export default function AbsenceListPage() {
       };
   
       fetchAgents();
+    },[]);
+
+
+    //recuperation et affichage des abscences
+
+
+    useEffect(() => {
+      const userIdd=localStorage.getItem('userId');
+
+      const fetchAbsence = async () => {
+        try {
+          const response = await fetch('/api/headside/absences/'+userIdd);
+          toast.success(userIdd);
+          if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+          const data = await response.json();
+          setAbsences(data);
+        } catch (error) {
+          toast.error(error.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchAbsence();
     },[]);
 
   const handleInputChange = (e) => {
@@ -109,9 +134,9 @@ export default function AbsenceListPage() {
             <tbody>
               {absences.map((absence) => (
                 <tr key={absence.id} className="border-t">
-                  <td className="px-4 py-2">{absence.employe}</td>
-                  <td className="px-4 py-2">{absence.date}</td>
-                  <td className="px-4 py-2">{absence.raison}</td>
+                  <td className="px-4 py-2">{absence.nom_complet}</td>
+                  <td className="px-4 py-2">{absence.date_absence}</td>
+                  <td className="px-4 py-2">{absence.motif}</td>
                 </tr>
               ))}
             </tbody>
