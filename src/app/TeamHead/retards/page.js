@@ -22,11 +22,11 @@ export default function RetardListPage() {
     const timer = setTimeout(() => setLoading(false), 1200);
     return () => clearTimeout(timer);
   }, []);
-
+const userIdd=localStorage.getItem('userId');
   useEffect(() => {
     const fetchAgents = async () => {
       try {
-        const response = await fetch('/api/headside/agents');
+        const response = await fetch('/api/headside/agents/'+userIdd);
         if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
         const data = await response.json();
         setUserList(data);
