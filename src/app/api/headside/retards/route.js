@@ -34,3 +34,19 @@ export async function POST(request) {
     return NextResponse.json({ message: "Erreur lors de l'ajout du retard" }, { status: 500 });
   }
 }
+
+
+export async function GET() {
+  try {
+    const { data, error } = await supabase
+    .rpc('get_retards');
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(data, { status: 200 });
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}

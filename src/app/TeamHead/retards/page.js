@@ -5,36 +5,16 @@ import { PlusCircle } from 'lucide-react';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Liste des employés (exemple)
-const employees = [
-  { id: 'A001', name: 'Jean Dupont' },
-  { id: 'A002', name: 'Marie Martin' },
-  { id: 'A003', name: 'Paul Durand' },
-];
 
 // Données d'exemple pour les retards
-const sampleDelays = [
-  {
-    id: 1,
-    employe: 'Jean Dupont',
-    date: '2024-02-01',
-    minutes: 15,
-    motif: 'Embouteillage',
-  },
-  {
-    id: 2,
-    employe: 'Marie Martin',
-    date: '2024-02-05',
-    minutes: 10,
-    motif: 'Panne de voiture',
-  }
-];
+
 
 export default function RetardListPage() {
   const [loading, setLoading] = useState(true);
-  const [delays, setDelays] = useState(sampleDelays);
+  //const [lateList, setlateList] = useState(samplelateList);
   const [showModal, setShowModal] = useState(false);
   const [usersList, setUserList] = useState([]);
+  const [lateList, setLateList] = useState([]);
   const [newDelay, setNewDelay] = useState({ employe: '', date: '', minutes: '', motif: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);  // Ajouter un état pour la soumission
 
@@ -58,6 +38,25 @@ export default function RetardListPage() {
     };
 
     fetchAgents();
+  },[]);
+
+
+
+  useEffect(() => {
+    const fetchLate = async () => {
+      try {
+        const response = await fetch('/api/headside/retards');
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setLateList(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLate();
   },[]);
 
   const handleAddDelay = async () => {
@@ -85,7 +84,7 @@ export default function RetardListPage() {
 
       // Ajouter le retard à la liste locale si la requête réussie
       const data = await response.json();
-      setDelays([...delays, { ...data, id: delays.length + 1 }]);
+      //setlateList([...lateList, { ...data, id: lateList.length + 1 }]);
 
       toast.success('Retard ajouté avec succès');
       setShowModal(false);
@@ -122,11 +121,11 @@ export default function RetardListPage() {
               </tr>
             </thead>
             <tbody>
-              {delays.map((delay) => (
+              {lateList.map((delay) => (
                 <tr key={delay.id} className="border-t">
-                  <td className="px-4 py-2">{delay.employe}</td>
-                  <td className="px-4 py-2">{delay.date}</td>
-                  <td className="px-4 py-2">{delay.minutes}</td>
+                  <td className="px-4 py-2">{delay.nomcomplet}</td>
+                  <td className="px-4 py-2">{delay.date_retard}</td>
+                  <td className="px-4 py-2">{delay.temps}</td>
                   <td className="px-4 py-2">{delay.motif}</td>
                 </tr>
               ))}
