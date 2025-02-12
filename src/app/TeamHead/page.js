@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import {
   Home,
@@ -26,12 +28,18 @@ export default function TeamLeaderDashboard() {
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
   const [user, setLocalUser] = useState('');
+
   useEffect(() => {
     setLocalUser(localStorage.getItem('userId'));
     const timer = setTimeout(() => setLoading(false), 1200);
+    
     return () => clearTimeout(timer);
 
   }, []);
+
+
+
+
 
   const tasks = {
     enCours: 8,
@@ -45,7 +53,6 @@ export default function TeamLeaderDashboard() {
     disponibles: 8,
     enConges: 4
   };
-
   const projects = {
     enCours: 5,
     termines: 3,
@@ -60,7 +67,6 @@ export default function TeamLeaderDashboard() {
     { id: 4, title: "Test qualité", status: "En cours", deadline: "2024-03-19", priority: "Basse" },
     { id: 5, title: "Documentation API", status: "En cours", deadline: "2024-03-22", priority: "Moyenne" }
   ];
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-transparent">
@@ -68,7 +74,6 @@ export default function TeamLeaderDashboard() {
       </div>
     );
   }
-
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Main Content */}
@@ -262,6 +267,8 @@ export default function TeamLeaderDashboard() {
           </motion.div>
         </motion.main>
       </div>
+      <ToastContainer />
+
     </div>
   );
 }

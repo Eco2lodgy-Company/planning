@@ -36,28 +36,51 @@ export default function LoginForm() {
 
       const result = await response.json();
 
-      if (response.ok) {
-        
-        console.log("Connexion réussie :", result);
-        const { role, id_user } = result.user;
+      if (!response.ok) {
+        throw new Error(result.message || "Échec de la connexion");
+      }
+
+      console.log("Connexion réussie :", result);
+
+      if (!result.user) {
+        throw new Error("Données utilisateur invalides");
+      }
+
+      const { role, id_user } = result.user;
 
       // Stocker l'ID dans le Local Storage
       localStorage.setItem("userId", id_user);
 
-        if (role === "admin") {
-          router.push("/admin"); // Redirige vers le tableau de bord admin
-        } else if (role === "resp") {
-          router.push("/TeamHead"); // Redirige vers la page d'accueil utilisateur
-        } else {
-          router.push("/employees"); // Redirige vers une page par défaut si nécessaire
-        }
-      } else {
-        console.error("Erreur :", result.message);
-        setError(result.message); // Affichez le message d'erreur
+      // Envoi des logs
+      const logResponse = await fetch("/api/logs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id_user: id_user }), // Correction ici
+      });
+      
+
+      if (!logResponse.ok) {
+        const errorData = await logResponse.json();
+        throw new Error(errorData.message || "Erreur lors de l'ajout aux logs");
+      }
+
+      // Redirection en fonction du rôle
+      switch (role) {
+        case "admin":
+          router.push("/admin");
+          break;
+        case "resp":
+          router.push("/TeamHead");
+          break;
+        default:
+          router.push("/employees");
+          break;
       }
     } catch (err) {
       console.error("Erreur lors de la requête :", err);
-      setError("Une erreur est survenue. Veuillez réessayer.");
+      setError(err.message || "Une erreur est survenue. Veuillez réessayer.");
     }
   };
 

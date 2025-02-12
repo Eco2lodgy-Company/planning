@@ -14,8 +14,13 @@
     "@fullcalendar/react": "^6.1.15",
     "@heroicons/react": "^1.0.6",
     "@shadcn/ui": "^0.0.4",
+<<<<<<< HEAD
     "@supabase/supabase-js": "^2.48.1",
     "date-fns": "^4.1.0",
+=======
+    "date-fns": "^4.1.0",
+    "@supabase/supabase-js": "^2.48.1",
+>>>>>>> 2bb71b5ea78da9ae7425fcf52b0dbec021931c11
     "framer-motion": "^12.1.0",
     "fullcalendar": "^6.1.15",
     "jspdf": "^2.5.2",

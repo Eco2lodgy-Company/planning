@@ -13,15 +13,12 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState([]);
   const [userId, setUserId] = useState('');
-
-
-
+  const [lastLogin, setLastLogin] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(user.name);
   const [editedEmail, setEditedEmail] = useState(user.email);
-const userIdd=localStorage.getItem('userId');
   useEffect(() => {
-    
+    const userIdd=localStorage.getItem('userId');
     const fetchAgents = async () => {
       try {
         const response = await fetch('/api/profile/' + userIdd);
@@ -37,6 +34,28 @@ const userIdd=localStorage.getItem('userId');
 
     fetchAgents();
   }, []);
+
+  //recuperation et affichage de la dernière date et heure du login
+
+  useEffect(() => {
+    const userIdd=localStorage.getItem('userId');
+      const lastLogin = async () => {
+        try {
+          const response = await fetch('/api/logs/'+userIdd);
+          if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+          const data = await response.json();
+          setLastLogin(data);
+        } catch (error) {
+          toast.error(error.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      lastLogin();
+    },[]);
+
+
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -115,7 +134,7 @@ const userIdd=localStorage.getItem('userId');
               </div>
               <div className="flex items-center">
                 <CircleCheckBig className="w-5 h-5 mr-2 text-gray-600" />
-                <span className="text-gray-800">Dernière connexion le {user.lastLogin}</span>
+                <span className="text-gray-800">Dernière connexion le {lastLogin}</span>
               </div>
             </div>
             <div className="mt-6">
