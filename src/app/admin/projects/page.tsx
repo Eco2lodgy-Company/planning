@@ -66,6 +66,7 @@ export default function Projects() {
                 body: JSON.stringify({ id_user: project.chef_projet }),
               });
               const chefProjetData = await chefProjetResponse.json();
+              // console.log(chefProjetData)
               return {
                 ...project,
                 chef_projet: chefProjetData.user.nom_complet, // Remplacer l'ID par le nom complet
@@ -89,10 +90,9 @@ export default function Projects() {
     try {
       const response = await fetch("/api/users");
       const result = await response.json();
-
-      if (result.data) {
-        console.log(result)
-        setUsers(result.data);
+      console.log("Utilisateurs récupérés:", result); // Log pour vérifier les données
+      if (result) {
+        setUsers(result);
       }
     } catch (error) {
       toast.error("Erreur lors du chargement des utilisateurs");

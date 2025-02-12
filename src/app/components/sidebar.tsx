@@ -34,7 +34,7 @@ export default function SIDEBAR() {
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             transition={{ type: "spring", stiffness: 100, damping: 20 }}
-            className="fixed lg:static z-40 w-64 bg-white dark:bg-gray-900 text-gray-800 dark:text-white shadow-lg h-screen"
+            className="fixed lg:static z-50 w-64 bg-white dark:bg-gray-900 text-gray-800 dark:text-white shadow-lg h-screen"
           >
             <div className="p-6 flex items-center justify-between">
               {/* Titre de la sidebar */}
