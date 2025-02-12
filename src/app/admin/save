@@ -24,8 +24,8 @@ function App() {
     { title: "Projets terminés", value: 0, color: "bg-green-500" },
     { title: "Heures travaillées", value: 0, color: "bg-purple-500" },
   ]);
-  // const [projectData, setProjectData] = useState([]);
-  // const [workloadData, setWorkloadData] = useState([]);
+  const [projectData, setProjectData] = useState([]);
+  const [workloadData, setWorkloadData] = useState([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -49,11 +49,11 @@ function App() {
         ]);
 
         // Update project status data
-        // setProjectData(projectStatusRes);
-        // console.log(projectStatusRes)
+        setProjectData(projectStatusRes);
+        console.log(projectStatusRes)
         // Update workload evolution data
-        // setWorkloadData(workloadEvolutionRes);
-        console.log()
+        setWorkloadData(workloadEvolutionRes);
+        console.log(workloadEvolutionRes)
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         // In case of error, we'll keep the initial static data
@@ -64,21 +64,7 @@ function App() {
 
     fetchDashboardData();
   }, []);
-  const projectData = [
-    { name: "Projets terminés", value: 8 },
-    { name: "Projets en cours", value: 5 },
-    { name: "Projets en attente", value: 2 },
-  ];
 
-  const workloadData = [
-    { name: "Lundi", Tâches: 10, Complétées: 0 },
-    { name: "Mardi", Tâches: 12, Complétées: 0 },
-    { name: "Mercredi", Tâches: 15, Complétées: 0 },
-    { name: "Jeudi", Tâches: 8, Complétées: 0 },
-    { name: "Vendredi", Tâches: 20, Complétées: 15 },
-    { name: "Samedi", Tâches: 5, Complétées: 4 },
-    { name: "Dimanche", Tâches: 2, Complétées: 1 },
-  ];
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
