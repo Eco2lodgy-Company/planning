@@ -8,11 +8,11 @@ export default function RedirectPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simule un petit délai avant la redirection (optionnel)
+    // Simule un petit délai avant la redirection 
     const timer = setTimeout(() => {
       setLoading(false);
-      router.push("/login"); // Remplace "/login" par l'URL cible
-    }, 2000); // 2 secondes de chargement (ajuste selon ton besoin)
+      router.push("/login"); 
+    }, 2000); 
 
     return () => clearTimeout(timer); // Nettoyage du timer si le composant est démonté
   }, []);
