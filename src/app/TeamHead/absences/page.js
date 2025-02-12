@@ -59,7 +59,7 @@ export default function AbsenceListPage() {
       const fetchAbsence = async () => {
         try {
           const response = await fetch('/api/headside/absences/'+userIdd);
-          toast.success(userIdd);
+        
           if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
           const data = await response.json();
           setAbsences(data);
