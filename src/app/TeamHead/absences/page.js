@@ -20,6 +20,9 @@ export default function AbsenceListPage() {
   const [newAbsence, setNewAbsence] = useState({ employe: '', date: '', raison: '' });
   const [agents, setAgents] = useState([]);
 
+  const userIdd = localStorage.getItem('userId');
+
+  
 
   useEffect(() => {
 
@@ -29,7 +32,6 @@ export default function AbsenceListPage() {
 
 
     useEffect(() => {
-      const userIdd=localStorage.getItem('userId');
 
       const fetchAgents = async () => {
         try {
@@ -107,7 +109,13 @@ export default function AbsenceListPage() {
       });
   };
   
-
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-transparent">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col h-screen bg-gray-100 p-6">
       <header className="flex items-center justify-between p-4 bg-white shadow rounded-md">
