@@ -6,15 +6,16 @@ import { toast } from 'sonner';
 
 const statusColors = {
   'Actif': 'bg-green-100 text-green-800',
-  'Inactif': 'bg-gray-100 text-gray-800'
+  'Inactif': 'bg-gray-100 text-red-800'
 };
 
 export default function AgentListPage() {
   const [loading, setLoading] = useState(true);
   const [agents, setAgents] = useState([]);
-  const userIdd=localStorage.getItem('userId');
+  
 
   useEffect(() => {
+    const userIdd=localStorage.getItem('userId');
     const fetchAgents = async () => {
       try {
         const response = await fetch('/api/headside/agents/'+userIdd);
