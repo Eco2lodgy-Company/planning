@@ -16,8 +16,11 @@
     "@shadcn/ui": "^0.0.4",
     "@supabase/supabase-js": "^2.48.1",
     "date-fns": "^4.1.0",
+<<<<<<< HEAD
     "date-fns": "^4.1.0",
     "@supabase/supabase-js": "^2.48.1",
+=======
+>>>>>>> 2199f5e000b5b5005524d526606e866e4547bb15
     "framer-motion": "^12.1.0",
     "fullcalendar": "^6.1.15",
     "jspdf": "^2.5.2",

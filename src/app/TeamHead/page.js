@@ -27,7 +27,10 @@ import {
 export default function TeamLeaderDashboard() {
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
+  const [userData, setUserData] = useState([]);
   const [user, setLocalUser] = useState('');
+  const [toastShown, setToastShown] = useState(false); // Nouvelle variable pour empêcher le double affichage
+
 
   useEffect(() => {
     setLocalUser(localStorage.getItem('userId'));
@@ -36,6 +39,36 @@ export default function TeamLeaderDashboard() {
     return () => clearTimeout(timer);
 
   }, []);
+
+  //recuperation des information de l'utilisateur connecté
+  useEffect(() => {
+    
+    const userIdd=localStorage.getItem('userId');
+    const connectedUser = async () => {
+      try {
+        const response = await fetch('/api/profile/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setUserData(data);
+        
+
+        if (!toastShown) {
+          toast.success(`bienvenu dans le systeme`);
+          toast.success(`Vous êtes connecter en tant que ${data.nom_complet}`);
+          setToastShown(true);
+        }
+
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    connectedUser();
+
+  },[toastShown]); 
+  
 
 
 
@@ -80,7 +113,7 @@ export default function TeamLeaderDashboard() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="flex items-center justify-between p-6 bg-white shadow">
-          <h2 className="text-xl font-bold text-gray-800">Vue d'ensemble du département {user}</h2>
+          <h2 className="text-xl font-bold text-gray-800">Bienvenue  {userData.nom_complet}</h2>
           <button className="py-2 px-4 flex items-center gap-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
             <PlusCircle aria-hidden="true" /> Nouvelle tâche
           </button>
@@ -268,7 +301,7 @@ export default function TeamLeaderDashboard() {
         </motion.main>
       </div>
       <ToastContainer />
-
+      
     </div>
   );
 }
