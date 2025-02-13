@@ -1,8 +1,8 @@
-"use client";
+"use client"
 import { useState, useEffect, useMemo } from "react";
 import { format, startOfWeek, addDays, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
 import { saveAs } from "file-saver";
@@ -13,7 +13,7 @@ interface Rapport {
   blockage: string;
   solution: string;
   date: string;
-  temps: boolean; // true pour matin, false pour soir
+  temps: boolean;
   userId: number | null;
 }
 
@@ -112,8 +112,7 @@ export default function WeeklyReports() {
 
   const getWeekDays = () => {
     const start = startOfWeek(currentWeek, { weekStartsOn: 1 });
-    const days = Array.from({ length: 5 }).map((_, i) => addDays(start, i)); // Se limitant à 5 jours
-    return days;
+    return Array.from({ length: 5 }).map((_, i) => addDays(start, i));
   };
 
   const getReportsForDay = (date: Date) => {
@@ -127,11 +126,14 @@ export default function WeeklyReports() {
   };
 
   const exportToCSV = () => {
-    const csvContent = "data:text/csv;charset=utf-8,"
-      + "ID,Tâches,Blocage,Solution,Date,Temps,Utilisateur\n"
-      + filteredReports.map(report =>
-        `${report.id},${report.taches},${report.blockage},${report.solution},${report.date},${report.temps ? "Matin" : "Soir"},${getUserName(report.userId)}`
-      ).join("\n");
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "ID,Tâches,Blocage,Solution,Date,Temps,Utilisateur\n" 
+      + filteredReports.map(report => 
+          `${report.id},${report.taches || "Non spécifiées"},${report.blockage || "Aucun"},` +
+          `${report.solution || "Aucune"},${report.date || "Non spécifiée"},` +
+          `${report.temps ? "Matin" : "Soir"},${getUserName(report.userId) || "Non assigné"}`
+        ).join("\n");
+  
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -139,23 +141,33 @@ export default function WeeklyReports() {
     document.body.appendChild(link);
     link.click();
   };
-
+  
   const exportToPDF = () => {
     const doc = new jsPDF();
     doc.text("Rapports Hebdomadaires", 10, 10);
+  
     let y = 20;
+  
     filteredReports.forEach(report => {
+      if (y > 280) {
+        doc.addPage();
+        y = 20;
+      }
+  
       doc.text(`ID: ${report.id}`, 10, y);
-      doc.text(`Tâches: ${report.taches}`, 10, y + 10);
-      doc.text(`Blocage: ${report.blockage}`, 10, y + 20);
-      doc.text(`Solution: ${report.solution}`, 10, y + 30);  {/* Ajout du champ Solution */}
-      doc.text(`Date: ${report.date}`, 10, y + 40);
+      doc.text(`Tâches: ${report.taches || "Non spécifiées"}`, 10, y + 10);
+      doc.text(`Blocage: ${report.blockage || "Aucun"}`, 10, y + 20);
+      doc.text(`Solution: ${report.solution || "Aucune"}`, 10, y + 30);
+      doc.text(`Date: ${report.date || "Non spécifiée"}`, 10, y + 40);
       doc.text(`Temps: ${report.temps ? "Matin" : "Soir"}`, 10, y + 50);
-      doc.text(`Utilisateur: ${getUserName(report.userId)}`, 10, y + 60);
+      doc.text(`Utilisateur: ${getUserName(report.userId) || "Non assigné"}`, 10, y + 60);
+  
       y += 70;
     });
+  
     doc.save("rapports.pdf");
   };
+  
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -165,7 +177,7 @@ export default function WeeklyReports() {
           <div className="flex items-center space-x-4">
             <button
               onClick={() => setCurrentWeek((prev) => addDays(prev, -7))}
-              className="p-2 hover:bg-gray-100 rounded-full"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -174,7 +186,7 @@ export default function WeeklyReports() {
             </span>
             <button
               onClick={() => setCurrentWeek((prev) => addDays(prev, 7))}
-              className="p-2 hover:bg-gray-100 rounded-full"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -183,11 +195,11 @@ export default function WeeklyReports() {
       </header>
 
       <div className="flex-1 overflow-auto p-6">
-        <div className="flex justify-between mb-4">
+        <div className="mb-6 flex justify-between items-center">
           <select
             value={selectedUserId || ""}
             onChange={(e) => setSelectedUserId(e.target.value ? Number(e.target.value) : null)}
-            className="p-2 border rounded"
+            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors"
           >
             <option value="">Tous les utilisateurs</option>
             {users.map((user) => (
@@ -196,104 +208,135 @@ export default function WeeklyReports() {
               </option>
             ))}
           </select>
-          <div className="space-x-2">
+          <div className="flex gap-3">
             <button
               onClick={exportToCSV}
-              className="p-2 bg-blue-500 text-white rounded"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
             >
-              Exporter en CSV
+              <FileDown className="w-4 h-4" />
+              CSV
             </button>
             <button
               onClick={exportToPDF}
-              className="p-2 bg-green-500 text-white rounded"
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm"
             >
-              Exporter en PDF
+              <Download className="w-4 h-4" />
+              PDF
             </button>
           </div>
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center items-center h-full">
+          <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : error ? (
-          <div className="flex justify-center items-center h-full">
+          <div className="flex justify-center items-center h-64">
             <p className="text-red-500">{error}</p>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow">
-            {/* Grille pour les jours de la semaine */}
-            <div className="grid grid-cols-6 gap-4 text-center p-2 font-medium text-gray-500 bg-gray-100">
-              <div></div> {/* Case vide pour le titre */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="grid grid-cols-5 border-b">
               {getWeekDays().map((day) => (
-                <div key={day.toString()} className="border-b p-2">
-                  {format(day, "iiii", { locale: fr })}
+                <div
+                  key={day.toString()}
+                  className="p-4 font-medium text-gray-700 text-center border-r last:border-r-0 bg-gray-50"
+                >
+                  {format(day, "EEEE d/MM", { locale: fr })}
                 </div>
               ))}
             </div>
 
-            {/* Lignes pour le matin */}
-            <div className="grid grid-cols-6 gap-4 p-2">
-              <div className="font-semibold text-center">Matin</div>
-              {getWeekDays().map((day) => {
-                const dayReports = getReportsForDay(day);
-                return (
-                  <div key={day.toString()} className="p-2 border-b">
-                    {dayReports.morning.length > 0 ? (
-                      dayReports.morning.map((report) => (
-                        <div key={report.id} className="p-2 rounded border bg-gray-50">
-                          <div className="font-medium break-words">
-                            <strong>Tâches:</strong> {report.taches}
-                          </div>
-                          <div className="text-sm text-gray-500 break-words">
-                            <strong>Blocage:</strong> {report.blockage}
-                          </div>
-                          <div className="text-sm text-gray-500 break-words">
-                            <strong>Solution:</strong> {report.solution}
-                          </div>
-                          <div className="text-xs text-gray-400 break-words">
-                            <strong>Utilisateur:</strong> {getUserName(report.userId)}
-                          </div>
+            <div className="divide-y">
+              {/* Section Matin */}
+              <div>
+                <div className="grid grid-cols-5">
+                  {getWeekDays().map((day) => {
+                    const dayReports = getReportsForDay(day);
+                    return (
+                      <div key={`morning-${day}`} className="p-4 border-r last:border-r-0">
+                        <div className="mb-2 text-sm font-medium text-gray-500">Matin</div>
+                        <div className="space-y-3">
+                          {dayReports.morning.length > 0 ? (
+                            dayReports.morning.map((report) => (
+                              <div
+                                key={report.id}
+                                className="p-3 rounded-lg bg-blue-50 border border-blue-100"
+                              >
+                                <div className="font-medium text-gray-900 mb-1 break-words whitespace-normal">
+                                  {report.taches}
+                                </div>
+                                {report.blockage && (
+                                  <div className="text-sm text-red-600 mb-1">
+                                    <span className="font-medium">Blocage:</span> {report.blockage}
+                                  </div>
+                                )}
+                                {report.solution && (
+                                  <div className="text-sm text-green-600 mb-1">
+                                    <span className="font-medium">Solution:</span> {report.solution}
+                                  </div>
+                                )}
+                                <div className="text-xs text-gray-500">
+                                  {getUserName(report.userId)}
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-sm text-gray-400 text-center py-2">
+                              Aucun rapport
+                            </div>
+                          )}
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center text-gray-500">Aucun rapport</div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
 
-            {/* Lignes pour le soir */}
-            <div className="grid grid-cols-6 gap-4 p-2">
-              <div className="font-semibold text-center">Soir</div>
-              {getWeekDays().map((day) => {
-                const dayReports = getReportsForDay(day);
-                return (
-                  <div key={day.toString()} className="p-2 border-b">
-                    {dayReports.evening.length > 0 ? (
-                      dayReports.evening.map((report) => (
-                        <div key={report.id} className="p-2 rounded border bg-gray-50">
-                          <div className="font-medium break-words">
-                            <strong>Tâches:</strong> {report.taches}
-                          </div>
-                          <div className="text-sm text-gray-500 break-words">
-                            <strong>Blocage:</strong> {report.blockage}
-                          </div>
-                          <div className="text-sm text-gray-500 break-words">
-                            <strong>Solution:</strong> {report.solution}
-                          </div>
-                          <div className="text-xs text-gray-400 break-words">
-                            <strong>Utilisateur:</strong> {getUserName(report.userId)}
-                          </div>
+              {/* Section Soir */}
+              <div>
+                <div className="grid grid-cols-5">
+                  {getWeekDays().map((day) => {
+                    const dayReports = getReportsForDay(day);
+                    return (
+                      <div key={`evening-${day}`} className="p-4 border-r last:border-r-0">
+                        <div className="mb-2 text-sm font-medium text-gray-500">Soir</div>
+                        <div className="space-y-3">
+                          {dayReports.evening.length > 0 ? (
+                            dayReports.evening.map((report) => (
+                              <div
+                                key={report.id}
+                                className="p-3 rounded-lg bg-purple-50 border border-purple-100"
+                              >
+                                <div className="font-medium text-gray-900 mb-1">
+                                  {report.taches}
+                                </div>
+                                {report.blockage && (
+                                  <div className="text-sm text-red-600 mb-1">
+                                    <span className="font-medium">Blocage:</span> {report.blockage}
+                                  </div>
+                                )}
+                                {report.solution && (
+                                  <div className="text-sm text-green-600 mb-1">
+                                    <span className="font-medium">Solution:</span> {report.solution}
+                                  </div>
+                                )}
+                                <div className="text-xs text-gray-500">
+                                  {getUserName(report.userId)}
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-sm text-gray-400 text-center py-2">
+                              Aucun rapport
+                            </div>
+                          )}
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center text-gray-500">Aucun rapport</div>
-                    )}
-                  </div>
-                );
-              })}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         )}

@@ -1,7 +1,6 @@
-"use client";
-
+"use client"
 import { useState, useEffect, useMemo } from "react";
-import { format, startOfWeek, addDays, parseISO } from "date-fns";
+import { format, startOfWeek, addDays, parseISO, isSameDay, isWithinInterval, isBefore, isAfter } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
@@ -23,6 +22,10 @@ interface User {
   nom_complet: string;
 }
 
+interface TaskWithDates extends Task {
+  endDate: Date;
+}
+
 export default function Calendar() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -30,7 +33,6 @@ export default function Calendar() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch a single user by id_user
   const fetchUser = async (id_user: number) => {
     try {
       const response = await fetch("/api/users/byid", {
@@ -51,7 +53,6 @@ export default function Calendar() {
     }
   };
 
-  // Fetch all unique users for tasks
   const fetchUsersForTasks = async (tasks: Task[]) => {
     const uniqueIds = [...new Set(tasks.map((task) => task.id_user).filter(Boolean))];
     const usersData = await Promise.all(uniqueIds.map((id) => fetchUser(id as number)));
@@ -62,13 +63,9 @@ export default function Calendar() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-
-        // Fetch tasks
         const tasksResponse = await fetch("/api/tache");
         const tasksResult = await tasksResponse.json();
         if (tasksResult.data) setTasks(tasksResult.data);
-
-        // Fetch users for tasks
         const usersData = await fetchUsersForTasks(tasksResult.data || []);
         setUsers(usersData);
       } catch (error) {
@@ -82,17 +79,27 @@ export default function Calendar() {
     fetchData();
   }, []);
 
-  const tasksByDay = useMemo(() => {
-    const result: { [date: string]: Task[] } = {};
-    tasks.forEach((task) => {
-      const taskDate = parseISO(task.datedebut);
-      const dateKey = format(taskDate, "yyyy-MM-dd");
-      if (!result[dateKey]) {
-        result[dateKey] = [];
+  const processedTasks = useMemo(() => {
+    return tasks.map(task => {
+      const startDate = parseISO(task.datedebut);
+      let remainingDays = task.echeance;
+      let currentDate = startDate;
+      let endDate = startDate;
+      
+      while (remainingDays > 0) {
+        const dayOfWeek = currentDate.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Skip weekends
+          remainingDays--;
+          endDate = currentDate;
+        }
+        currentDate = addDays(currentDate, 1);
       }
-      result[dateKey].push(task);
+      
+      return {
+        ...task,
+        endDate,
+      };
     });
-    return result;
   }, [tasks]);
 
   const getWeekDays = () => {
@@ -100,9 +107,29 @@ export default function Calendar() {
     return Array.from({ length: 5 }).map((_, i) => addDays(start, i));
   };
 
+  const getRemainingDays = (task: TaskWithDates, currentDate: Date) => {
+    const startDate = parseISO(task.datedebut);
+    let remainingDays = task.echeance;
+    let tempDate = startDate;
+    
+    while (isBefore(tempDate, currentDate)) {
+      const dayOfWeek = tempDate.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        remainingDays--;
+      }
+      tempDate = addDays(tempDate, 1);
+    }
+    
+    return remainingDays;
+  };
+
   const getTasksForDay = (date: Date) => {
-    const dateKey = format(date, "yyyy-MM-dd");
-    return tasksByDay[dateKey] || [];
+    return processedTasks.filter(task => {
+      const startDate = parseISO(task.datedebut);
+      return isWithinInterval(date, { start: startDate, end: task.endDate }) ||
+             isSameDay(date, startDate) ||
+             isSameDay(date, task.endDate);
+    });
   };
 
   const getPriorityColor = (niveau: number) => {
@@ -111,20 +138,19 @@ export default function Calendar() {
         return "bg-red-100 border-red-200";
       case 2:
         return "bg-orange-100 border-orange-200";
-        default:
+      default:
         return "bg-green-100 border-green-200";
-      
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "completed":
+      case "done":
         return "bg-green-500";
       case "in_progress":
         return "bg-blue-500";
       default:
-        return "bg-gray-500";
+        return "bg-red-500";
     }
   };
 
@@ -169,7 +195,7 @@ export default function Calendar() {
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow">
-            <div className="grid grid-cols-6 border-b">
+            <div className="grid grid-cols-5 border-b">
               {getWeekDays().map((day) => (
                 <div
                   key={day.toString()}
@@ -180,30 +206,42 @@ export default function Calendar() {
               ))}
             </div>
 
-            <div className="grid grid-cols-6 border-b">
+            <div className="grid grid-cols-5">
               {getWeekDays().map((day) => {
                 const dayTasks = getTasksForDay(day);
                 return (
-                  <div key={day.toString()} className="p-2 border-r min-h-[120px]">
-                    {dayTasks.map((task) => (
-                      <div
-                        key={task.id}
-                        className={`mb-2 p-2 rounded border ${getPriorityColor(task.niveau)}`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">{task.libelle}</span>
-                          <span
-                            className={`w-2 h-2 rounded-full ${getStatusColor(task.status)}`}
-                          />
-                        </div>
-                        <span className="text-xs text-gray-500 block mt-1">
-                          {getUserName(task.id_user)}
-                        </span>
-                        {task.departement && (
-                          <span className="text-xs text-gray-500">{task.departement}</span>
-                        )}
-                      </div>
-                    ))}
+                  <div key={day.toString()} className="p-2 border-r min-h-[120px] relative">
+                    <div className="space-y-2">
+                      {dayTasks.map((task) => {
+                        const remainingDays = getRemainingDays(task, day);
+                        if (remainingDays <= 0) return null;
+                        
+                        return (
+                          <div
+                            key={task.id}
+                            className={`p-2 rounded border ${getPriorityColor(task.niveau)}`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">{task.libelle}</span>
+                              <span
+                                className={`w-2 h-2 rounded-full ${getStatusColor(task.status)}`}
+                              />
+                            </div>
+                            <span className="text-xs text-gray-500 block mt-1">
+                              {getUserName(task.id_user)}
+                            </span>
+                            {task.departement && (
+                              <span className="text-xs text-gray-500 block">
+                                {task.departement}
+                              </span>
+                            )}
+                            <span className="text-xs text-gray-500 block">
+                              {remainingDays} jour{remainingDays > 1 ? 's' : ''} restant{remainingDays > 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })}
