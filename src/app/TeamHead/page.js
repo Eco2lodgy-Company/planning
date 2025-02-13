@@ -32,7 +32,7 @@ export default function TeamLeaderDashboard() {
   const [user, setLocalUser] = useState('');
   const [toastShown, setToastShown] = useState(false); // Nouvelle variable pour empêcher le double affichage
   const [countUsers, setCountUsers] = useState([]);
-  const [progressProjects, setProgessProjects] = useState([]);
+  const [progressProjects, setProgressProjects] = useState([]);
   const [doneProjects, setDoneProjects] = useState([]);
   const [pendingProjects, setPendingProjects] = useState([]);
 
@@ -95,10 +95,10 @@ export default function TeamLeaderDashboard() {
 
   const inprogressProjects = async () => {
     try {
-      const response = await fetch('/api/headside/projets/count/' + userIdd);
+      const response = await fetch('/api/headside/projets/count/progress/' + userIdd);
       if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
       const data = await response.json();
-      setProgessProjects(data);
+      setProgressProjects(data);
 
     } catch (error) {
       toast.error(error.message);
@@ -275,7 +275,7 @@ pendingProjects();
           width={500}
           height={300}
           data={statusData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+          margin={{ top: 25, right: 30, left: 20, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="status" /> {/* Axe des X basé sur le statut */}
