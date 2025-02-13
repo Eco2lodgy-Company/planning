@@ -68,7 +68,7 @@ export default function UsersPage() {
         departement: "",
         poste: "",
         role: "",
-        password: "ECO@2025",
+        password: "Eco@2025",
       });
       setIsPopoverOpen(false);
       toast.success("Utilisateur ajouté avec succès");
@@ -79,7 +79,7 @@ export default function UsersPage() {
   };
 
   const handleEditUser = (user) => {
-    setEditingUser({ ...user }); // Create a copy of the user object
+    setEditingUser({ ...user }); // Crée une copie de l'objet utilisateur
     setIsEditModalOpen(true);
   };
 
@@ -161,6 +161,159 @@ export default function UsersPage() {
           </button>
         </div>
 
+        {/* Popup pour ajouter un utilisateur */}
+        <AnimatePresence>
+          {isPopoverOpen && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            >
+              <div className="bg-white shadow-2xl p-8 rounded-lg w-2/3 max-h-[90vh] overflow-y-auto">
+                <h2 className="text-2xl font-bold mb-6 text-gray-800">Ajouter un utilisateur</h2>
+                <form onSubmit={(e) => e.preventDefault()}>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Matricule
+                      </label>
+                      <input
+                        type="text"
+                        value={newUser.matricule}
+                        onChange={(e) => setNewUser({ ...newUser, matricule: e.target.value })}
+                        className="w-full p-2 border rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Nom Complet
+                      </label>
+                      <input
+                        type="text"
+                        value={newUser.nom_complet}
+                        onChange={(e) => setNewUser({ ...newUser, nom_complet: e.target.value })}
+                        className="w-full p-2 border rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Nationalité
+                      </label>
+                      <input
+                        type="text"
+                        value={newUser.nationality}
+                        onChange={(e) => setNewUser({ ...newUser, nationality: e.target.value })}
+                        className="w-full p-2 border rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Genre
+                      </label>
+                      <select
+                        value={newUser.genre}
+                        onChange={(e) => setNewUser({ ...newUser, genre: e.target.value })}
+                        className="w-full p-2 border rounded-lg"
+                      >
+                        <option value="">Sélectionner</option>
+                        <option value="M">Masculin</option>
+                        <option value="F">Féminin</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Téléphone
+                      </label>
+                      <input
+                        type="tel"
+                        value={newUser.tel}
+                        onChange={(e) => setNewUser({ ...newUser, tel: e.target.value })}
+                        className="w-full p-2 border rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={newUser.mail}
+                        onChange={(e) => setNewUser({ ...newUser, mail: e.target.value })}
+                        className="w-full p-2 border rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Adresse
+                      </label>
+                      <input
+                        type="text"
+                        value={newUser.adresse}
+                        onChange={(e) => setNewUser({ ...newUser, adresse: e.target.value })}
+                        className="w-full p-2 border rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Département
+                      </label>
+                      <input
+                        type="text"
+                        value={newUser.departement}
+                        onChange={(e) => setNewUser({ ...newUser, departement: e.target.value })}
+                        className="w-full p-2 border rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Poste
+                      </label>
+                      <input
+                        type="text"
+                        value={newUser.poste}
+                        onChange={(e) => setNewUser({ ...newUser, poste: e.target.value })}
+                        className="w-full p-2 border rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Rôle
+                      </label>
+                      <select
+                        value={newUser.role}
+                        onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                        className="w-full p-2 border rounded-lg"
+                      >
+                        <option value="">Sélectionner</option>
+                        <option value="admin">Administrateur</option>
+                        <option value="user">Utilisateur</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mt-6 flex justify-end space-x-4">
+                    <button
+                      type="button"
+                      onClick={() => setIsPopoverOpen(false)}
+                      className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-300"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddUser}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
+                    >
+                      Ajouter
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Modal pour modifier un utilisateur */}
         <AnimatePresence>
           {isEditModalOpen && editingUser && (
             <motion.div
@@ -316,6 +469,7 @@ export default function UsersPage() {
           )}
         </AnimatePresence>
 
+        {/* Tableau des utilisateurs */}
         <table className="min-w-full bg-white rounded-lg shadow-lg">
           <thead>
             <tr className="bg-gray-200">
