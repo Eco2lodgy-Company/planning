@@ -34,6 +34,7 @@ export default function TeamLeaderDashboard() {
   const [countUsers, setCountUsers] = useState([]);
   const [progressProjects, setProgessProjects] = useState([]);
   const [doneProjects, setDoneProjects] = useState([]);
+  const [pendingProjects, setPendingProjects] = useState([]);
 
 
   useEffect(() => {
@@ -127,6 +128,26 @@ const doneProjects = async () => {
 
 doneProjects();
 
+//appel api pour recuperer les projets en attente
+
+//appel api pour recuperer les projets terminer
+
+const pendingProjects = async () => {
+  try {
+    const response = await fetch('/api/headside/projets/count/pending/' + userIdd);
+    if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+    const data = await response.json();
+    setPendingProjects(data);
+
+  } catch (error) {
+    toast.error(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
+pendingProjects();
+
 
   },[toastShown]); 
   
@@ -137,8 +158,8 @@ doneProjects();
   
 
   const statusData = [
-    { status: 'En attente', total: 20 },
-    { status: 'En cours', total: 35 },
+    { status: 'En attente', total: pendingProjects },
+    { status: 'En cours', total: progressProjects },
     { status: 'Terminés', total: doneProjects },
   ];
   const tasks = {
