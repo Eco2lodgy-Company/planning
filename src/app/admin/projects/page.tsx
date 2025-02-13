@@ -11,6 +11,7 @@ interface Project {
   partenaire: string;
   echeance: string;
   chef_projet: string; // Stocke l'ID du chef de projet
+  status: "done" | "in progress" | "pending"; // Ajout du statut
 }
 
 interface User {
@@ -24,6 +25,7 @@ export default function Projects() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]); // Liste des utilisateurs pour le sélecteur
+  const [projectTypes, setProjectTypes] = useState<any[]>([]); // Liste des types de projets
 
   const [newProject, setNewProject] = useState<Project>({
     project_name: "",
@@ -31,6 +33,7 @@ export default function Projects() {
     partenaire: "",
     echeance: "",
     chef_projet: "", // ID du chef de projet
+    status: "pending", // Statut par défaut
   });
 
   const [editingProject, setEditingProject] = useState<Project>({
@@ -39,12 +42,14 @@ export default function Projects() {
     partenaire: "",
     echeance: "",
     chef_projet: "", // ID du chef de projet
+    status: "pending", // Statut par défaut
   });
 
-  // Récupérer les projets et les utilisateurs au chargement
+  // Récupérer les projets, les utilisateurs et les types de projets au chargement
   useEffect(() => {
     fetchProjects();
     fetchUsers();
+    fetchProjectTypes().then((types) => setProjectTypes(types));
   }, []);
 
   // Récupérer les projets depuis l'API
@@ -54,7 +59,8 @@ export default function Projects() {
       const result = await response.json();
 
       if (result.data) {
-        // Pour chaque projet, récupérer le nom du chef de projet
+        const projectTypes = await fetchProjectTypes();
+
         const projectsWithChefProjet = await Promise.all(
           result.data.map(async (project: Project) => {
             if (project.chef_projet) {
@@ -66,10 +72,14 @@ export default function Projects() {
                 body: JSON.stringify({ id_user: project.chef_projet }),
               });
               const chefProjetData = await chefProjetResponse.json();
-              // console.log(chefProjetData)
+
+              // Trouver le type de projet correspondant
+              const projectType = projectTypes.find((type: any) => type.id_type === project.project_type);
+
               return {
                 ...project,
-                chef_projet: chefProjetData.user.nom_complet, // Remplacer l'ID par le nom complet
+                chef_projet: chefProjetData.user.nom_complet,
+                project_type: projectType ? projectType.type : "Type inconnu", // Remplacer l'ID par le nom du type de projet
               };
             }
             return project;
@@ -82,6 +92,20 @@ export default function Projects() {
       toast.error("Erreur lors du chargement des projets");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Récupérer les types de projets
+  const fetchProjectTypes = async () => {
+    try {
+      const response = await fetch("/api/projectType");
+      const result = await response.json();
+
+      if (result) {
+        return result;
+      }
+    } catch (error) {
+      toast.error("Erreur lors du chargement des types de projets");
     }
   };
 
@@ -127,6 +151,7 @@ export default function Projects() {
         partenaire: "",
         echeance: "",
         chef_projet: "",
+        status: "pending", // Réinitialiser le statut
       });
     } catch (error) {
       toast.error("Erreur lors de l'ajout du projet");
@@ -188,6 +213,20 @@ export default function Projects() {
     setIsEditModalOpen(true);
   };
 
+  // Fonction pour obtenir la classe CSS en fonction du statut
+  const getStatusClass = (status: string) => {
+    switch (status) {
+      case "done":
+        return "bg-green-100 border-green-500 text-green-800";
+      case "in progress":
+        return "bg-orange-100 border-orange-500 text-orange-800";
+      case "pending":
+        return "bg-red-100 border-red-500 text-red-800";
+      default:
+        return "";
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-100">
       <div className="flex-1 flex flex-col">
@@ -211,7 +250,7 @@ export default function Projects() {
               {projects.map((project) => (
                 <div
                   key={project.id_projet}
-                  className="bg-white rounded-lg shadow-md p-6 relative group"
+                  className={`bg-white rounded-lg shadow-md p-6 relative group border-l-4 ${getStatusClass(project.status)}`}
                 >
                   <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                     <button onClick={() => openEditModal(project)}>
@@ -241,6 +280,12 @@ export default function Projects() {
                     </p>
                     <p className="text-sm text-gray-600">
                       <span className="font-medium">Échéance:</span> {project.echeance} jours
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-medium">Statut:</span>{" "}
+                      <span className={`px-2 py-1 rounded-full ${getStatusClass(project.status)}`}>
+                        {project.status}
+                      </span>
                     </p>
                   </div>
                 </div>
@@ -281,15 +326,21 @@ export default function Projects() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Type de projet
                 </label>
-                <input
-                  type="text"
+                <select
                   required
                   className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={newProject.project_type}
                   onChange={(e) =>
                     setNewProject({ ...newProject, project_type: e.target.value })
                   }
-                />
+                >
+                  <option value="">Sélectionnez un type de projet</option>
+                  {projectTypes.map((type: any) => (
+                    <option key={type.id_type} value={type.id_type}>
+                      {type.type}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -343,6 +394,24 @@ export default function Projects() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Statut
+                </label>
+                <select
+                  required
+                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={newProject.status}
+                  onChange={(e) =>
+                    setNewProject({ ...newProject, status: e.target.value as "done" | "in progress" | "pending" })
+                  }
+                >
+                  <option value="pending">Pending</option>
+                  <option value="in progress">In Progress</option>
+                  <option value="done">Done</option>
+                </select>
+              </div>
+
               <div className="flex justify-end space-x-3 mt-6">
                 <button
                   type="button"
@@ -394,15 +463,21 @@ export default function Projects() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Type de projet
                 </label>
-                <input
-                  type="text"
+                <select
                   required
                   className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={editingProject.project_type}
                   onChange={(e) =>
                     setEditingProject({ ...editingProject, project_type: e.target.value })
                   }
-                />
+                >
+                  <option value="">Sélectionnez un type de projet</option>
+                  {projectTypes.map((type: any) => (
+                    <option key={type.id_type} value={type.id_type}>
+                      {type.type}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -454,6 +529,24 @@ export default function Projects() {
                     setEditingProject({ ...editingProject, echeance: e.target.value })
                   }
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Statut
+                </label>
+                <select
+                  required
+                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={editingProject.status}
+                  onChange={(e) =>
+                    setEditingProject({ ...editingProject, status: e.target.value as "done" | "in progress" | "pending" })
+                  }
+                >
+                  <option value="pending">Pending</option>
+                  <option value="in progress">In Progress</option>
+                  <option value="done">Done</option>
+                </select>
               </div>
 
               <div className="flex justify-end space-x-3 mt-6">
