@@ -30,10 +30,12 @@ export default function TeamLeaderDashboard() {
   const [userData, setUserData] = useState([]);
   const [user, setLocalUser] = useState('');
   const [toastShown, setToastShown] = useState(false); // Nouvelle variable pour empêcher le double affichage
+  const [countUsers, setCountUsers] = useState([]);
+  const [progressProjects, setProgessProjects] = useState([]);
+  const [doneProjects, setDoneProjects] = useState([]);
 
 
   useEffect(() => {
-    setLocalUser(localStorage.getItem('userId'));
     const timer = setTimeout(() => setLoading(false), 1200);
     
     return () => clearTimeout(timer);
@@ -67,6 +69,64 @@ export default function TeamLeaderDashboard() {
     
     connectedUser();
 
+
+  //appel de l'api pour recuperer le nombre d'agents
+
+  const userCounter = async () => {
+    try {
+      const response = await fetch('/api/headside/agents/count/' + userIdd);
+      if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+      const data = await response.json();
+      setCountUsers(data);
+
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  userCounter();
+
+
+  //appel api pour recuperer le nombre de projets en cours
+
+  const inprogressProjects = async () => {
+    try {
+      const response = await fetch('/api/headside/projets/count/' + userIdd);
+      if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+      const data = await response.json();
+      setProgessProjects(data);
+
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  inprogressProjects();
+
+
+//appel api pour recuperer les projets terminer
+
+const doneProjects = async () => {
+  try {
+    const response = await fetch('/api/headside/projets/count/done/' + userIdd);
+    if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+    const data = await response.json();
+    setDoneProjects(data);
+
+  } catch (error) {
+    toast.error(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
+doneProjects();
+
+
   },[toastShown]); 
   
 
@@ -81,18 +141,7 @@ export default function TeamLeaderDashboard() {
     total: 26
   };
 
-  const employees = {
-    total: 12,
-    disponibles: 8,
-    enConges: 4
-  };
-  const projects = {
-    enCours: 5,
-    termines: 3,
-    enRetard: 1,
-    total: 9
-  };
-
+ 
   const currentTasks = [
     { id: 1, title: "Mise à jour du site web", status: "En cours", deadline: "2024-03-20", priority: "Haute" },
     { id: 2, title: "Réunion client", status: "En cours", deadline: "2024-03-18", priority: "Moyenne" },
@@ -136,7 +185,7 @@ export default function TeamLeaderDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Employés</p>
-                  <h3 className="text-2xl font-bold text-blue-600">{employees.total}</h3>
+                  <h3 className="text-2xl font-bold text-blue-600">{countUsers}</h3>
                 </div>
                 <Users className="h-10 w-10 text-blue-500" aria-hidden="true" />
               </div>
@@ -150,7 +199,7 @@ export default function TeamLeaderDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Projets en cours</p>
-                  <h3 className="text-2xl font-bold text-green-600">{projects.enCours}</h3>
+                  <h3 className="text-2xl font-bold text-green-600">{progressProjects}</h3>
                 </div>
                 <ClipboardMinus className="h-10 w-10 text-green-500" aria-hidden="true" />
               </div>
@@ -164,7 +213,7 @@ export default function TeamLeaderDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Tâches en cours</p>
-                  <h3 className="text-2xl font-bold text-purple-600">{tasks.enCours}</h3>
+                  <h3 className="text-2xl font-bold text-purple-600">{doneProjects}</h3>
                 </div>
                 <ListTodo className="h-10 w-10 text-purple-500" aria-hidden="true" />
               </div>
