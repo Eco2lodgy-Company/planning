@@ -1,7 +1,6 @@
 "use client"
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Home, Calendar, Users, Settings, PlusCircle, Menu, X } from "lucide-react";
+import { motion } from "framer-motion";
 import {
   BarChart,
   Bar,
@@ -17,15 +16,14 @@ import {
 
 function App() {
   const [loading, setLoading] = useState(true);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [stats, setStats] = useState([
     { title: "Employés actifs", value: 0, color: "bg-indigo-500" },
     { title: "Tâches assignées", value: 0, color: "bg-blue-500" },
     { title: "Projets terminés", value: 0, color: "bg-green-500" },
     { title: "Heures travaillées", value: 0, color: "bg-purple-500" },
   ]);
-  // const [projectData, setProjectData] = useState([]);
-  // const [workloadData, setWorkloadData] = useState([]);
+  const [projectData, setProjectData] = useState([]);
+  const [workloadData, setWorkloadData] = useState([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -48,15 +46,23 @@ function App() {
           { title: "Heures travaillées", value: totalHoursRes.totalHours, color: "bg-purple-500" },
         ]);
 
-        // Update project status data
-        // setProjectData(projectStatusRes);
-        // console.log(projectStatusRes)
-        // Update workload evolution data
-        // setWorkloadData(workloadEvolutionRes);
-        console.log()
+        // Transform project status data
+        const transformedProjectData = [
+          { name: "Projets terminés", value: projectStatusRes.projectStatus.filter(p => p.status === "done").length },
+          { name: "Projets en cours", value: projectStatusRes.projectStatus.filter(p => p.status === "in progress").length },
+          { name: "Projets en attente", value: projectStatusRes.projectStatus.filter(p => p.status === "pending").length },
+        ];
+        setProjectData(transformedProjectData);
+
+        // Transform workload data
+        const transformedWorkloadData = workloadEvolutionRes.workloadEvolution.map(item => ({
+          name: item.day.trim(),
+          Tâches: item.tasks,
+          Complétées: item.completed
+        }));
+        setWorkloadData(transformedWorkloadData);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
-        // In case of error, we'll keep the initial static data
       } finally {
         setLoading(false);
       }
@@ -64,21 +70,7 @@ function App() {
 
     fetchDashboardData();
   }, []);
-  const projectData = [
-    { name: "Projets terminés", value: 8 },
-    { name: "Projets en cours", value: 5 },
-    { name: "Projets en attente", value: 2 },
-  ];
 
-  const workloadData = [
-    { name: "Lundi", Tâches: 10, Complétées: 0 },
-    { name: "Mardi", Tâches: 12, Complétées: 0 },
-    { name: "Mercredi", Tâches: 15, Complétées: 0 },
-    { name: "Jeudi", Tâches: 8, Complétées: 0 },
-    { name: "Vendredi", Tâches: 20, Complétées: 15 },
-    { name: "Samedi", Tâches: 5, Complétées: 4 },
-    { name: "Dimanche", Tâches: 2, Complétées: 1 },
-  ];
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
@@ -89,17 +81,6 @@ function App() {
 
   return (
     <div className="flex min-h-screen bg-gray-100">
-      {/* Overlay for mobile */}
-      {isSidebarOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
-        />
-      )}
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
