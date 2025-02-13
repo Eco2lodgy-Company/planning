@@ -30,10 +30,9 @@ export default function TeamLeaderDashboard() {
   const [userData, setUserData] = useState([]);
   const [user, setLocalUser] = useState('');
   const [toastShown, setToastShown] = useState(false); // Nouvelle variable pour empêcher le double affichage
-
+  const [countUsers, setCountUsers] = useState([]);
 
   useEffect(() => {
-    setLocalUser(localStorage.getItem('userId'));
     const timer = setTimeout(() => setLoading(false), 1200);
     
     return () => clearTimeout(timer);
@@ -66,6 +65,27 @@ export default function TeamLeaderDashboard() {
     };
     
     connectedUser();
+
+
+  //appel de l'api pour recuperer le nombre d'agents
+
+  const userCounter = async () => {
+    try {
+      const response = await fetch('/api/headside/agents/count/' + userIdd);
+      if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+      const data = await response.json();
+      setCountUsers(data);
+
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  userCounter();
+
+
 
   },[toastShown]); 
   
@@ -136,7 +156,7 @@ export default function TeamLeaderDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Employés</p>
-                  <h3 className="text-2xl font-bold text-blue-600">{employees.total}</h3>
+                  <h3 className="text-2xl font-bold text-blue-600">{countUsers}</h3>
                 </div>
                 <Users className="h-10 w-10 text-blue-500" aria-hidden="true" />
               </div>
