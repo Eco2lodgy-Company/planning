@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, CartesianGrid } from 'recharts';
 
 import {
   Home,
@@ -133,7 +134,13 @@ doneProjects();
 
 
 
+  
 
+  const statusData = [
+    { status: 'En attente', total: 20 },
+    { status: 'En cours', total: 35 },
+    { status: 'Terminés', total: doneProjects },
+  ];
   const tasks = {
     enCours: 8,
     terminees: 15,
@@ -234,70 +241,58 @@ doneProjects();
             </motion.div>
           </div>
 
-          {/* Performance Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              className="bg-white p-6 rounded-lg shadow-lg"
-            >
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <BarChart3 className="text-blue-500" aria-hidden="true" /> Performance hebdomadaire
-              </h3>
-              <div className="h-64 flex items-end justify-between gap-2">
-                {[65, 45, 75, 55, 85, 35, 60].map((height, index) => (
-                  <div key={index} className="w-full">
-                    <div
-                      className="bg-blue-500 rounded-t"
-                      style={{ height: `${height}%` }}
-                    ></div>
-                    <p className="text-xs text-center mt-2">
-                      {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"][index]}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+      {/* Diagramme en barres pour les totaux par statut */}
+      <motion.div
+        whileHover={{ scale: 1.01 }}
+        className="bg-white p-6 rounded-lg shadow-lg"
+      >
+        <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <BarChart3 className="text-blue-500" aria-hidden="true" /> Projets par statut
+        </h3>
+        <BarChart
+          width={500}
+          height={300}
+          data={statusData}
+          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="status" /> {/* Axe des X basé sur le statut */}
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="total" fill="#3b82f6" /> {/* Barre pour le total */}
+        </BarChart>
+      </motion.div>
 
-            {/* Task Distribution */}
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              className="bg-white p-6 rounded-lg shadow-lg"
-            >
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <PieChart className="text-blue-500" aria-hidden="true" /> Distribution des tâches
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm text-gray-600">En cours</span>
-                      <span className="text-sm font-medium text-blue-600">30%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: "30%" }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm text-gray-600">Terminées</span>
-                      <span className="text-sm font-medium text-green-600">58%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{ width: "58%" }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm text-gray-600">En retard</span>
-                      <span className="text-sm font-medium text-red-600">12%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-red-500 h-2 rounded-full" style={{ width: "12%" }}></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+               {/* Diagramme en courbes pour les totaux par statut */}
+      <motion.div
+        whileHover={{ scale: 1.01 }}
+        className="bg-white p-6 rounded-lg shadow-lg"
+      >
+        <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <BarChart3 className="text-blue-500" aria-hidden="true" /> Performance par statut
+        </h3>
+        <LineChart
+          width={500}
+          height={300}
+          data={statusData}
+          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="status" /> {/* Axe des X basé sur le statut */}
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          {/* Ligne pour les totaux */}
+          <Line
+            type="monotone"
+            dataKey="total"
+            stroke="#3b82f6" // Couleur bleue
+            activeDot={{ r: 8 }}
+          />
+        </LineChart>
+      </motion.div>
           </div>
 
           {/* Current Tasks */}
