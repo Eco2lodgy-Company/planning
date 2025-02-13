@@ -240,7 +240,7 @@ pendingProjects();
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Tâches en cours</p>
+                  <p className="text-sm text-gray-600">Projets terminés</p>
                   <h3 className="text-2xl font-bold text-purple-600">{doneProjects}</h3>
                 </div>
                 <ListTodo className="h-10 w-10 text-purple-500" aria-hidden="true" />
