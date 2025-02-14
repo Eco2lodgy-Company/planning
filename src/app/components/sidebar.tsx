@@ -1,6 +1,6 @@
 "use client"
 import { AnimatePresence, motion } from "framer-motion";
-import { Calendar, Home, Menu, Settings, Users, X, Sun, Moon } from "lucide-react";
+import { Calendar, Home, Menu, Settings, Users, X, Sun, Moon,NotebookText} from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function SIDEBAR() {
@@ -65,6 +65,14 @@ export default function SIDEBAR() {
                     className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
                   >
                     <Calendar /> Plannings
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/admin/dep"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
+                  >
+                    <NotebookText /> Departement
                   </a>
                 </li>
                 <li>
