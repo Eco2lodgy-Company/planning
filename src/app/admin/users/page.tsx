@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
+  const [departements, setDepartements] = useState([]);
   const [newUser, setNewUser] = useState({
     matricule: "",
     nom_complet: "",
@@ -38,8 +39,24 @@ export default function UsersPage() {
       }
     };
 
+    const fetchDepartements = async () => {
+      try {
+        const response = await fetch("/api/departement");
+        if (!response.ok) {
+          throw new Error("Erreur lors de la récupération des départements");
+        }
+        const data = await response.json();
+        setDepartements(data);
+      } catch (error) {
+        console.error(error.message);
+        toast.error("Erreur lors de la récupération des départements");
+      }
+    };
+
     fetchUsers();
+    fetchDepartements();
   }, []);
+
 
   const handleAddUser = async () => {
     try {
@@ -258,36 +275,17 @@ export default function UsersPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Département
                       </label>
-                      <input
-                        type="text"
+                      <select
                         value={newUser.departement}
                         onChange={(e) => setNewUser({ ...newUser, departement: e.target.value })}
                         className="w-full p-2 border rounded-lg"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Poste
-                      </label>
-                      <input
-                        type="text"
-                        value={newUser.poste}
-                        onChange={(e) => setNewUser({ ...newUser, poste: e.target.value })}
-                        className="w-full p-2 border rounded-lg"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Rôle
-                      </label>
-                      <select
-                        value={newUser.role}
-                        onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                        className="w-full p-2 border rounded-lg"
                       >
-                        <option value="">Sélectionner</option>
-                        <option value="admin">Administrateur</option>
-                        <option value="user">Utilisateur</option>
+                        <option value="">Sélectionner un département</option>
+                        {departements.map((dep) => (
+                          <option key={dep.id} value={dep.id}>
+                            {dep.titre}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -408,16 +406,22 @@ export default function UsersPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Département
-                      </label>
-                      <input
-                        type="text"
-                        value={editingUser.departement}
-                        onChange={(e) => handleEditingInputChange("departement", e.target.value)}
-                        className="w-full p-2 border rounded-lg"
-                      />
-                    </div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Département
+                        </label>
+                        <select
+                          value={editingUser.departement}
+                          onChange={(e) => handleEditingInputChange("departement", e.target.value )}
+                          className="w-full p-2 border rounded-lg"
+                        >
+                          <option value="">Sélectionner un département</option>
+                          {departements.map((dep) => (
+                            <option key={dep.id} value={dep.id}>
+                              {dep.titre}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Poste
@@ -440,7 +444,8 @@ export default function UsersPage() {
                       >
                         <option value="">Sélectionner</option>
                         <option value="admin">Administrateur</option>
-                        <option value="user">Utilisateur</option>
+                        <option value="user">Employée</option>
+                        <option value="resp">Responsable</option>
                       </select>
                     </div>
                   </div>
