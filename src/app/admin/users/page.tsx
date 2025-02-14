@@ -6,7 +6,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function UsersPage() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<Array<{ matricule: string; nom_complet: string; mail: string; departement: string; poste: string;role:string; id_user: string }>>([]);
   const [departements, setDepartements] = useState([]);
   const [newUser, setNewUser] = useState({
     matricule: "",
@@ -24,6 +24,7 @@ export default function UsersPage() {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -40,18 +41,32 @@ export default function UsersPage() {
     };
 
     const fetchDepartements = async () => {
-      try {
-        const response = await fetch("/api/departement");
-        if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des départements");
-        }
-        const data = await response.json();
-        setDepartements(data);
-      } catch (error) {
-        console.error(error.message);
-        toast.error("Erreur lors de la récupération des départements");
-      }
-    };
+  try {
+    const response = await fetch("/api/departement");
+    if (!response.ok) {
+      throw new Error("Erreur lors de la récupération des départements");
+    }
+    const data = await response.json();
+    setDepartements(data);
+  } catch (error) {
+    console.error(error.message);
+    toast.error("Erreur lors de la récupération des départements");
+  }
+};
+
+    // const fetchDepartements = async () => {
+    //   try {
+    //     const response = await fetch("/api/departement");
+    //     if (!response.ok) {
+    //       throw new Error("Erreur lors de la récupération des départements");
+    //     }
+    //     const data = await response.json();
+    //     setDepartements(data);
+    //   } catch (error) {
+    //     console.error(error.message);
+    //     toast.error("Erreur lors de la récupération des départements");
+    //   }
+    // };
 
     fetchUsers();
     fetchDepartements();
@@ -162,6 +177,11 @@ export default function UsersPage() {
       console.error(error.message);
       toast.error("Erreur lors de la suppression de l'utilisateur");
     }
+  };
+
+  const getDepartmentNameById = (id) => {
+    const department = departements.find((dep) => dep.id === id);
+    return department ? department.titre : "Inconnu";
   };
 
   return (
@@ -483,6 +503,7 @@ export default function UsersPage() {
               <th className="py-4 px-6 border-b text-left text-gray-700">Email</th>
               <th className="py-4 px-6 border-b text-left text-gray-700">Département</th>
               <th className="py-4 px-6 border-b text-left text-gray-700">Poste</th>
+              <th className="py-4 px-6 border-b text-left text-gray-700">Role</th>
               <th className="py-4 px-6 border-b text-left text-gray-700">Actions</th>
             </tr>
           </thead>
@@ -494,8 +515,9 @@ export default function UsersPage() {
                   <td className="py-4 px-6 border-b">{user.matricule}</td>
                   <td className="py-4 px-6 border-b">{user.nom_complet}</td>
                   <td className="py-4 px-6 border-b">{user.mail}</td>
-                  <td className="py-4 px-6 border-b">{user.departement}</td>
+                  <td className="py-4 px-6 border-b">{getDepartmentNameById(user.departement)}</td>
                   <td className="py-4 px-6 border-b">{user.poste}</td>
+                  <td className="py-4 px-6 border-b">{user.role}</td>
                   <td className="py-4 px-6 border-b flex space-x-4">
                     <button
                       onClick={() => handleEditUser(user)}

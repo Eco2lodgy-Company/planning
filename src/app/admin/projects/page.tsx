@@ -471,7 +471,7 @@ export default function Projects() {
                     setEditingProject({ ...editingProject, project_type: e.target.value })
                   }
                 >
-                  <option value="">Sélectionnez un type de projet</option>
+                  {/* <option value="">Sélectionnez un type de projet</option> */}
                   {projectTypes.map((type: any) => (
                     <option key={type.id_type} value={type.id_type}>
                       {type.type}
@@ -507,7 +507,7 @@ export default function Projects() {
                     setEditingProject({ ...editingProject, chef_projet: e.target.value })
                   }
                 >
-                  <option value="">Sélectionnez un chef de projet</option>
+                  {/* <option value="">Sélectionnez un chef de projet</option> */}
                   {users.map((user) => (
                     <option key={user.id_user} value={user.id_user}>
                       {user.nom_complet}
