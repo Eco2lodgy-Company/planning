@@ -4,11 +4,11 @@ import { NextResponse } from "next/server";
 export async function PUT(req:Request) {
   try {
     const body = await req.json();
-    const { id_projet, project_name, project_type, partenaire, echeance, chef_projet } = body;
+    const { id_projet, project_name, project_type, partenaire, echeance, chef_projet,status } = body;
 
     const { data, error } = await supabase
       .from("projets")
-      .update({ project_name, project_type, partenaire, echeance, chef_projet })
+      .update({ project_name, project_type, partenaire, echeance, chef_projet,status })
       .eq("id_projet", id_projet);
 
     if (error) {

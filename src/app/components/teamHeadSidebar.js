@@ -15,6 +15,7 @@ const navigationItems = [
   { name: "Permissions", icon: Shield, path: "/TeamHead/permissions" },
   { name: "Absences", icon: ClipboardMinus, path: "/TeamHead/absences" },
   { name: "Retards", icon: AlarmClock, path: "/TeamHead/retards" },
+  { name: "Rapports", icon: ClipboardMinus, path: "/TeamHead/rapports" },
   { name: "Profil", icon: User, path: "/TeamHead/profile" },
 ];
 

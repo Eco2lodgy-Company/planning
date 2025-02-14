@@ -11,7 +11,7 @@ interface Project {
   partenaire: string;
   echeance: string;
   chef_projet: string; // Stocke l'ID du chef de projet
-  status: "done" | "in progress" | "pending"; // Ajout du statut
+  status: string;// Ajout du statut
 }
 
 interface User {
@@ -540,12 +540,12 @@ export default function Projects() {
                   className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={editingProject.status}
                   onChange={(e) =>
-                    setEditingProject({ ...editingProject, status: e.target.value as "done" | "in progress" | "pending" })
+                    setEditingProject({ ...editingProject, status: e.target.value})
                   }
                 >
-                  <option value="pending">Pending</option>
-                  <option value="in progress">In Progress</option>
-                  <option value="done">Done</option>
+                  <option value="pending">En attente</option>
+                  <option value="in progress">En cours</option>
+                  <option value="done">Terminé</option>
                 </select>
               </div>
 
