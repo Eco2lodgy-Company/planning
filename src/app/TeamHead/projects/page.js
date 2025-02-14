@@ -2,7 +2,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle, XCircle, FileText } from "lucide-react";
-import { toast } from "sonner";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
@@ -34,13 +35,40 @@ export default function ProjectsPage() {
   },[]);
 
 
-  const handleMarkAsCompleted = (id) => {
-    setProjects((prev) =>
-      prev.map((project) =>
-        project.id_projet === id ? { ...project, status: 'Terminé' } : project
-      )
-    );
-    toast.success("Le projet a été marqué comme terminé", { description: `Le projet ${id} a été mis à jour.` });
+  const handleMarkAsCompleted = async (id) => {
+    const newStatus = "done"; // Valeur du nouveau statut
+  
+    try {
+      // Envoi de la requête PUT à l'endpoint
+      const response = await fetch(`/api/headside/projets/listes/modify/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          newStatus: newStatus,
+        }),
+      });
+  
+      const result = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(result.error || "Erreur lors de la mise à jour du statut");
+      }
+  
+      // 🔥 Mise à jour locale de l'état des projets
+      setProjects((prev) =>
+        prev.map((project) =>
+          project.id_projet === id ? { ...project, status: newStatus } : project
+        )
+      );
+  
+      toast.success("Le projet a été marqué comme terminé", {
+        description: `Le projet ${id} a été mis à jour.`,
+      });
+    } catch (error) {
+      toast.error("Échec de la mise à jour", {
+        description: error.message,
+      });
+    }
   };
 
   if (loading) {
@@ -97,6 +125,8 @@ export default function ProjectsPage() {
           </div>
         </motion.main>
       </div>
+      <ToastContainer />
+
     </div>
   );
 }
