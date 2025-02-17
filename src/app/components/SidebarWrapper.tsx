@@ -1,7 +1,7 @@
 "use client"; // Indique que ce composant est client
 
 import { usePathname } from "next/navigation";
-import EmpSidebar from "./EmpSidebar";
+import EmpSidebar from "./empSidebar";
 import RespSidebar from "./teamHeadSidebar";
 
 export default function SidebarWrapper() {
