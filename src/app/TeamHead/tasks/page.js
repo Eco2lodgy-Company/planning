@@ -246,7 +246,7 @@ export default function TaskManagementPage() {
             >
               <option value="">Sélectionner l'employé</option>
               {employees.map((employee) => (
-                <option key={employee.id_user} value={employee.id_user}>{employee.name}</option>
+                <option key={employee.id_user} value={employee.id_user}>{employee.nom_complet}</option>
               ))}
             </select>
 
