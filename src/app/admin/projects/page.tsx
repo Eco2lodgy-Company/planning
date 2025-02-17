@@ -37,6 +37,7 @@ export default function Projects() {
   });
 
   const [editingProject, setEditingProject] = useState<Project>({
+    id_projet: 0,
     project_name: "",
     project_type: "",
     partenaire: "",
@@ -161,7 +162,7 @@ export default function Projects() {
   // Modifier un projet
   const handleEditProject = async (e: React.FormEvent) => {
     e.preventDefault();
-
+console.log("Donnes envoyees pour modification",editingProject);
     try {
       const response = await fetch("/api/projects/edit", {
         method: "PUT",
@@ -169,6 +170,7 @@ export default function Projects() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(editingProject),
+        
       });
 
       if (!response.ok) {
@@ -209,7 +211,9 @@ export default function Projects() {
 
   // Ouvrir la modale d'édition
   const openEditModal = (project: Project) => {
-    setEditingProject(project);
+    setEditingProject({
+      ...project,
+      id_projet: project.id_projet});
     setIsEditModalOpen(true);
   };
 
