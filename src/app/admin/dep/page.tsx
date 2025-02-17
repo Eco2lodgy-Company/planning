@@ -24,7 +24,11 @@ export default function DepartementsPage() {
         const data = await response.json();
         setDepartements(data);
       } catch (error) {
-        console.error(error.message);
+        if (error instanceof Error) {
+          console.error(error.message);
+        } else {
+          console.error("Unknown error", error);
+        }
         toast.error("Erreur lors de la récupération des départements");
       }
     };
