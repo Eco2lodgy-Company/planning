@@ -2,19 +2,15 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, X, Edit2, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Sample data for dropdowns
-
-
-
-
 const difficultyLevels = [
   { id: 1, name: 'Facile' },
   { id: 2, name: 'Moyen' },
   { id: 3, name: 'Difficile' }
 ];
-
 
 const statusColors = {
   'pending': 'bg-yellow-100 text-yellow-800',
@@ -36,7 +32,7 @@ export default function TaskManagementPage() {
       echeance: '7',
       dateDebut: '2024-03-15',
       status: 'En cours',
-      priorite: 'Haute' // Ajout du champ priorité
+      priorite: 'Haute'
     },
     {
       id: '2',
@@ -48,7 +44,7 @@ export default function TaskManagementPage() {
       echeance: '5',
       dateDebut: '2024-03-16',
       status: 'En attente',
-      priorite: 'Moyenne' // Ajout du champ priorité
+      priorite: 'Moyenne'
     }
   ]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -62,10 +58,11 @@ export default function TaskManagementPage() {
     id_projet: '',
     departement: '',
     echeance: '',
-    dateDebut: '',
+    datedebut: '',
     status: 'pending',
-    priorite: '' // Ajout du champ priorité
+    priorite: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1200);
@@ -76,7 +73,6 @@ export default function TaskManagementPage() {
     setIsPopupOpen(true);
   };
 
-  // Appel API pour récupérer les employés
   useEffect(() => {
     const userIdd = localStorage.getItem('userId');
     const fetchEmployees = async () => {
@@ -94,7 +90,6 @@ export default function TaskManagementPage() {
 
     fetchEmployees();
 
-    // Appel API pour récupérer les projets
     const fetchProjects = async () => {
       try {
         const response = await fetch('/api/headside/projets/listes/' + userIdd);
@@ -110,7 +105,6 @@ export default function TaskManagementPage() {
 
     fetchProjects();
 
-    // Appel API pour récupérer les départements
     const fetchDepartement = async () => {
       try {
         const response = await fetch('/api/departement');
@@ -127,28 +121,40 @@ export default function TaskManagementPage() {
     fetchDepartement();
   }, []);
 
-  const handleSubmitTask = () => {
-    if (newTask.libelle && newTask.niveau && newTask.id_user && newTask.id_projet && newTask.echeance && newTask.dateDebut && newTask.priorite) {
-      setTasks((prevTasks) => [
-        ...prevTasks,
-        { id: (prevTasks.length + 1).toString(), ...newTask },
-      ]);
-      setIsPopupOpen(false);
-      setNewTask({
-        libelle: '',
-        niveau: '',
-        id_user: '',
-        id_projet: '',
-        departement: '',
-        echeance: '',
-        dateDebut: '',
-        status: 'pending',
-        priorite: '' // Réinitialisation du champ priorité
+  const handleSubmitTask = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    // Simulate a network request
+    setTimeout(async () => {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTask),
       });
-      toast('Tâche ajoutée avec succès');
-    } else {
-      toast('Veuillez remplir les champs obligatoires');
-    }
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success('Tâche ajoutée avec succès !');
+        setNewTask({
+          libelle: '',
+          niveau: '',
+          id_user: '',
+          id_projet: '',
+          departement: '',
+          echeance: '',
+          datedebut: '',
+          status: 'pending',
+          priorite: ''
+        });
+      } else {
+        alert(`Erreur: ${result.error}`);
+      }
+
+      setIsSubmitting(false);
+      setIsPopupOpen(false);
+    }, 2000); // Simulate a 2-second delay
   };
 
   const handleEditTask = (taskId) => {
@@ -192,7 +198,7 @@ export default function TaskManagementPage() {
                 <th className="px-4 py-2 text-left">Échéance</th>
                 <th className="px-4 py-2 text-left">Date Début</th>
                 <th className="px-4 py-2 text-left">Statut</th>
-                <th className="px-4 py-2 text-left">Priorité</th> {/* Ajout de la colonne Priorité */}
+                <th className="px-4 py-2 text-left">Priorité</th>
                 <th className="px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
@@ -211,7 +217,7 @@ export default function TaskManagementPage() {
                       {task.status}
                     </span>
                   </td>
-                  <td className="px-4 py-2">{task.priorite}</td> {/* Affichage de la priorité */}
+                  <td className="px-4 py-2">{task.priorite}</td>
                   <td className="px-4 py-2">
                     <div className="flex gap-2">
                       <button
@@ -307,8 +313,8 @@ export default function TaskManagementPage() {
             <input
               type="date"
               placeholder="Date Début"
-              value={newTask.dateDebut}
-              onChange={(e) => setNewTask({ ...newTask, dateDebut: e.target.value })}
+              value={newTask.datedebut}
+              onChange={(e) => setNewTask({ ...newTask, datedebut: e.target.value })}
               className="w-full p-2 border rounded mb-2 text-black"
             />
 
@@ -334,10 +340,21 @@ export default function TaskManagementPage() {
               <option value="canceled">Annulé</option>
             </select>
 
-            <button onClick={handleSubmitTask} className="bg-blue-500 text-white px-4 py-2 rounded w-full">Ajouter</button>
+            <button 
+              onClick={handleSubmitTask} 
+              disabled={isSubmitting}
+              className="bg-blue-500 text-white px-4 py-2 rounded w-full flex items-center justify-center"
+            >
+              {isSubmitting ? (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+              ) : (
+                'Ajouter'
+              )}
+            </button>
           </div>
         </div>
       )}
+      <ToastContainer />
     </div>
   );
 }
