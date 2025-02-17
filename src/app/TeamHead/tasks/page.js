@@ -5,36 +5,22 @@ import { Plus, X, Edit2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Sample data for dropdowns
-const sampleEmployees = [
-  { id: '1', name: 'Jean Dupont' },
-  { id: '2', name: 'Marie Martin' },
-  { id: '3', name: 'Pierre Bernard' }
-];
 
-const sampleProjects = [
-  { id: '1', name: 'Projet A' },
-  { id: '2', name: 'Projet B' },
-  { id: '3', name: 'Projet C' }
-];
 
-const sampleDepartments = [
-  'Informatique',
-  'Marketing',
-  'Ressources Humaines',
-  'Finance'
-];
+
 
 const difficultyLevels = [
-  'Facile',
-  'Moyen',
-  'Difficile'
+  { id: 1, name: 'Facile' },
+  { id: 2, name: 'Moyen' },
+  { id: 3, name: 'Difficile' }
 ];
 
+
 const statusColors = {
-  'En attente': 'bg-yellow-100 text-yellow-800',
-  'En cours': 'bg-blue-100 text-blue-800',
-  'Terminé': 'bg-green-100 text-green-800',
-  'Annulé': 'bg-red-100 text-red-800'
+  'pending': 'bg-yellow-100 text-yellow-800',
+  'in progress': 'bg-blue-100 text-blue-800',
+  'done': 'bg-green-100 text-green-800',
+  'canceled': 'bg-red-100 text-red-800'
 };
 
 export default function TaskManagementPage() {
@@ -49,7 +35,8 @@ export default function TaskManagementPage() {
       departement: 'Informatique',
       echeance: '7',
       dateDebut: '2024-03-15',
-      status: 'En cours'
+      status: 'En cours',
+      priorite: 'Haute' // Ajout du champ priorité
     },
     {
       id: '2',
@@ -60,11 +47,14 @@ export default function TaskManagementPage() {
       departement: 'Marketing',
       echeance: '5',
       dateDebut: '2024-03-16',
-      status: 'En attente'
+      status: 'En attente',
+      priorite: 'Moyenne' // Ajout du champ priorité
     }
   ]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [employees, setEmployees] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [departement, setDepartement] = useState([]);
   const [newTask, setNewTask] = useState({
     libelle: '',
     niveau: '',
@@ -73,7 +63,8 @@ export default function TaskManagementPage() {
     departement: '',
     echeance: '',
     dateDebut: '',
-    status: 'En attente',
+    status: 'pending',
+    priorite: '' // Ajout du champ priorité
   });
 
   useEffect(() => {
@@ -85,14 +76,12 @@ export default function TaskManagementPage() {
     setIsPopupOpen(true);
   };
 
-
-
-  //appel api pour recuperer les employés
+  // Appel API pour récupérer les employés
   useEffect(() => {
     const userIdd = localStorage.getItem('userId');
     const fetchEmployees = async () => {
       try {
-        const response = await fetch('/api/headside/agent/'+userIdd);
+        const response = await fetch('/api/headside/agents/' + userIdd);
         if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
         const data = await response.json();
         setEmployees(data);
@@ -104,10 +93,42 @@ export default function TaskManagementPage() {
     };
 
     fetchEmployees();
-  },[]);
+
+    // Appel API pour récupérer les projets
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch('/api/headside/projets/listes/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setProjects(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+
+    // Appel API pour récupérer les départements
+    const fetchDepartement = async () => {
+      try {
+        const response = await fetch('/api/departement');
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setDepartement(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDepartement();
+  }, []);
 
   const handleSubmitTask = () => {
-    if (newTask.libelle && newTask.niveau && newTask.id_user && newTask.id_projet && newTask.echeance && newTask.dateDebut) {
+    if (newTask.libelle && newTask.niveau && newTask.id_user && newTask.id_projet && newTask.echeance && newTask.dateDebut && newTask.priorite) {
       setTasks((prevTasks) => [
         ...prevTasks,
         { id: (prevTasks.length + 1).toString(), ...newTask },
@@ -121,7 +142,8 @@ export default function TaskManagementPage() {
         departement: '',
         echeance: '',
         dateDebut: '',
-        status: 'En attente',
+        status: 'pending',
+        priorite: '' // Réinitialisation du champ priorité
       });
       toast('Tâche ajoutée avec succès');
     } else {
@@ -170,6 +192,7 @@ export default function TaskManagementPage() {
                 <th className="px-4 py-2 text-left">Échéance</th>
                 <th className="px-4 py-2 text-left">Date Début</th>
                 <th className="px-4 py-2 text-left">Statut</th>
+                <th className="px-4 py-2 text-left">Priorité</th> {/* Ajout de la colonne Priorité */}
                 <th className="px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
@@ -188,16 +211,17 @@ export default function TaskManagementPage() {
                       {task.status}
                     </span>
                   </td>
+                  <td className="px-4 py-2">{task.priorite}</td> {/* Affichage de la priorité */}
                   <td className="px-4 py-2">
                     <div className="flex gap-2">
-                      <button 
+                      <button
                         onClick={() => handleEditTask(task.id)}
                         className="text-blue-600 hover:text-blue-800"
                         title="Modifier"
                       >
                         <Edit2 size={18} />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDeleteTask(task.id)}
                         className="text-red-600 hover:text-red-800"
                         title="Supprimer"
@@ -220,28 +244,28 @@ export default function TaskManagementPage() {
               <X />
             </button>
             <h3 className="text-lg font-semibold mb-4">Nouvelle Tâche</h3>
-            <input 
-              type="text" 
-              placeholder="Libellé" 
-              value={newTask.libelle} 
-              onChange={(e) => setNewTask({ ...newTask, libelle: e.target.value })} 
-              className="w-full p-2 border rounded mb-2 text-black" 
+            <input
+              type="text"
+              placeholder="Libellé"
+              value={newTask.libelle}
+              onChange={(e) => setNewTask({ ...newTask, libelle: e.target.value })}
+              className="w-full p-2 border rounded mb-2 text-black"
             />
-            
-            <select 
-              value={newTask.niveau} 
-              onChange={(e) => setNewTask({ ...newTask, niveau: e.target.value })} 
+
+            <select
+              value={newTask.niveau}
+              onChange={(e) => setNewTask({ ...newTask, niveau: e.target.value })}
               className="w-full p-2 border rounded mb-2 text-black"
             >
               <option value="">Sélectionner le niveau</option>
               {difficultyLevels.map((level) => (
-                <option key={level} value={level}>{level}</option>
+                <option key={level.id} value={level.id}>{level.name}</option>
               ))}
             </select>
 
-            <select 
-              value={newTask.id_user} 
-              onChange={(e) => setNewTask({ ...newTask, id_user: e.target.value })} 
+            <select
+              value={newTask.id_user}
+              onChange={(e) => setNewTask({ ...newTask, id_user: e.target.value })}
               className="w-full p-2 border rounded mb-2 text-black"
             >
               <option value="">Sélectionner l'employé</option>
@@ -250,55 +274,66 @@ export default function TaskManagementPage() {
               ))}
             </select>
 
-            <select 
-              value={newTask.id_projet} 
-              onChange={(e) => setNewTask({ ...newTask, id_projet: e.target.value })} 
+            <select
+              value={newTask.id_projet}
+              onChange={(e) => setNewTask({ ...newTask, id_projet: e.target.value })}
               className="w-full p-2 border rounded mb-2 text-black"
             >
               <option value="">Sélectionner le projet</option>
-              {sampleProjects.map((project) => (
-                <option key={project.id} value={project.name}>{project.name}</option>
+              {projects.map((project) => (
+                <option key={project.id_projet} value={project.id_projet}>{project.project_name}</option>
               ))}
             </select>
 
-            <select 
-              value={newTask.departement} 
-              onChange={(e) => setNewTask({ ...newTask, departement: e.target.value })} 
+            <select
+              value={newTask.departement}
+              onChange={(e) => setNewTask({ ...newTask, departement: e.target.value })}
               className="w-full p-2 border rounded mb-2 text-black"
             >
               <option value="">Sélectionner le département</option>
-              {sampleDepartments.map((department) => (
-                <option key={department} value={department}>{department}</option>
+              {departement.map((department) => (
+                <option key={department.id} value={department.id}>{department.titre}</option>
               ))}
             </select>
 
-            <input 
-              type="number" 
-              placeholder="Échéance (jours)" 
-              value={newTask.echeance} 
-              onChange={(e) => setNewTask({ ...newTask, echeance: e.target.value })} 
-              className="w-full p-2 border rounded mb-2 text-black" 
-            />
-            
-            <input 
-              type="date" 
-              placeholder="Date Début" 
-              value={newTask.dateDebut} 
-              onChange={(e) => setNewTask({ ...newTask, dateDebut: e.target.value })} 
-              className="w-full p-2 border rounded mb-2 text-black" 
+            <input
+              type="number"
+              placeholder="Échéance (jours)"
+              value={newTask.echeance}
+              onChange={(e) => setNewTask({ ...newTask, echeance: e.target.value })}
+              className="w-full p-2 border rounded mb-2 text-black"
             />
 
-            <select 
-              value={newTask.status} 
-              onChange={(e) => setNewTask({ ...newTask, status: e.target.value })} 
+            <input
+              type="date"
+              placeholder="Date Début"
+              value={newTask.dateDebut}
+              onChange={(e) => setNewTask({ ...newTask, dateDebut: e.target.value })}
+              className="w-full p-2 border rounded mb-2 text-black"
+            />
+
+            <select
+              value={newTask.priorite}
+              onChange={(e) => setNewTask({ ...newTask, priorite: e.target.value })}
               className="w-full p-2 border rounded mb-2 text-black"
             >
-              <option value="En attente">En attente</option>
-              <option value="En cours">En cours</option>
-              <option value="Terminé">Terminé</option>
-              <option value="Annulé">Annulé</option>
+              <option value="">Sélectionner la priorité</option>
+              <option value="1">Haute</option>
+              <option value="2">Moyenne</option>
+              <option value="3">Basse</option>
             </select>
-            
+
+            <select
+              value={newTask.status}
+              onChange={(e) => setNewTask({ ...newTask, status: e.target.value })}
+              className="w-full p-2 border rounded mb-2 text-black"
+            >
+              <option value="pending">En attente</option>
+              <option value="in progress">En cours</option>
+              <option value="done">Terminé</option>
+              <option value="canceled">Annulé</option>
+            </select>
+
             <button onClick={handleSubmitTask} className="bg-blue-500 text-white px-4 py-2 rounded w-full">Ajouter</button>
           </div>
         </div>
