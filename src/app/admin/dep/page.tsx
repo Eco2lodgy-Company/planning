@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { PencilIcon, TrashIcon } from "@heroicons/react/outline";
@@ -23,8 +23,13 @@ export default function DepartementsPage() {
         }
         const data = await response.json();
         setDepartements(data);
-      } catch (error) {
-        console.error(error.message);
+      } catch (error: unknown) {
+        if (error && typeof error === 'object' && 'message' in error) {
+          const e = error as { message: string };
+          console.error(e.message);
+        } else {
+          console.error("Unknown error", error);
+        }
         toast.error("Erreur lors de la récupération des départements");
       }
     };
@@ -53,8 +58,13 @@ export default function DepartementsPage() {
       });
       setIsPopoverOpen(false);
       toast.success("Département ajouté avec succès");
-    } catch (error) {
-      console.error(error.message);
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'message' in error) {
+        const e = error as { message: string };
+        console.error(e.message);
+      } else {
+        console.error("Unknown error", error);
+      }
       toast.error("Erreur lors de l'ajout du département");
     }
   };
@@ -88,8 +98,13 @@ export default function DepartementsPage() {
       setIsEditModalOpen(false);
       setEditingDepartement(null);
       toast.success("Département mis à jour avec succès");
-    } catch (error) {
-      console.error(error.message);
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'message' in error) {
+        const e = error as { message: string };
+        console.error(e.message);
+      } else {
+        console.error("Unknown error", error);
+      }
       toast.error("Erreur lors de la mise à jour du département");
     }
   };
@@ -122,8 +137,13 @@ export default function DepartementsPage() {
         prevDepartements.filter((dep) => dep.id !== id)
       );
       toast.success("Département supprimé avec succès");
-    } catch (error) {
-      console.error(error.message);
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'message' in error) {
+        const e = error as { message: string };
+        console.error(e.message);
+      } else {
+        console.error("Unknown error", error);
+      }
       toast.error("Erreur lors de la suppression du département");
     }
   };
@@ -230,7 +250,7 @@ export default function DepartementsPage() {
                       onClick={handleUpdateDepartement}
                       className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
                     >
-                      Enregistrer
+                      Modifier
                     </button>
                   </div>
                 </form>
@@ -239,38 +259,27 @@ export default function DepartementsPage() {
           )}
         </AnimatePresence>
 
-        {/* Tableau des départements */}
-        <table className="min-w-full bg-white rounded-lg shadow-lg">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="py-4 px-6 border-b text-left text-gray-700">Titre</th>
-              <th className="py-4 px-6 border-b text-left text-gray-700">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {departements
-              .filter((dep) => dep && dep.id)
-              .map((dep) => (
-                <tr key={dep.id} className="hover:bg-gray-50 transition duration-200">
-                  <td className="py-4 px-6 border-b">{dep.titre}</td>
-                  <td className="py-4 px-6 border-b flex space-x-4">
-                    <button
-                      onClick={() => handleEditDepartement(dep)}
-                      className="text-blue-600 hover:text-blue-800 transition duration-200"
-                    >
-                      <PencilIcon className="w-6 h-6" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteDepartement(dep.id)}
-                      className="text-red-600 hover:text-red-800 transition duration-200"
-                    >
-                      <TrashIcon className="w-6 h-6" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+        <div className="space-y-4">
+          {departements.map((departement) => (
+            <div key={departement.id} className="flex justify-between items-center p-4 bg-white shadow rounded-lg">
+              <span className="text-lg font-medium text-gray-800">{departement.titre}</span>
+              <div className="space-x-4">
+                <button
+                  onClick={() => handleEditDepartement(departement)}
+                  className="text-blue-600 hover:text-blue-700 transition duration-300"
+                >
+                  <PencilIcon className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => handleDeleteDepartement(departement.id)}
+                  className="text-red-600 hover:text-red-700 transition duration-300"
+                >
+                  <TrashIcon className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
