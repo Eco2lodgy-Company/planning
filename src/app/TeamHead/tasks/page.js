@@ -64,6 +64,7 @@ export default function TaskManagementPage() {
     }
   ]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [employees, setEmployees] = useState([]);
   const [newTask, setNewTask] = useState({
     libelle: '',
     niveau: '',
@@ -83,6 +84,27 @@ export default function TaskManagementPage() {
   const handleCreateTask = () => {
     setIsPopupOpen(true);
   };
+
+
+
+  //appel api pour recuperer les employés
+  useEffect(() => {
+    const userIdd = localStorage.getItem('userId');
+    const fetchEmployees = async () => {
+      try {
+        const response = await fetch('/api/headside/agent/'+userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setEmployees(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmployees();
+  },[]);
 
   const handleSubmitTask = () => {
     if (newTask.libelle && newTask.niveau && newTask.id_user && newTask.id_projet && newTask.echeance && newTask.dateDebut) {
@@ -223,8 +245,8 @@ export default function TaskManagementPage() {
               className="w-full p-2 border rounded mb-2 text-black"
             >
               <option value="">Sélectionner l'employé</option>
-              {sampleEmployees.map((employee) => (
-                <option key={employee.id} value={employee.name}>{employee.name}</option>
+              {employees.map((employee) => (
+                <option key={employee.id_user} value={employee.id_user}>{employee.name}</option>
               ))}
             </select>
 

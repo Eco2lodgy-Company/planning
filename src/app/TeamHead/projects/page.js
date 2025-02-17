@@ -54,7 +54,7 @@ export default function ProjectsPage() {
         throw new Error(result.error || "Erreur lors de la mise à jour du statut");
       }
   
-      // 🔥 Mise à jour locale de l'état des projets
+      // Mise à jour locale de l'état des projets
       setProjects((prev) =>
         prev.map((project) =>
           project.id_projet === id ? { ...project, status: newStatus } : project
