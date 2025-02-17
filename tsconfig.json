@@ -12,6 +12,8 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "target": "es2015", // Ajout pour activer le support ES2015
+    "downlevelIteration": true, // Ajout pour permettre l'itération avancée
     "plugins": [
       {
         "name": "next"
@@ -21,6 +23,12 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/page.js"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/app/page.js"
+  ],
   "exclude": ["node_modules"]
 }
