@@ -32,6 +32,8 @@ export default function EmployeeDashboard() {
   const [completedTasks, setCompletedTasks] = useState([]);
   const [overdueTasks, setOverdueTasks] = useState([]);
   const [totalTasks, setTotalTasks] = useState([]);
+  const [PendingTasks, setPendingTasks]= useState([]);
+  const [taskList, setTaskList]= useState([]);
 
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export default function EmployeeDashboard() {
     { status: 'Retard', total: overdueTasks },
     { status: 'En cours', total: onGoingTasks },
     { status: 'Terminés', total: completedTasks },
-    { status: 'ras', total: completedTasks },
+    { status: 'En attente', total: PendingTasks },
   ];
 
   //appel de toutes les apis qui vont contribuer à l'affichage des donnees dynamique de la page
@@ -125,6 +127,41 @@ export default function EmployeeDashboard() {
     };
 
     fetchTotalTasks();
+
+
+    //appel api pour recuperele nombre de taches en cours
+
+    const fetchPendingTasks = async () => {
+      try {
+        const response = await fetch('/api/userSide/tasks/pending/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setPendingTasks(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPendingTasks();
+
+    //appel api pour recupererla liste taches
+
+    const fetchTaskList = async () => {
+      try {
+        const response = await fetch('/api/userSide/tasks/tasks/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setTaskList(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTaskList();
   }, []);
 
 
@@ -289,34 +326,37 @@ export default function EmployeeDashboard() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tâche</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date limite</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Echéance</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priorité</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentTasks.map((task) => (
-                    <tr key={task.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{task.title}</td>
+                  {taskList.map((task) => (
+                    <tr key={task.id_tache}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{task.libelle}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                           {task.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.deadline}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.datedebut} </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.echeance}  jours</td>
+
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          task.priority === "Haute" ? "bg-red-100 text-red-800" :
-                          task.priority === "Moyenne" ? "bg-yellow-100 text-yellow-800" :
+                          task.priorite === "Haute" ? "bg-red-100 text-red-800" :
+                          task.priorite === "Moyenne" ? "bg-yellow-100 text-yellow-800" :
                           "bg-green-100 text-green-800"
                         }`}>
-                          {task.priority}
+                          {task.priorite}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+
+                      {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button className="text-red-600 hover:text-red-900 mr-4">
                           <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </button>
-                      </td>
+                      </td> */}
                     </tr>
                   ))}
                 </tbody>
