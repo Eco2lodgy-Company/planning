@@ -10,9 +10,10 @@ export async function GET(req, { params }) {
 
     try {
         const { data, error } = await supabase
-            .rpc('get_user_tasks_Progress', {id_user_param: userId});
+            .rpc('get_in_progress_tasks', {id_user_param: userId});
 
         if (error) {
+            console.log(error.message);
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 

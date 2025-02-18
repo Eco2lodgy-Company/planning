@@ -26,6 +26,10 @@ import {
 export default function EmployeeDashboard() {
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
+  const [onGoingTasks, setOnGoingTasks] = useState([]);
+  const [completedTasks, setCompletedTasks] = useState([]);
+  const [overdueTasks, setOverdueTasks] = useState([]);
+  const [totalTasks, setTotalTasks] = useState([]);
 
 
   useEffect(() => {
@@ -34,11 +38,86 @@ export default function EmployeeDashboard() {
   }, []);
 
   const tasks = {
-    enCours: 8,
-    terminees: 15,
-    enRetard: 3,
-    total: 26
+    enCours: onGoingTasks,
+    terminees: completedTasks,
+    enRetard: overdueTasks,
+    total: totalTasks
   };
+
+  //appel de toutes les apis qui vont contribuer à l'affichage des donnees dynamique de la page
+
+  useEffect(() => {
+    const userIdd=localStorage.getItem('userId');
+    const fetchProgressTask = async () => {
+      try {
+        const response = await fetch('/api/userSide/tasks/progress/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setOnGoingTasks(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProgressTask();
+
+
+    //appel api pour recuperer les taches terminer
+
+    const fetchDoneTasks = async () => {
+      try {
+        const response = await fetch('/api/userSide/tasks/done/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setCompletedTasks(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoneTasks();
+
+
+    //appel api recuperer le nombre de taches en retard
+
+    const fetchLateTasks = async () => {
+      try {
+        const response = await fetch('/api/userSide/tasks/late/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setOverdueTasks(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLateTasks();
+
+
+    //appel api pour recuperer le total des taches
+
+    const fetchTotalTasks = async () => {
+      try {
+        const response = await fetch('/api/userSide/tasks/list/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setTotalTasks(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTotalTasks();
+  }, []);
+
 
   const currentTasks = [
     { id: 1, title: "Mise à jour du site web", status: "En cours", deadline: "2024-03-20", priority: "Haute" },
