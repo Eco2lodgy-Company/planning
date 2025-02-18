@@ -1,15 +1,25 @@
 import { supabase } from "@/lib/SupabaseClient";
 import { NextResponse } from "next/server";
 
-export async function PUT(req:Request) {
+export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { id_projet, project_name, project_type, partenaire, echeance, chef_projet,status } = body;
+    const { id_projet, project_name, project_type, partenaire, echeance, chef_projet, status, departement } = body;
 
+    // Mettre à jour le projet dans la base de données
     const { data, error } = await supabase
       .from("projets")
-      .update({ project_name, project_type, partenaire, echeance, chef_projet,status })
-      .eq("id_projet", id_projet);
+      .update({
+        project_name,
+        project_type,
+        partenaire,
+        echeance,
+        chef_projet,
+        status,
+        departement,
+      })
+      .eq("id_projet", id_projet)
+      .select();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
