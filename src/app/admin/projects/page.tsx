@@ -1,17 +1,32 @@
-"use client";
-
-import { useState, useEffect } from "react";
+"use client"
+import React, { useState, useEffect } from "react";
 import { Plus, X, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 interface Project {
   id_projet?: number;
   project_name: string;
-  project_type: string;
+  project_type: number; 
   partenaire: string;
+  departement: string;
   echeance: string;
-  chef_projet: string; // Stocke l'ID du chef de projet
-  status: string;// Ajout du statut
+  chef_projet: number;
+  status: string;
+}
+
+// Add these interfaces for the detailed project data
+interface ProjectDetails {
+  id_projet: number;
+  project_name: string;
+  project_type: string; // This will hold the type name
+  project_type_id?: number; // This will hold the type ID
+  partenaire: string;
+  departement: string;
+  departement_id?: number;
+  echeance: string;
+  chef_projet: string; // This will hold the user name
+  chef_projet_id?: number; // This will hold the user ID
+  status: string;
 }
 
 interface User {
@@ -20,74 +35,63 @@ interface User {
 }
 
 export default function Projects() {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectDetails[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [users, setUsers] = useState<User[]>([]); // Liste des utilisateurs pour le sélecteur
-  const [projectTypes, setProjectTypes] = useState<any[]>([]); // Liste des types de projets
+  const [users, setUsers] = useState<User[]>([]);
+  const [projectTypes, setProjectTypes] = useState<any[]>([]);
+  const [Departement, setDepartement] = useState<any[]>([]);
 
   const [newProject, setNewProject] = useState<Project>({
     project_name: "",
-    project_type: "",
+    project_type: 0,
     partenaire: "",
     echeance: "",
-    chef_projet: "", // ID du chef de projet
-    status: "pending", // Statut par défaut
+    departement: "",
+    chef_projet: 0,
+    status: "pending",
   });
 
   const [editingProject, setEditingProject] = useState<Project>({
     id_projet: 0,
     project_name: "",
-    project_type: "",
+    departement: "",
+    project_type: 0,
     partenaire: "",
     echeance: "",
-    chef_projet: "", // ID du chef de projet
-    status: "pending", // Statut par défaut
+    chef_projet: 0,
+    status: "pending",
   });
 
-  // Récupérer les projets, les utilisateurs et les types de projets au chargement
   useEffect(() => {
     fetchProjects();
     fetchUsers();
     fetchProjectTypes().then((types) => setProjectTypes(types));
+    fetchDepartement().then((dep) => setDepartement(dep));
   }, []);
 
-  // Récupérer les projets depuis l'API
   const fetchProjects = async () => {
     try {
-      const response = await fetch("/api/projects");
+      const response = await fetch("/api/projects/details");
       const result = await response.json();
-
+  
       if (result.data) {
-        const projectTypes = await fetchProjectTypes();
+        // Transform the data to include both IDs and display values
+        const transformedData = result.data.map((project: any) => {
+          // Find matching records to get IDs
+          const matchingType = projectTypes.find(t => t.type === project.project_type);
+          const matchingUser = users.find(u => u.nom_complet === project.chef_projet);
+          const matchingDept = Departement.find(d => d.titre === project.departement);
 
-        const projectsWithChefProjet = await Promise.all(
-          result.data.map(async (project: Project) => {
-            if (project.chef_projet) {
-              const chefProjetResponse = await fetch("/api/users/byid", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ id_user: project.chef_projet }),
-              });
-              const chefProjetData = await chefProjetResponse.json();
-
-              // Trouver le type de projet correspondant
-              const projectType = projectTypes.find((type: any) => type.id_type === project.project_type);
-
-              return {
-                ...project,
-                chef_projet: chefProjetData.user.nom_complet,
-                project_type: projectType ? projectType.type : "Type inconnu", // Remplacer l'ID par le nom du type de projet
-              };
-            }
-            return project;
-          })
-        );
-
-        setProjects(projectsWithChefProjet);
+          return {
+            ...project,
+            project_type_id: matchingType?.id_type,
+            chef_projet_id: matchingUser?.id_user,
+            departement_id: matchingDept?.id
+          };
+        });
+        setProjects(transformedData);
       }
     } catch (error) {
       toast.error("Erreur lors du chargement des projets");
@@ -96,26 +100,30 @@ export default function Projects() {
     }
   };
 
-  // Récupérer les types de projets
   const fetchProjectTypes = async () => {
     try {
       const response = await fetch("/api/projectType");
       const result = await response.json();
-
-      if (result) {
-        return result;
-      }
+      return result;
     } catch (error) {
       toast.error("Erreur lors du chargement des types de projets");
     }
   };
 
-  // Récupérer la liste des utilisateurs
+  const fetchDepartement = async () => {
+    try {
+      const response = await fetch("/api/departement");
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      toast.error("Erreur lors du chargement des Departement");
+    }
+  };
+
   const fetchUsers = async () => {
     try {
       const response = await fetch("/api/users");
       const result = await response.json();
-      console.log("Utilisateurs récupérés:", result); // Log pour vérifier les données
       if (result) {
         setUsers(result);
       }
@@ -124,7 +132,6 @@ export default function Projects() {
     }
   };
 
-  // Ajouter un projet
   const handleAddProject = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -134,7 +141,11 @@ export default function Projects() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(newProject),
+        body: JSON.stringify({
+          ...newProject,
+          project_type: Number(newProject.project_type),
+          chef_projet: Number(newProject.chef_projet),
+        }),
       });
 
       if (!response.ok) {
@@ -145,38 +156,46 @@ export default function Projects() {
       setIsPopoverOpen(false);
       fetchProjects();
 
-      // Réinitialiser le formulaire
       setNewProject({
         project_name: "",
-        project_type: "",
+        project_type: 0,
         partenaire: "",
         echeance: "",
-        chef_projet: "",
-        status: "pending", // Réinitialiser le statut
+        departement: "",
+        chef_projet: 0,
+        status: "pending",
       });
     } catch (error) {
       toast.error("Erreur lors de l'ajout du projet");
     }
   };
 
-  // Modifier un projet
   const handleEditProject = async (e: React.FormEvent) => {
     e.preventDefault();
-console.log("Donnes envoyees pour modification",editingProject);
+  
     try {
       const response = await fetch("/api/projects/edit", {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(editingProject),
-        
+        body: JSON.stringify({
+          id_projet: editingProject.id_projet,
+          project_name: editingProject.project_name,
+          project_type: editingProject.project_type,
+          partenaire: editingProject.partenaire,
+          echeance: editingProject.echeance,
+          chef_projet: editingProject.chef_projet,
+          status: editingProject.status,
+          departement: editingProject.departement,
+        }),
       });
-
+  
       if (!response.ok) {
-        throw new Error("Erreur lors de la modification du projet");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Erreur lors de la modification du projet");
       }
-
+  
       toast.success("Projet modifié avec succès");
       setIsEditModalOpen(false);
       fetchProjects();
@@ -185,7 +204,6 @@ console.log("Donnes envoyees pour modification",editingProject);
     }
   };
 
-  // Supprimer un projet
   const handleDeleteProject = async (id: number) => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer ce projet ?")) return;
 
@@ -209,15 +227,25 @@ console.log("Donnes envoyees pour modification",editingProject);
     }
   };
 
-  // Ouvrir la modale d'édition
-  const openEditModal = (project: Project) => {
+  const openEditModal = (project: ProjectDetails) => {
+    // Find the corresponding IDs based on the display values
+    const typeId = projectTypes.find(t => t.type === project.project_type)?.id_type;
+    const userId = users.find(u => u.nom_complet === project.chef_projet)?.id_user;
+    const deptId = Departement.find(d => d.titre === project.departement)?.id;
+
     setEditingProject({
-      ...project,
-      id_projet: project.id_projet});
+      id_projet: project.id_projet,
+      project_name: project.project_name,
+      project_type: typeId || 0,
+      partenaire: project.partenaire,
+      echeance: project.echeance,
+      chef_projet: Number(userId) || 0,
+      status: project.status,
+      departement: deptId || "",
+    });
     setIsEditModalOpen(true);
   };
 
-  // Fonction pour obtenir la classe CSS en fonction du statut
   const getStatusClass = (status: string) => {
     switch (status) {
       case "done":
@@ -260,11 +288,7 @@ console.log("Donnes envoyees pour modification",editingProject);
                     <button onClick={() => openEditModal(project)}>
                       <Pencil className="w-5 h-5 text-gray-400 hover:text-blue-500" />
                     </button>
-                    <button
-                      onClick={() =>
-                        project.id_projet && handleDeleteProject(project.id_projet)
-                      }
-                    >
+                    <button onClick={() => handleDeleteProject(project.id_projet)}>
                       <X className="w-5 h-5 text-gray-400 hover:text-red-500" />
                     </button>
                   </div>
@@ -335,13 +359,34 @@ console.log("Donnes envoyees pour modification",editingProject);
                   className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={newProject.project_type}
                   onChange={(e) =>
-                    setNewProject({ ...newProject, project_type: e.target.value })
+                    setNewProject({ ...newProject, project_type: Number(e.target.value) })
                   }
                 >
                   <option value="">Sélectionnez un type de projet</option>
                   {projectTypes.map((type: any) => (
                     <option key={type.id_type} value={type.id_type}>
                       {type.type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Departement
+                </label>
+                <select
+                  required
+                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={newProject.departement}
+                  onChange={(e) =>
+                    setNewProject({ ...newProject, departement: e.target.value })
+                  }
+                >
+                  <option value="">Sélectionnez un departement</option>
+                  {Departement.map((dep: any) => (
+                    <option key={dep.id} value={dep.id}>
+                      {dep.titre}
                     </option>
                   ))}
                 </select>
@@ -371,7 +416,7 @@ console.log("Donnes envoyees pour modification",editingProject);
                   className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={newProject.chef_projet}
                   onChange={(e) =>
-                    setNewProject({ ...newProject, chef_projet: e.target.value })
+                    setNewProject({ ...newProject, chef_projet: Number(e.target.value) })
                   }
                 >
                   <option value="">Sélectionnez un chef de projet</option>
@@ -472,13 +517,32 @@ console.log("Donnes envoyees pour modification",editingProject);
                   className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={editingProject.project_type}
                   onChange={(e) =>
-                    setEditingProject({ ...editingProject, project_type: e.target.value })
+                    setEditingProject({ ...editingProject, project_type: Number(e.target.value) })
                   }
                 >
-                  {/* <option value="">Sélectionnez un type de projet</option> */}
                   {projectTypes.map((type: any) => (
                     <option key={type.id_type} value={type.id_type}>
                       {type.type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Département
+                </label>
+                <select
+                  required
+                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={editingProject.departement}
+                  onChange={(e) =>
+                    setEditingProject({ ...editingProject, departement: e.target.value })
+                  }
+                >
+                  {Departement.map((dep: any) => (
+                    <option key={dep.id} value={dep.id}>
+                      {dep.titre}
                     </option>
                   ))}
                 </select>
@@ -508,10 +572,9 @@ console.log("Donnes envoyees pour modification",editingProject);
                   className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={editingProject.chef_projet}
                   onChange={(e) =>
-                    setEditingProject({ ...editingProject, chef_projet: e.target.value })
+                    setEditingProject({ ...editingProject, chef_projet: Number(e.target.value) })
                   }
                 >
-                  {/* <option value="">Sélectionnez un chef de projet</option> */}
                   {users.map((user) => (
                     <option key={user.id_user} value={user.id_user}>
                       {user.nom_complet}
@@ -544,7 +607,7 @@ console.log("Donnes envoyees pour modification",editingProject);
                   className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={editingProject.status}
                   onChange={(e) =>
-                    setEditingProject({ ...editingProject, status: e.target.value})
+                    setEditingProject({ ...editingProject, status: e.target.value })
                   }
                 >
                   <option value="pending">En attente</option>
