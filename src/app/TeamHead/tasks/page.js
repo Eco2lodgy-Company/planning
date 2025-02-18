@@ -50,6 +50,7 @@ export default function TaskManagementPage() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [tasksData, setTasksData] = useState([]);
   const [departement, setDepartement] = useState([]);
   const [newTask, setNewTask] = useState({
     libelle: '',
@@ -119,6 +120,26 @@ export default function TaskManagementPage() {
     };
 
     fetchDepartement();
+
+
+    //appel api pour recuperer les tâches
+
+    const fetchTasks = async () => {
+      try {
+        const response = await fetch('/api/tasks/list/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setTasksData(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+
+    
   }, []);
 
   const handleSubmitTask = async (e) => {
@@ -203,13 +224,13 @@ export default function TaskManagementPage() {
               </tr>
             </thead>
             <tbody>
-              {tasks.map((task) => (
-                <tr key={task.id} className="border-t">
+              {tasksData.map((task) => (
+                <tr key={task.id_tache} className="border-t">
                   <td className="px-4 py-2">{task.libelle}</td>
                   <td className="px-4 py-2">{task.niveau}</td>
-                  <td className="px-4 py-2">{task.id_user}</td>
-                  <td className="px-4 py-2">{task.id_projet}</td>
-                  <td className="px-4 py-2">{task.departement}</td>
+                  <td className="px-4 py-2">{task.nom_utilisateur}</td>
+                  <td className="px-4 py-2">{task.nom_projet}</td>
+                  <td className="px-4 py-2">{task.nom_departement}</td>
                   <td className="px-4 py-2">{task.echeance} jours</td>
                   <td className="px-4 py-2">{task.dateDebut}</td>
                   <td className="px-4 py-2">
