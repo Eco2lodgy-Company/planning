@@ -221,7 +221,7 @@ export default function Calendar() {
                             key={task.id}
                             className={`p-2 rounded border ${getPriorityColor(task.niveau)}`}
                           >
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center text-black justify-between">
                               <span className="text-sm font-medium">{task.libelle}</span>
                               <span
                                 className={`w-2 h-2 rounded-full ${getStatusColor(task.status)}`}
