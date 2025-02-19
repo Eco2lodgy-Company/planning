@@ -63,9 +63,17 @@ export default function Calendar() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const tasksResponse = await fetch("/api/tache");
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          throw new Error("User ID not found in localStorage");
+        }
+
+        const tasksResponse = await fetch(`/api/tache/${userId}`, {
+          method: "GET",
+        });
         const tasksResult = await tasksResponse.json();
         if (tasksResult.data) setTasks(tasksResult.data);
+
         const usersData = await fetchUsersForTasks(tasksResult.data || []);
         setUsers(usersData);
       } catch (error) {
