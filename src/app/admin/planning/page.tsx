@@ -13,7 +13,7 @@ interface Task {
   id_user: number;
   id_projet: number;
   echeance: number;
-  datedebut: string;
+  datedebut: Date;
   status: number;
   departement: number;
   priorite: number;
@@ -63,11 +63,11 @@ export default function Calendar() {
   const [newTask, setNewTask] = useState({
     libelle: "",
     niveau: 1,
-    nom_projet: "",
+    id_projet: 0,
     echeance: 1,
     datedebut: "",
     status: "pending",
-    departement: "",
+    departement: 0,
     priorite: 1,
     id_user: 0,
   });
@@ -302,11 +302,11 @@ useEffect(() => {
       setNewTask({
         libelle: "",
         niveau: 1,
-        nom_projet: "",
+        id_projet: 0,
         echeance: 1,
         datedebut: "",
         status: "pending",
-        nom_departement: "",
+        departement: 0,
         priorite: 1,
         id_user: 0,
       });
@@ -391,10 +391,10 @@ useEffect(() => {
                 className={`w-2 h-2 rounded-full ${getStatusColor(task.status)}`}
                 />
               </div>
-              <span className="text-xs text-gray-500 block mt-1">nom: {task.nom_complet}
+              <span className="text-xs text-gray-500 block mt-1">nom: {task.id_user}
               </span>
-              {task.nom_departement && (
-                <span className="text-xs text-gray-500 block"> departement: {task.nom_departement}
+              {task.departement && (
+                <span className="text-xs text-gray-500 block"> departement: {task.departement}
                 </span>
               )}
               <span className="text-xs text-gray-500 block">
@@ -456,8 +456,8 @@ useEffect(() => {
           Projet
         </label>
         <select
-          value={newTask.priorite}
-          onChange={(e) => setNewTask({ ...newTask, priorite: Number(e.target.value) })}
+          value={newTask.id_projet}
+          onChange={(e) => setNewTask({ ...newTask, id_projet: Number(e.target.value) })}
           className="w-full p-2 border rounded-lg"
           required
         >
@@ -496,8 +496,8 @@ useEffect(() => {
           Departement
         </label>
         <select
-          value={newTask.priorite}
-          onChange={(e) => setNewTask({ ...newTask, nom_departement: Number(e.target.value) })}
+          value={newTask.departement}
+          onChange={(e) => setNewTask({ ...newTask, departement: Number(e.target.value) })}
           className="w-full p-2 border rounded-lg"
           required
         >
