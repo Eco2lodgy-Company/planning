@@ -77,6 +77,15 @@ export default function SIDEBAR() {
                 </li>
                 <li>
                   <a
+                    href="/admin/type"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
+                  >
+                    <Clipboard />Type de Projets
+                  </a>
+                </li>
+                
+                <li>
+                  <a
                     href="/admin/projects"
                     className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
                   >
