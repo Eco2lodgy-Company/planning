@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, CartesianGrid } from 'recharts';
+
 
 
 import {
@@ -26,6 +28,12 @@ import {
 export default function EmployeeDashboard() {
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
+  const [onGoingTasks, setOnGoingTasks] = useState([]);
+  const [completedTasks, setCompletedTasks] = useState([]);
+  const [overdueTasks, setOverdueTasks] = useState([]);
+  const [totalTasks, setTotalTasks] = useState([]);
+  const [PendingTasks, setPendingTasks]= useState([]);
+  const [taskList, setTaskList]= useState([]);
 
 
   useEffect(() => {
@@ -34,11 +42,128 @@ export default function EmployeeDashboard() {
   }, []);
 
   const tasks = {
-    enCours: 8,
-    terminees: 15,
-    enRetard: 3,
-    total: 26
+    enCours: onGoingTasks,
+    terminees: completedTasks,
+    enRetard: overdueTasks,
+    total: totalTasks
   };
+
+  const statusData = [
+    { status: 'Retard', total: overdueTasks },
+    { status: 'En cours', total: onGoingTasks },
+    { status: 'Terminés', total: completedTasks },
+    { status: 'En attente', total: PendingTasks },
+  ];
+
+  //appel de toutes les apis qui vont contribuer à l'affichage des donnees dynamique de la page
+
+  useEffect(() => {
+    const userIdd=localStorage.getItem('userId');
+    const fetchProgressTask = async () => {
+      try {
+        const response = await fetch('/api/userSide/tasks/progress/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setOnGoingTasks(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProgressTask();
+
+
+    //appel api pour recuperer les taches terminer
+
+    const fetchDoneTasks = async () => {
+      try {
+        const response = await fetch('/api/userSide/tasks/done/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setCompletedTasks(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoneTasks();
+
+
+    //appel api recuperer le nombre de taches en retard
+
+    const fetchLateTasks = async () => {
+      try {
+        const response = await fetch('/api/userSide/tasks/late/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setOverdueTasks(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLateTasks();
+
+
+    //appel api pour recuperer le total des taches
+
+    const fetchTotalTasks = async () => {
+      try {
+        const response = await fetch('/api/userSide/tasks/list/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setTotalTasks(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTotalTasks();
+
+
+    //appel api pour recuperele nombre de taches en cours
+
+    const fetchPendingTasks = async () => {
+      try {
+        const response = await fetch('/api/userSide/tasks/pending/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setPendingTasks(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPendingTasks();
+
+    //appel api pour recupererla liste taches
+
+    const fetchTaskList = async () => {
+      try {
+        const response = await fetch('/api/userSide/tasks/tasks/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setTaskList(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTaskList();
+  }, []);
+
 
   const currentTasks = [
     { id: 1, title: "Mise à jour du site web", status: "En cours", deadline: "2024-03-20", priority: "Haute" },
@@ -133,71 +258,60 @@ export default function EmployeeDashboard() {
             </motion.div>
           </div>
 
+          
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Performance Charts */}
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              className="bg-white p-6 rounded-lg shadow-lg"
-            >
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <BarChart3 className="text-blue-500" aria-hidden="true" /> Performance hebdomadaire
-              </h3>
-              <div className="h-64 flex items-end justify-between gap-2">
-                {[65, 45, 75, 55, 85, 35, 60].map((height, index) => (
-                  <div key={index} className="w-full">
-                    <div
-                      className="bg-blue-500 rounded-t"
-                      style={{ height: `${height}%` }}
-                    ></div>
-                    <p className="text-xs text-center mt-2">
-                      {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"][index]}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Task Distribution */}
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              className="bg-white p-6 rounded-lg shadow-lg"
-            >
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <PieChart className="text-blue-500" aria-hidden="true" /> Distribution des tâches
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm text-gray-600">En cours</span>
-                      <span className="text-sm font-medium text-blue-600">30%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: "30%" }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm text-gray-600">Terminées</span>
-                      <span className="text-sm font-medium text-green-600">58%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{ width: "58%" }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm text-gray-600">En retard</span>
-                      <span className="text-sm font-medium text-red-600">12%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-red-500 h-2 rounded-full" style={{ width: "12%" }}></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
+               {/* Diagramme en barres pour les totaux par statut */}
+               <motion.div
+                 whileHover={{ scale: 1.01 }}
+                 className="bg-white p-6 rounded-lg shadow-lg"
+               >
+                 <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                   <BarChart3 className="text-blue-500" aria-hidden="true" /> Projets par statut
+                 </h3>
+                 <BarChart
+                   width={500}
+                   height={300}
+                   data={statusData}
+                   margin={{ top: 25, right: 30, left: 20, bottom: 5 }}
+                 >
+                   <CartesianGrid strokeDasharray="3 3" />
+                   <XAxis dataKey="status" /> {/* Axe des X basé sur le statut */}
+                   <YAxis />
+                   <Tooltip />
+                   <Legend />
+                   <Bar dataKey="total" fill="#3b82f6" /> {/* Barre pour le total */}
+                 </BarChart>
+               </motion.div>
+         
+                        {/* Diagramme en courbes pour les totaux par statut */}
+               <motion.div
+                 whileHover={{ scale: 1.01 }}
+                 className="bg-white p-6 rounded-lg shadow-lg"
+               >
+                 <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                   <BarChart3 className="text-blue-500" aria-hidden="true" /> Performance par statut
+                 </h3>
+                 <LineChart
+                   width={500}
+                   height={300}
+                   data={statusData}
+                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                 >
+                   <CartesianGrid strokeDasharray="3 3" />
+                   <XAxis dataKey="status" /> {/* Axe des X basé sur le statut */}
+                   <YAxis />
+                   <Tooltip />
+                   <Legend />
+                   {/* Ligne pour les totaux */}
+                   <Line
+                     type="monotone"
+                     dataKey="total"
+                     stroke="#3b82f6" // Couleur bleue
+                     activeDot={{ r: 8 }}
+                   />
+                 </LineChart>
+               </motion.div>
+                   </div>
 
           {/* Current Tasks */}
           <motion.div
@@ -212,34 +326,37 @@ export default function EmployeeDashboard() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tâche</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date limite</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Echéance</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priorité</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentTasks.map((task) => (
-                    <tr key={task.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{task.title}</td>
+                  {taskList.map((task) => (
+                    <tr key={task.id_tache}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{task.libelle}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                           {task.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.deadline}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.datedebut} </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.echeance}  jours</td>
+
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          task.priority === "Haute" ? "bg-red-100 text-red-800" :
-                          task.priority === "Moyenne" ? "bg-yellow-100 text-yellow-800" :
+                          task.priorite === "Haute" ? "bg-red-100 text-red-800" :
+                          task.priorite === "Moyenne" ? "bg-yellow-100 text-yellow-800" :
                           "bg-green-100 text-green-800"
                         }`}>
-                          {task.priority}
+                          {task.priorite}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+
+                      {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button className="text-red-600 hover:text-red-900 mr-4">
                           <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </button>
-                      </td>
+                      </td> */}
                     </tr>
                   ))}
                 </tbody>

@@ -65,6 +65,8 @@ export default function TaskManagementPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+
+
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1200);
     return () => clearTimeout(timer);
@@ -73,6 +75,10 @@ export default function TaskManagementPage() {
   const handleCreateTask = () => {
     setIsPopupOpen(true);
   };
+
+  
+    
+  
 
   useEffect(() => {
     const userIdd = localStorage.getItem('userId');
@@ -193,6 +199,11 @@ export default function TaskManagementPage() {
     }
   };
 
+  let taskStatus= "";
+  if (tasksData.status =="in progess"){
+    taskStatus="En cours";
+  
+  }
   return (
     <div className="flex flex-col h-screen bg-gray-100 p-6">
       <header className="flex items-center justify-between p-4 bg-white shadow rounded-md">
@@ -232,7 +243,7 @@ export default function TaskManagementPage() {
                   <td className="px-4 py-2">{task.nom_projet}</td>
                   <td className="px-4 py-2">{task.nom_departement}</td>
                   <td className="px-4 py-2">{task.echeance} jours</td>
-                  <td className="px-4 py-2">{task.dateDebut}</td>
+                  <td className="px-4 py-2">{task.datedebut}</td>
                   <td className="px-4 py-2">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[task.status]}`}>
                       {task.status}
