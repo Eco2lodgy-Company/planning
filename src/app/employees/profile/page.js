@@ -1,8 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter, usePathname } from 'next/navigation'; // ✅ Next.js
-import Link from 'next/link'; // ✅ Next.js
+import { useRouter, usePathname } from 'next/navigation'; 
+import Link from 'next/link'; 
 import { User, Mail, Shield, Settings, Edit,Calendar,CircleCheckBig, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -11,23 +11,88 @@ export default function ProfilePage() {
   const pathname = usePathname();
 
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState({
-    id: '1',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    role: 'Administrateur',
-    joinedDate: '2023-01-15',
-    lastLogin: '2024-03-15',
-  });
-
+  const [user, setUser] = useState([]);
+  const [userId, setUserId] = useState('');
+  const [lastLogin, setLastLogin] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(user.name);
   const [editedEmail, setEditedEmail] = useState(user.email);
+  const [onGoingTasks, setOnGoingTasks] = useState([]);
+  const [completedTasks, setCompletedTasks] = useState([]);
+  useEffect(() => {
+    const userIdd=localStorage.getItem('userId');
+    const fetchAgents = async () => {
+      try {
+        const response = await fetch('/api/profile/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setUser(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAgents();
+
+
+    const fetchDoneTasks = async () => {
+      try {
+        const response = await fetch('/api/userSide/tasks/done/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setCompletedTasks(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoneTasks();
+
+
+    const fetchProgressTask = async () => {
+      try {
+        const response = await fetch('/api/userSide/tasks/progress/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setOnGoingTasks(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProgressTask();
+
+
+
+  }, []);
+
+  //recuperation et affichage de la dernière date et heure du login
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
-  }, []);
+    const userIdd=localStorage.getItem('userId');
+      const lastLogin = async () => {
+        try {
+          const response = await fetch('/api/logs/'+userIdd);
+          if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+          const data = await response.json();
+          setLastLogin(data);
+        } catch (error) {
+          toast.error(error.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      lastLogin();
+    },[]);
+
+
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -80,7 +145,7 @@ export default function ProfilePage() {
                     className="border rounded p-2"
                   />
                 ) : (
-                  <span className="text-gray-800">{user.name}</span>
+                  <span className="text-gray-800">{user.nom_complet}</span>
                 )}
               </div>
               <div className="flex items-center">
@@ -93,7 +158,7 @@ export default function ProfilePage() {
                     className="border rounded p-2"
                   />
                 ) : (
-                  <span className="text-gray-800">{user.email}</span>
+                  <span className="text-gray-800">{user.mail}</span>
                 )}
               </div>
               <div className="flex items-center">
@@ -102,11 +167,11 @@ export default function ProfilePage() {
               </div>
               <div className="flex items-center">
                 <Calendar className="w-5 h-5 mr-2 text-gray-600" />
-                <span className="text-gray-800">Membre depuis le {user.joinedDate}</span>
+                <span className="text-gray-800">Membre depuis le {user.created_at}</span>
               </div>
               <div className="flex items-center">
                 <CircleCheckBig className="w-5 h-5 mr-2 text-gray-600" />
-                <span className="text-gray-800">Dernière connexion le {user.lastLogin}</span>
+                <span className="text-gray-800">Dernière connexion le {lastLogin}</span>
               </div>
             </div>
             <div className="mt-6">
@@ -136,11 +201,11 @@ export default function ProfilePage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h4 className="text-sm font-semibold text-blue-800">Tâches complétées</h4>
-                <p className="text-2xl font-bold text-blue-800">42</p>
+                <p className="text-2xl font-bold text-blue-800">{completedTasks}</p>
               </div>
               <div className="bg-green-50 p-4 rounded-lg">
                 <h4 className="text-sm font-semibold text-green-800">Tâches en cours</h4>
-                <p className="text-2xl font-bold text-green-800">8</p>
+                <p className="text-2xl font-bold text-green-800">{onGoingTasks}</p>
               </div>
             </div>
           </div>
