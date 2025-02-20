@@ -1,11 +1,9 @@
-'use client';
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Sun, Moon, Clock, AlertCircle, CheckCircle2, User } from 'lucide-react';
 
-const WeeklyReports = () => {
+function Repport() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
-  const [reports, setReports] = useState([]);
+  const [reports, setReports] = useState<any[]>([]);
 
   // Colors for different days with gradients for a more modern look
   const dayColors = {
@@ -17,7 +15,7 @@ const WeeklyReports = () => {
   };
 
   // Get dates for the current week
-  const getWeekDates = (date) => {
+  const getWeekDates = (date: Date) => {
     const week = [];
     const monday = new Date(date);
     monday.setDate(date.getDate() - date.getDay() + 1);
@@ -31,12 +29,12 @@ const WeeklyReports = () => {
   };
 
   // Format date to YYYY-MM-DD
-  const formatDate = (date) => {
+  const formatDate = (date: Date) => {
     return date.toISOString().split('T')[0];
   };
 
   // Navigate between weeks
-  const navigateWeek = (direction) => {
+  const navigateWeek = (direction: 'prev' | 'next') => {
     const newDate = new Date(currentWeek);
     newDate.setDate(currentWeek.getDate() + (direction === 'next' ? 7 : -7));
     setCurrentWeek(newDate);
@@ -54,103 +52,14 @@ const WeeklyReports = () => {
         {
           id: 1,
           userId: 1,
-          date: '2025-02-18',
-          temps: false,
+          date: '2024-03-18',
+          temps: true,
           taches: "Développement de l'interface utilisateur",
           blockage: "Problème d'intégration API",
           solution: "Mise à jour des endpoints",
           created_at: new Date().toISOString()
         },
-        {
-          id: 2,
-          userId: 1,
-          date: '2025-02-18',
-          temps: true,
-          taches: "Réunion d'équipe",
-          blockage: null,
-          solution: null,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 3,
-          userId: 2,
-          date: '2025-02-19',
-          temps: true,
-          taches: "Tests unitaires",
-          blockage: "Problème de couverture de tests",
-          solution: "Ajout de nouveaux cas de test",
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 4,
-          userId: 2,
-          date: '2025-02-19',
-          temps: true,
-          taches: "Revue de code",
-          blockage: null,
-          solution: null,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 5,
-          userId: 3,
-          date: '2024-03-20',
-          temps: true,
-          taches: "Optimisation des performances",
-          blockage: "Problème de mémoire",
-          solution: "Refactoring du code",
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 6,
-          userId: 3,
-          date: '2024-03-20',
-          temps: false,
-          taches: "Préparation de la démo",
-          blockage: null,
-          solution: null,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 7,
-          userId: 4,
-          date: '2024-03-21',
-          temps: true,
-          taches: "Développement de nouvelles fonctionnalités",
-          blockage: "Problème de conception",
-          solution: "Révision de l'architecture",
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 8,
-          userId: 4,
-          date: '2024-03-21',
-          temps: false,
-          taches: "Documentation technique",
-          blockage: null,
-          solution: null,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 9,
-          userId: 5,
-          date: '2024-03-22',
-          temps: true,
-          taches: "Déploiement en production",
-          blockage: "Problème de serveur",
-          solution: "Redémarrage du serveur",
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 10,
-          userId: 5,
-          date: '2024-03-22',
-          temps: false,
-          taches: "Analyse des logs",
-          blockage: null,
-          solution: null,
-          created_at: new Date().toISOString()
-        }
+        // Add more mock data as needed
       ];
 
       setReports(mockReports);
@@ -160,13 +69,13 @@ const WeeklyReports = () => {
   }, [currentWeek]);
 
   // Get reports for a specific date and time (morning/evening)
-  const getDayReports = (date, isMorning) => {
+  const getDayReports = (date: Date, isMorning: boolean) => {
     return reports.filter(report => {
       return formatDate(new Date(report.date)) === formatDate(date) && report.temps === isMorning;
     });
   };
 
-  const ReportCard = ({ report }) => (
+  const ReportCard = ({ report }: { report: any }) => (
     <div className="p-4 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
       <div className="flex items-start gap-3">
         <div className="flex-1 space-y-3">
@@ -193,7 +102,7 @@ const WeeklyReports = () => {
                 <CheckCircle2 className="w-4 h-4" />
                 <h4 className="font-medium">Solution</h4>
               </div>
-              <p className="text-sm text-green-600 mt-1">hello</p>
+              <p className="text-sm text-green-600 mt-1">{report.solution}</p>
             </div>
           )}
         </div>
@@ -201,8 +110,8 @@ const WeeklyReports = () => {
     </div>
   );
 
-  const DayColumn = ({ date }) => {
-    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+  const DayColumn = ({ date }: { date: Date }) => {
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' }) as keyof typeof dayColors;
     const colors = dayColors[dayName];
     const morningReports = getDayReports(date, true);
     const eveningReports = getDayReports(date, false);
@@ -302,6 +211,6 @@ const WeeklyReports = () => {
       </div>
     </div>
   );
-};
+}
 
-export default WeeklyReports;
+export default Repport;
