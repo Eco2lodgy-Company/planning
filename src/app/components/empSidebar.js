@@ -10,7 +10,7 @@ const navigationItems = [
   { name: 'Dashboard', icon: Home, path: '/employees' },
   { name: 'Plannings', icon: Calendar, path: '/employees/plannings' },
   { name: 'Tâches', icon: CircleCheckBig, path: '/employees/tasks' },
-  { name: 'Utilisateurs', icon: Users, path: '/employees/users' },
+  // { name: 'Utilisateurs', icon: Users, path: '/employees/users' },
   { name: 'Permissions', icon: Shield, path: '/employees/permission' },
   { name: 'Rapports', icon: ClipboardMinus, path: '/employees/rapport' },
   { name: 'Profile', icon: Users, path: '/employees/profile' },

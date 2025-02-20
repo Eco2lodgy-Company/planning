@@ -35,7 +35,7 @@ export default function Calendar() {
 
   const fetchUser = async (id_user: number) => {
     try {
-      const response = await fetch("/api/headside/plannings", {
+      const response = await fetch("/api/users/byid", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id_user }),

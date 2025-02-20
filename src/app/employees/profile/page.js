@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation'; 
 import Link from 'next/link'; 
-import { User, Mail, Shield, Settings, Edit,Calendar,CircleCheckBig, Save } from 'lucide-react';
+import { User, Mail, Shield, Settings, Edit, Calendar, CircleCheckBig, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ProfilePage() {
@@ -17,10 +17,12 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(user.name);
   const [editedEmail, setEditedEmail] = useState(user.email);
+  const [editedPassword, setEditedPassword] = useState('');
   const [onGoingTasks, setOnGoingTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
+
   useEffect(() => {
-    const userIdd=localStorage.getItem('userId');
+    const userIdd = localStorage.getItem('userId');
     const fetchAgents = async () => {
       try {
         const response = await fetch('/api/profile/' + userIdd);
@@ -35,7 +37,6 @@ export default function ProfilePage() {
     };
 
     fetchAgents();
-
 
     const fetchDoneTasks = async () => {
       try {
@@ -52,7 +53,6 @@ export default function ProfilePage() {
 
     fetchDoneTasks();
 
-
     const fetchProgressTask = async () => {
       try {
         const response = await fetch('/api/userSide/tasks/progress/' + userIdd);
@@ -67,45 +67,57 @@ export default function ProfilePage() {
     };
 
     fetchProgressTask();
-
-
-
   }, []);
 
-  //recuperation et affichage de la dernière date et heure du login
-
   useEffect(() => {
-    const userIdd=localStorage.getItem('userId');
-      const lastLogin = async () => {
-        try {
-          const response = await fetch('/api/logs/'+userIdd);
-          if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
-          const data = await response.json();
-          setLastLogin(data);
-        } catch (error) {
-          toast.error(error.message);
-        } finally {
-          setLoading(false);
-        }
-      };
-  
-      lastLogin();
-    },[]);
+    const userIdd = localStorage.getItem('userId');
+    const lastLogin = async () => {
+      try {
+        const response = await fetch('/api/logs/' + userIdd);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setLastLogin(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-
+    lastLogin();
+  }, []);
 
   const handleEdit = () => {
     setIsEditing(true);
   };
 
-  const handleSave = () => {
-    setUser((prevUser) => ({
-      ...prevUser,
-      name: editedName,
-      email: editedEmail,
-    }));
-    setIsEditing(false);
-    toast('Profil mis à jour');
+  const handleSave = async () => {
+    const userIdd = localStorage.getItem('userId');
+
+    try {
+      const response = await fetch('/api/profile/update/' + userIdd, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: editedEmail,
+          password: editedPassword,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Erreur lors de la mise à jour du profil');
+
+      setUser((prevUser) => ({
+        ...prevUser,
+        email: editedEmail,
+      }));
+
+      setIsEditing(false);
+      toast.success('Profil mis à jour');
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   if (loading) {
@@ -135,7 +147,7 @@ export default function ProfilePage() {
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <h3 className="text-lg font-semibold mb-4">Informations personnelles</h3>
             <div className="space-y-4">
-              <div className="flex items-center">
+              {/* <div className="flex items-center">
                 <User className="w-5 h-5 mr-2 text-gray-600" />
                 {isEditing ? (
                   <input
@@ -147,7 +159,7 @@ export default function ProfilePage() {
                 ) : (
                   <span className="text-gray-800">{user.nom_complet}</span>
                 )}
-              </div>
+              </div> */}
               <div className="flex items-center">
                 <Mail className="w-5 h-5 mr-2 text-gray-600" />
                 {isEditing ? (
@@ -161,6 +173,18 @@ export default function ProfilePage() {
                   <span className="text-gray-800">{user.mail}</span>
                 )}
               </div>
+              {isEditing && (
+                <div className="flex items-center">
+                  <Shield className="w-5 h-5 mr-2 text-gray-600" />
+                  <input
+                    type="password"
+                    value={editedPassword}
+                    onChange={(e) => setEditedPassword(e.target.value)}
+                    className="border rounded p-2"
+                    placeholder="Nouveau mot de passe"
+                  />
+                </div>
+              )}
               <div className="flex items-center">
                 <Shield className="w-5 h-5 mr-2 text-gray-600" />
                 <span className="text-gray-800">{user.role}</span>
