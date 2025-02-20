@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { format, startOfWeek, addDays } from "date-fns";
-import { FaTasks, FaCheckCircle, FaHourglassHalf, FaCheck } from "react-icons/fa";
+import { FaTasks, FaCheckCircle, FaHourglassHalf, FaCheck, FaTimesCircle } from "react-icons/fa";
 
 export default function TaskCalendar() {
     const [tasks, setTasks] = useState([]);
@@ -21,21 +21,32 @@ export default function TaskCalendar() {
     const prevWeek = () => setCurrentWeekStart(addDays(currentWeekStart, -7));
 
     const handleMarkComplete = (taskId) => {
-        // Mettre à jour le statut de la tâche
         setTasks((prevTasks) =>
             prevTasks.map((task) =>
-                task.id === taskId ? { ...task, status: "Terminé" } : task
+                task.id === taskId ? { ...task, status: "done" } : task
             )
         );
 
-        // Optionnel: mettre à jour l'API avec la tâche mise à jour
         fetch(`/api/tache/update/${taskId}`, {
             method: "PUT",
-            body: JSON.stringify({ status: "Terminé" }),
+            body: JSON.stringify({ status: "done" }),
             headers: {
                 "Content-Type": "application/json",
             },
         }).catch(err => console.error("Error updating task:", err));
+    };
+
+    const getStatusColor = (status) => {
+        switch (status.toLowerCase()) {
+            case "canceled":
+                return "bg-orange-500 text-white"; // Annulé
+            case "in progress":
+                return "bg-orange-300 text-gray-900"; // En cours
+            case "done":
+                return "bg-green-300 text-gray-900"; // Terminé
+            default:
+                return "bg-gray-500 text-white"; // Par défaut
+        }
     };
 
     return (
@@ -66,10 +77,11 @@ export default function TaskCalendar() {
                                 <td className="p-4 font-medium text-gray-800">{task.echeance}</td>
                                 <td className="p-4 text-gray-700">{task.datedebut}</td>
                                 <td className="p-4 flex items-center gap-2">
-                                    <span className={`flex items-center gap-2 px-3 py-1 text-white text-sm font-semibold rounded-full ${task.status === "En cours" ? "bg-orange-500" : task.status === "Prêt à commencer" ? "bg-blue-500" : "bg-gray-500"}`}>
-                                        {task.status === "En cours" ? <FaHourglassHalf /> : <FaCheckCircle />} {task.status}
+                                    <span className={`flex items-center gap-2 px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(task.status)}`}>
+                                        {task.status === "in progress" ? <FaHourglassHalf /> : task.status === "canceled" ? <FaTimesCircle /> : <FaCheckCircle />} 
+                                        {task.status}
                                     </span>
-                                    {task.status !== "Terminé" && (
+                                    {task.status !== "done" && (
                                         <button
                                             onClick={() => handleMarkComplete(task.id)}
                                             className="ml-2 text-green-500 hover:text-green-700"
