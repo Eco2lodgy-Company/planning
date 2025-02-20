@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
-import { format, startOfWeek, addDays } from "date-fns";
-import { FaTasks, FaCheckCircle, FaHourglassHalf, FaCheck, FaTimesCircle } from "react-icons/fa";
-
+import { format, startOfWeek, addDays, isWithinInterval, parseISO, endOfWeek } from "date-fns";
+import { FaTasks, FaCheckCircle, FaHourglassHalf, FaCheck } from "react-icons/fa";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 export default function TaskCalendar() {
     const [tasks, setTasks] = useState([]);
     const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -15,15 +16,28 @@ export default function TaskCalendar() {
             .then(res => res.json())
             .then(data => setTasks(data))
             .catch(err => console.error("Error fetching tasks:", err));
-    }, [currentWeekStart]);
+    }, []);
 
     const nextWeek = () => setCurrentWeekStart(addDays(currentWeekStart, 7));
     const prevWeek = () => setCurrentWeekStart(addDays(currentWeekStart, -7));
 
+    // Déterminer les limites de la semaine sélectionnée
+    const weekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
+
+    // Filtrer les tâches pour ne conserver que celles de la semaine en cours
+    const filteredTasks = tasks.filter(task => {
+        const taskStart = typeof task.datedebut === "string" ? parseISO(task.datedebut) : new Date(task.datedebut);
+        const taskEnd = typeof task.echeance === "string" ? parseISO(task.echeance) : new Date(task.echeance);
+    
+        return isWithinInterval(taskStart, { start: currentWeekStart, end: weekEnd }) ||
+               isWithinInterval(taskEnd, { start: currentWeekStart, end: weekEnd });
+    });
+    
+
     const handleMarkComplete = (taskId) => {
-        setTasks((prevTasks) =>
-            prevTasks.map((task) =>
-                task.id === taskId ? { ...task, status: "done" } : task
+        setTasks(prevTasks =>
+            prevTasks.map(task =>
+                task.id === taskId ? { ...task, status: "Terminé" } : task
             )
         );
 
@@ -33,19 +47,17 @@ export default function TaskCalendar() {
             headers: {
                 "Content-Type": "application/json",
             },
+        }).then(() => {
+            toast.success("Tâche marquée comme terminée");
         }).catch(err => console.error("Error updating task:", err));
     };
 
     const getStatusColor = (status) => {
-        switch (status.toLowerCase()) {
-            case "canceled":
-                return "bg-orange-500 text-white"; // Annulé
-            case "in progress":
-                return "bg-orange-300 text-gray-900"; // En cours
-            case "done":
-                return "bg-green-300 text-gray-900"; // Terminé
-            default:
-                return "bg-gray-500 text-white"; // Par défaut
+        switch (status) {
+            case "canceled": return "bg-orange-500";
+            case "in progress": return "bg-orange-300";
+            case "done": return "bg-green-300";
+            default: return "bg-gray-500";
         }
     };
 
@@ -53,7 +65,9 @@ export default function TaskCalendar() {
         <div className="p-6 bg-gray-50 min-h-screen">
             <div className="flex justify-between items-center mb-6">
                 <button onClick={prevWeek} className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700">Précédent</button>
-                <h2 className="text-2xl font-semibold text-gray-800">Semaine du {format(currentWeekStart, "dd/MM/yyyy")}</h2>
+                <h2 className="text-2xl font-semibold text-gray-800">
+                    Semaine du {format(currentWeekStart, "dd/MM/yyyy")} au {format(weekEnd, "dd/MM/yyyy")}
+                </h2>
                 <button onClick={nextWeek} className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700">Suivant</button>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-lg">
@@ -68,18 +82,19 @@ export default function TaskCalendar() {
                         </tr>
                     </thead>
                     <tbody>
-                        {tasks.map((task) => (
+                        {filteredTasks.map(task => (
                             <tr key={task.id} className="border-b hover:bg-gray-100">
                                 <td className="p-4 flex items-center gap-2 font-medium text-gray-900"><FaTasks className="text-gray-600" /> {task.libelle}</td>
                                 <td className="p-4">
-                                    <span className="px-3 py-1 rounded-full text-white text-sm font-semibold" style={{ backgroundColor: '#4a90e2' }}>{task.departement}</span>
+                                    <span className="px-3 py-1 rounded-full text-white text-sm font-semibold bg-blue-400">
+                                        {task.departement}
+                                    </span>
                                 </td>
                                 <td className="p-4 font-medium text-gray-800">{task.echeance}</td>
                                 <td className="p-4 text-gray-700">{task.datedebut}</td>
                                 <td className="p-4 flex items-center gap-2">
-                                    <span className={`flex items-center gap-2 px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(task.status)}`}>
-                                        {task.status === "in progress" ? <FaHourglassHalf /> : task.status === "canceled" ? <FaTimesCircle /> : <FaCheckCircle />} 
-                                        {task.status}
+                                    <span className={`flex items-center gap-2 px-3 py-1 text-white text-sm font-semibold rounded-full ${getStatusColor(task.status)}`}>
+                                        {task.status === "in progress" ? <FaHourglassHalf /> : <FaCheckCircle />} {task.status}
                                     </span>
                                     {task.status !== "done" && (
                                         <button
@@ -95,7 +110,10 @@ export default function TaskCalendar() {
                         ))}
                     </tbody>
                 </table>
+                {filteredTasks.length === 0 && <p className="text-center text-gray-600 mt-4">Aucune tâche pour cette semaine.</p>}
             </div>
+            <ToastContainer />
+
         </div>
     );
 }
