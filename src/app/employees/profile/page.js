@@ -199,7 +199,7 @@ f    } catch (error) {
                 </div>
               )}
               <div className="flex items-center">
-                <Shield className="w-5 h-5 mr-2 text-gray-600" />
+                <User className="w-5 h-5 mr-2 text-gray-600" />
                 <span className="text-gray-800">{user.nom_complet}</span>
               </div>
               <div className="flex items-center">
