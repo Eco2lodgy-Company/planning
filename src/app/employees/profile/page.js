@@ -21,6 +21,13 @@ export default function ProfilePage() {
   const [onGoingTasks, setOnGoingTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
 
+  //convert last login date format from timestamp to date and time
+  const dateObj = new Date(lastLogin);
+  dateObj.setHours(dateObj.getHours() + 1);
+  const loginDate = dateObj.toLocaleDateString(); // "21/02/2025" selon le format local
+  const loginTime = dateObj.toLocaleTimeString();
+
+
   useEffect(() => {
     const userIdd = localStorage.getItem('userId');
     const fetchAgents = async () => {
@@ -195,7 +202,7 @@ f    } catch (error) {
               </div>
               <div className="flex items-center">
                 <CircleCheckBig className="w-5 h-5 mr-2 text-gray-600" />
-                <span className="text-gray-800">Dernière connexion le {lastLogin}</span>
+                <span className="text-gray-800">Dernière connexion le {loginDate} à {loginTime}</span>
               </div>
             </div>
             <div className="mt-6">
