@@ -2,17 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Sun, Moon, Clock, AlertCircle, CheckCircle2, User, Plus } from 'lucide-react';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const WeeklyReports = () => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [reports, setReports] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false); // État pour gérer l'ouverture du formulaire
   const [formData, setFormData] = useState({
-    user_name: '',
+    user_name: localStorage.getItem('userId'), 
     taches: '',
+    date: new Date().toISOString().split("T")[0], // Date du jour par défaut
     blockage: '',
     solution: '',
-    temps: 'morning', // Par défaut, le rapport est pour le matin
+    temps: 'true', // Par défaut, le rapport est pour le matin
     created_at: new Date().toISOString(), // Date actuelle par défaut
   });
 
@@ -53,14 +57,26 @@ const WeeklyReports = () => {
 
   // Mock data fetching - replace with actual API call
   useEffect(() => {
+    const userId = localStorage.getItem('userId');
+
+    // Fetch dynamic tasks 
+
+    const fetchTasks = async () => {
+      fetch(`/api/tache/${userId}`)
+            .then(res => res.json())
+            .then(data => setTasks(data))
+            .catch(err => console.error("Error fetching tasks:", err));
+    };
+
+    fetchTasks();
+
     const fetchReports = async () => {
       const weekDates = getWeekDates(currentWeek);
       const startDate = formatDate(weekDates[0]);
       const endDate = formatDate(weekDates[4]);
 
       // API call - replace with actual implementation
-      const fetchLate = async () => {
-        const userId = localStorage.getItem('userId');
+      const fetchRepport = async () => {
         try {
           const response = await fetch('/api/rapport/' + userId);
           if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
@@ -71,19 +87,21 @@ const WeeklyReports = () => {
         }
       };
 
-      fetchLate();
+      fetchRepport();
     };
 
     fetchReports();
   }, [currentWeek]);
 
-  // Get reports for a specific date and time (morning/evening)
   const getDayReports = (date, isMorning) => {
-    return reports.filter(report => {
-      const reportDate = new Date(report.created_at).toISOString().split('T')[0];
-      return reportDate === formatDate(date) && report.temps === isMorning;
-    });
+    return reports
+      .filter(report => report && report.created_at) // Vérifier que report n'est pas null
+      .filter(report => {
+        const reportDate = new Date(report.created_at).toISOString().split('T')[0];
+        return reportDate === formatDate(date) && report.temps === isMorning;
+      });
   };
+  
 
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -98,7 +116,7 @@ const WeeklyReports = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/rapport', {
+      const response = await fetch('/api/rapport/add', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,15 +124,17 @@ const WeeklyReports = () => {
         body: JSON.stringify(formData),
       });
       if (!response.ok) throw new Error('Erreur lors de la soumission du rapport');
+      toast.success('Rapport soumis avec succès');
       const newReport = await response.json();
       setReports([...reports, newReport]); // Ajouter le nouveau rapport à la liste
       setIsFormOpen(false); // Fermer le formulaire
       setFormData({
         user_name: '',
         taches: '',
+        date: new Date().toISOString().split("T")[0], // Date du jour par défaut
         blockage: '',
         solution: '',
-        temps: 'morning',
+        temps: 'true',
         created_at: new Date().toISOString(),
       }); // Réinitialiser le formulaire
     } catch (error) {
@@ -264,82 +284,108 @@ const WeeklyReports = () => {
         </div>
       </div>
 
-      {/* Formulaire de soumission de rapport */}
-      {isFormOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Soumettre un rapport</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Nom d'utilisateur</label>
-                <input
-                  type="text"
-                  name="user_name"
-                  value={formData.user_name}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Tâches</label>
-                <textarea
-                  name="taches"
-                  value={formData.taches}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Blocage</label>
-                <textarea
-                  name="blockage"
-                  value={formData.blockage}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Solution</label>
-                <textarea
-                  name="solution"
-                  value={formData.solution}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Temps</label>
-                <select
-                  name="temps"
-                  value={formData.temps}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                >
-                  <option value="morning">Matin</option>
-                  <option value="evening">Soir</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsFormOpen(false)}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                >
-                  Soumettre
-                </button>
-              </div>
-            </form>
-          </div>
+     {/* Formulaire de soumission de rapport */}
+{isFormOpen && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div className="bg-white p-6 rounded-lg w-full max-w-md">
+      <h2 className="text-xl font-bold mb-4">Soumettre un rapport</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Nom d'utilisateur</label>
+          <select
+            name="user_name"
+            value={formData.user_name}
+            onChange={handleInputChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            required
+          >
+            <option value="">Sélectionnez un utilisateur</option>
+            {reports.map(user => (
+              <option key={user.user_id} value={user.user_id}>
+                {user.user_name}
+              </option>
+            ))}
+          </select>
         </div>
-      )}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Tâches</label>
+          <select
+            name="taches"
+            value={formData.taches}
+            onChange={handleInputChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            required
+          >
+            <option value="">Sélectionnez une tâche</option>
+            {tasks.map(task => (
+              <option key={task.id} value={task.libelle}>
+                {task.libelle}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Date</label>
+          <input
+            type="date"
+            name="date"
+            value={formData.date}
+            onChange={handleInputChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Blocage</label>
+          <textarea
+            name="blockage"
+            value={formData.blockage}
+            onChange={handleInputChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Solution</label>
+          <textarea
+            name="solution"
+            value={formData.solution}
+            onChange={handleInputChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Temps</label>
+          <select
+            name="temps"
+            value={formData.temps}
+            onChange={handleInputChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+          >
+            <option value="true">Matin</option>
+            <option value="false">Soir</option>
+          </select>
+        </div>
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setIsFormOpen(false)}
+            className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+          >
+            Annuler
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          >
+            Soumettre
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+      <ToastContainer />
+
     </div>
   );
 };
