@@ -7,17 +7,23 @@ import "react-toastify/dist/ReactToastify.css";
 
 const WeeklyReports = () => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState([]);
   const [tasks, setTasks] = useState([]);
-  const [isFormOpen, setIsFormOpen] = useState(false); // État pour gérer l'ouverture du formulaire
-  const [formData, setFormData] = useState({
-    user_name: localStorage.getItem('userId'), 
-    taches: '',
-    date: new Date().toISOString().split("T")[0], // Date du jour par défaut
-    blockage: '',
-    solution: '',
-    temps: 'true', // Par défaut, le rapport est pour le matin
-    created_at: new Date().toISOString(), // Date actuelle par défaut
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+
+  const [formData, setFormData] = useState(() => {
+    const user = localStorage.getItem("userId") || ""; // Récupération immédiate du localStorage
+    return {
+      user_name: user, 
+      taches: '',
+      date: new Date().toISOString().split("T")[0], // Date du jour par défaut
+      blockage: '',
+      solution: '',
+      temps: 'true', // Par défaut, le rapport est pour le matin
+      created_at: new Date().toISOString(), // Date actuelle par défaut
+    };
   });
 
   // Colors for different days with gradients for a more modern look
@@ -55,7 +61,6 @@ const WeeklyReports = () => {
     setCurrentWeek(newDate);
   };
 
-  // Mock data fetching - replace with actual API call
   useEffect(() => {
     const userId = localStorage.getItem('userId');
 
@@ -82,6 +87,7 @@ const WeeklyReports = () => {
           if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
           const data = await response.json();
           setReports(data);
+          setLoading(false);
         } catch (error) {
           console.error(error.message);
         }
@@ -141,6 +147,14 @@ const WeeklyReports = () => {
       console.error(error.message);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-transparent">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+      </div>
+    );
+}
 
   const ReportCard = ({ report }) => (
     <div className="p-4 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
