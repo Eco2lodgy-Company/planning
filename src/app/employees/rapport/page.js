@@ -95,9 +95,9 @@ const WeeklyReports = () => {
 
   const getDayReports = (date, isMorning) => {
     return reports
-      .filter(report => report && report.created_at) // Vérifier que report n'est pas null
+      .filter(report => report && report.date) // Vérifier que report n'est pas null et que la date existe
       .filter(report => {
-        const reportDate = new Date(report.created_at).toISOString().split('T')[0];
+        const reportDate = new Date(report.date).toISOString().split('T')[0];
         return reportDate === formatDate(date) && report.temps === isMorning;
       });
   };
