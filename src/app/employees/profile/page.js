@@ -115,7 +115,7 @@ export default function ProfilePage() {
 
       setIsEditing(false);
       toast.success('Profil mis à jour');
-    } catch (error) {
+f    } catch (error) {
       toast.error(error.message);
     }
   };

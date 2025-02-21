@@ -1,11 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Sun, Moon, Clock, AlertCircle, CheckCircle2, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sun, Moon, Clock, AlertCircle, CheckCircle2, User, Plus } from 'lucide-react';
 
 const WeeklyReports = () => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [reports, setReports] = useState([]);
+  const [isFormOpen, setIsFormOpen] = useState(false); // État pour gérer l'ouverture du formulaire
+  const [formData, setFormData] = useState({
+    user_name: '',
+    taches: '',
+    blockage: '',
+    solution: '',
+    temps: 'morning', // Par défaut, le rapport est pour le matin
+    created_at: new Date().toISOString(), // Date actuelle par défaut
+  });
 
   // Colors for different days with gradients for a more modern look
   const dayColors = {
@@ -49,111 +58,20 @@ const WeeklyReports = () => {
       const startDate = formatDate(weekDates[0]);
       const endDate = formatDate(weekDates[4]);
 
-      // Simulated API call - replace with actual implementation
-      const mockReports = [
-        {
-          id: 1,
-          userId: 1,
-          date: '2025-02-18',
-          temps: false,
-          taches: "Développement de l'interface utilisateur",
-          blockage: "Problème d'intégration API",
-          solution: "Mise à jour des endpoints",
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 2,
-          userId: 1,
-          date: '2025-02-18',
-          temps: true,
-          taches: "Réunion d'équipe",
-          blockage: null,
-          solution: null,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 3,
-          userId: 2,
-          date: '2025-02-19',
-          temps: true,
-          taches: "Tests unitaires",
-          blockage: "Problème de couverture de tests",
-          solution: "Ajout de nouveaux cas de test",
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 4,
-          userId: 2,
-          date: '2025-02-19',
-          temps: true,
-          taches: "Revue de code",
-          blockage: null,
-          solution: null,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 5,
-          userId: 3,
-          date: '2024-03-20',
-          temps: true,
-          taches: "Optimisation des performances",
-          blockage: "Problème de mémoire",
-          solution: "Refactoring du code",
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 6,
-          userId: 3,
-          date: '2024-03-20',
-          temps: false,
-          taches: "Préparation de la démo",
-          blockage: null,
-          solution: null,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 7,
-          userId: 4,
-          date: '2024-03-21',
-          temps: true,
-          taches: "Développement de nouvelles fonctionnalités",
-          blockage: "Problème de conception",
-          solution: "Révision de l'architecture",
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 8,
-          userId: 4,
-          date: '2024-03-21',
-          temps: false,
-          taches: "Documentation technique",
-          blockage: null,
-          solution: null,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 9,
-          userId: 5,
-          date: '2024-03-22',
-          temps: true,
-          taches: "Déploiement en production",
-          blockage: "Problème de serveur",
-          solution: "Redémarrage du serveur",
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 10,
-          userId: 5,
-          date: '2024-03-22',
-          temps: false,
-          taches: "Analyse des logs",
-          blockage: null,
-          solution: null,
-          created_at: new Date().toISOString()
+      // API call - replace with actual implementation
+      const fetchLate = async () => {
+        const userId = localStorage.getItem('userId');
+        try {
+          const response = await fetch('/api/rapport/' + userId);
+          if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+          const data = await response.json();
+          setReports(data);
+        } catch (error) {
+          console.error(error.message);
         }
-      ];
+      };
 
-      setReports(mockReports);
+      fetchLate();
     };
 
     fetchReports();
@@ -162,8 +80,46 @@ const WeeklyReports = () => {
   // Get reports for a specific date and time (morning/evening)
   const getDayReports = (date, isMorning) => {
     return reports.filter(report => {
-      return formatDate(new Date(report.date)) === formatDate(date) && report.temps === isMorning;
+      const reportDate = new Date(report.created_at).toISOString().split('T')[0];
+      return reportDate === formatDate(date) && report.temps === isMorning;
     });
+  };
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/rapport', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      if (!response.ok) throw new Error('Erreur lors de la soumission du rapport');
+      const newReport = await response.json();
+      setReports([...reports, newReport]); // Ajouter le nouveau rapport à la liste
+      setIsFormOpen(false); // Fermer le formulaire
+      setFormData({
+        user_name: '',
+        taches: '',
+        blockage: '',
+        solution: '',
+        temps: 'morning',
+        created_at: new Date().toISOString(),
+      }); // Réinitialiser le formulaire
+    } catch (error) {
+      console.error(error.message);
+    }
   };
 
   const ReportCard = ({ report }) => (
@@ -172,7 +128,7 @@ const WeeklyReports = () => {
         <div className="flex-1 space-y-3">
           <div className="flex items-center gap-2">
             <User className="w-4 h-4 text-gray-500" />
-            <span className="text-sm text-gray-600">User ID: {report.userId}</span>
+            <span className="text-sm text-gray-600">User ID: {report.user_name}</span>
           </div>
           <div>
             <h4 className="font-medium text-gray-900">Tâches</h4>
@@ -193,7 +149,7 @@ const WeeklyReports = () => {
                 <CheckCircle2 className="w-4 h-4" />
                 <h4 className="font-medium">Solution</h4>
               </div>
-              <p className="text-sm text-green-600 mt-1">hello</p>
+              <p className="text-sm text-green-600 mt-1">{report.solution}</p>
             </div>
           )}
         </div>
@@ -290,6 +246,13 @@ const WeeklyReports = () => {
             >
               <ChevronRight className="w-6 h-6 text-gray-600" />
             </button>
+            <button
+              onClick={() => setIsFormOpen(true)}
+              className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+              aria-label="Soumettre un rapport"
+            >
+              <Plus className="w-6 h-6" />
+            </button>
           </div>
         </div>
 
@@ -300,6 +263,83 @@ const WeeklyReports = () => {
           ))}
         </div>
       </div>
+
+      {/* Formulaire de soumission de rapport */}
+      {isFormOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Soumettre un rapport</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Nom d'utilisateur</label>
+                <input
+                  type="text"
+                  name="user_name"
+                  value={formData.user_name}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Tâches</label>
+                <textarea
+                  name="taches"
+                  value={formData.taches}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Blocage</label>
+                <textarea
+                  name="blockage"
+                  value={formData.blockage}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Solution</label>
+                <textarea
+                  name="solution"
+                  value={formData.solution}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Temps</label>
+                <select
+                  name="temps"
+                  value={formData.temps}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="morning">Matin</option>
+                  <option value="evening">Soir</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsFormOpen(false)}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                >
+                  Soumettre
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
