@@ -23,34 +23,14 @@ export default function PermissionPage() {
 
   const [loading, setLoading] = useState(true);
   const [permissions, setPermissions] = useState([
-    {
-      id: '1',
-      type: 'Congé annuel',
-      description: 'Demande de congé annuel pour raisons personnelles.',
-      date: '2024-03-18',
-      status: 'En attente',
-    },
-    {
-      id: '2',
-      type: 'Télétravail',
-      description: 'Demande de télétravail pour raisons médicales.',
-      date: '2024-03-20',
-      status: 'Accordé',
-    },
-    {
-      id: '3',
-      type: 'Congé maladie',
-      description: 'Demande de congé maladie pour une opération chirurgicale.',
-      date: '2024-03-22',
-      status: 'Refusé',
-    },
+    
   ]);
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [newPermission, setNewPermission] = useState({
-    type: '',
-    description: '',
-    date: '',
+    motif: '',
+    datefin: '',
+    datedebut: '',
   });
 
   useEffect(() => {
@@ -170,7 +150,7 @@ export default function PermissionPage() {
                 <label className="block text-sm font-medium text-gray-700">Type de permission</label>
                 <input
                   type="text"
-                  value={newPermission.type}
+                  value={newPermission.motif}
                   onChange={(e) => setNewPermission({ ...newPermission, type: e.target.value })}
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-lg"
                 />
@@ -178,7 +158,7 @@ export default function PermissionPage() {
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">Description</label>
                 <textarea
-                  value={newPermission.description}
+                  value={newPermission.datedebut}
                   onChange={(e) => setNewPermission({ ...newPermission, description: e.target.value })}
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-lg"
                 />
