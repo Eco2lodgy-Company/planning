@@ -24,8 +24,14 @@ export default function ProfilePage() {
   //convert last login date format from timestamp to date and time
   const dateObj = new Date(lastLogin);
   dateObj.setHours(dateObj.getHours() + 1);
-  const loginDate = dateObj.toLocaleDateString(); // "21/02/2025" selon le format local
+  const loginDate = dateObj.toLocaleDateString(); // "21/02/2025" 
   const loginTime = dateObj.toLocaleTimeString();
+
+  //convert user created date format from timestamp to date and hour
+  const dateObj2 = new Date(user.created_at);
+  dateObj2.setHours(dateObj2.getHours() + 1);
+  const createdDate = dateObj2.toLocaleDateString(); // "21/02/2025"
+  const createdTime = dateObj2.toLocaleTimeString();
 
 
   useEffect(() => {
@@ -152,7 +158,7 @@ f    } catch (error) {
           className="flex-1 p-6 overflow-y-auto"
         >
           <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h3 className="text-lg font-semibold mb-4">Informations personnelles</h3>
+            <h3 className="text-lg font-semibold mb-4 text-green-800">Informations personnelles</h3>
             <div className="space-y-4">
               {/* <div className="flex items-center">
                 <User className="w-5 h-5 mr-2 text-gray-600" />
@@ -194,11 +200,11 @@ f    } catch (error) {
               )}
               <div className="flex items-center">
                 <Shield className="w-5 h-5 mr-2 text-gray-600" />
-                <span className="text-gray-800">{user.role}</span>
+                <span className="text-gray-800">{user.nom_complet}</span>
               </div>
               <div className="flex items-center">
                 <Calendar className="w-5 h-5 mr-2 text-gray-600" />
-                <span className="text-gray-800">Membre depuis le {user.created_at}</span>
+                <span className="text-gray-800">Membre depuis le {createdDate} à {createdTime}</span>
               </div>
               <div className="flex items-center">
                 <CircleCheckBig className="w-5 h-5 mr-2 text-gray-600" />
@@ -228,7 +234,7 @@ f    } catch (error) {
 
           {/* Additional Information Section */}
           <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
-            <h3 className="text-lg font-semibold mb-4">Statistiques</h3>
+            <h3 className="text-lg font-semibold mb-4 text-blue-800">Statistiques</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h4 className="text-sm font-semibold text-blue-800">Tâches complétées</h4>
