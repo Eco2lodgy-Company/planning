@@ -46,7 +46,7 @@ const WeeklyReports = () => {
     Saturday: { bg: 'from-rose-50 to-rose-100', border: 'border-rose-200', header: 'from-rose-500 to-rose-600' },
     Sunday: { bg: 'from-rose-50 to-rose-100', border: 'border-rose-200', header: 'from-rose-500 to-rose-600' }
   };
-
+  
   // Get dates for the current week
   const getWeekDates = (date) => {
     const week = [];
