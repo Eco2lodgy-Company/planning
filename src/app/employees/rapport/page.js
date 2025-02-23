@@ -200,7 +200,7 @@ const WeeklyReports = () => {
         <div className="flex-1 space-y-3">
           <div className="flex items-center gap-2">
             <User className="w-4 h-4 text-gray-500" />
-            <span className="text-sm text-gray-600">User ID: {report.user_name}</span>
+            <span className="text-sm text-gray-600">User: {report.user_name}</span>
           </div>
           <div>
             <h4 className="font-medium text-gray-900">Tâches</h4>
