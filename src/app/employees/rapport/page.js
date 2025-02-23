@@ -141,24 +141,50 @@ const WeeklyReports = () => {
         },
         body: JSON.stringify(formData),
       });
+  
       if (!response.ok) throw new Error('Erreur lors de la soumission du rapport');
+      
       toast.success('Rapport soumis avec succès');
+  
+      // Récupérer les rapports après l'ajout
       const newReport = await response.json();
-      setReports([...reports, newReport]); // Ajouter le nouveau rapport à la liste
-      setIsFormOpen(false); // Fermer le formulaire
+  
+      // Réactualiser les rapports de la semaine
+      const fetchReports = async () => {
+        const userId = localStorage.getItem('userId');
+        const weekDates = getWeekDates(currentWeek);
+        const startDate = formatDate(weekDates[0]);
+        const endDate = formatDate(weekDates[4]);
+        
+        try {
+          const response = await fetch('/api/rapport/' + userId);
+          if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+          const data = await response.json();
+          setReports(data); // Mise à jour des rapports après l'ajout
+        } catch (error) {
+          console.error(error.message);
+        }
+      };
+  
+      fetchReports(); // Récupérer les rapports mis à jour
+  
+      // Fermer le formulaire et réinitialiser les données
+      setIsFormOpen(false);
       setFormData({
         user_name: '',
         taches: '',
-        date: new Date().toISOString().split("T")[0], // Date du jour par défaut
+        date: new Date().toISOString().split("T")[0],
         blockage: '',
         solution: '',
         temps: 'true',
         created_at: new Date().toISOString(),
-      }); // Réinitialiser le formulaire
+      });
+  
     } catch (error) {
       console.error(error.message);
     }
   };
+  
 
   if (loading) {
     return (
