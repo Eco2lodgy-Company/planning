@@ -6,6 +6,7 @@ import { FaTasks, FaCheckCircle, FaHourglassHalf } from "react-icons/fa";
 export default function TaskCalendar() {
     const [tasks, setTasks] = useState([]);
     const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const userId = localStorage.getItem("userId");
@@ -15,8 +16,9 @@ export default function TaskCalendar() {
             .then(res => res.json())
             .then(data => setTasks(data))
             .catch(err => console.error("Error fetching tasks:", err));
-    }, [currentWeekStart]);
+            setLoading(false);
 
+    }, [currentWeekStart]);
     const nextWeek = () => setCurrentWeekStart(addDays(currentWeekStart, 7));
     const prevWeek = () => setCurrentWeekStart(addDays(currentWeekStart, -7));
 
@@ -28,7 +30,13 @@ export default function TaskCalendar() {
         date: day,
         tasks: tasks.filter(task => isSameDay(new Date(task.datedebut), day))
     }));
-
+    if (loading) {
+        return (
+          <div className="flex items-center justify-center h-screen bg-transparent">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+          </div>
+        );
+    }
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
             <div className="flex justify-between items-center mb-6">
