@@ -20,7 +20,6 @@ export default function AbsenceListPage() {
   const [newAbsence, setNewAbsence] = useState({ employe: '', date: '', raison: '' });
   const [agents, setAgents] = useState([]);
 
-  const userIdd = localStorage.getItem('userId');
 
   
 
@@ -32,7 +31,7 @@ export default function AbsenceListPage() {
 
 
     useEffect(() => {
-
+      const userIdd = localStorage.getItem('userId');
       const fetchAgents = async () => {
         try {
           const response = await fetch('/api/headside/agents/'+userIdd);
