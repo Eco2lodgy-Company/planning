@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 export default function TaskCalendar() {
     const [tasks, setTasks] = useState([]);
     const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const userId = localStorage.getItem("userId");
@@ -15,6 +16,7 @@ export default function TaskCalendar() {
         fetch(`/api/tache/${userId}`)
             .then(res => res.json())
             .then(data => setTasks(data))
+            .then(() => setLoading(false))
             .catch(err => console.error("Error fetching tasks:", err));
     }, []);
 
@@ -60,6 +62,14 @@ export default function TaskCalendar() {
             default: return "bg-gray-500";
         }
     };
+
+    if (loading) {
+        return (
+          <div className="flex items-center justify-center h-screen bg-transparent">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+          </div>
+        );
+    }
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
