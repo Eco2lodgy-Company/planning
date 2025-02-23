@@ -153,11 +153,6 @@ export default function UsersPage() {
   };
 
   const handleDeleteUser = async (matricule) => {
-    // if (typeof window !== "undefined") {
-    //   const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?");
-    //   if (!confirmDelete) return;
-    // }
-  
     try {
       const response = await fetch(`/api/users/delete`, {
         method: "DELETE",
@@ -180,6 +175,7 @@ export default function UsersPage() {
       toast.error("Erreur lors de la suppression de l'utilisateur");
     }
   };
+  
 
   const getDepartmentNameById = (id) => {
     const department = departements.find((dep) => dep.id === id);
