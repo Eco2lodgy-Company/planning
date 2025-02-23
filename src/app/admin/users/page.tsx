@@ -153,9 +153,11 @@ export default function UsersPage() {
   };
 
   const handleDeleteUser = async (matricule) => {
-    const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?");
-    if (!confirmDelete) return;
-
+    if (typeof window !== "undefined") {
+      const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?");
+      if (!confirmDelete) return;
+    }
+  
     try {
       const response = await fetch(`/api/users/delete`, {
         method: "DELETE",
@@ -164,11 +166,11 @@ export default function UsersPage() {
         },
         body: JSON.stringify({ id_user: matricule }),
       });
-
+  
       if (!response.ok) {
         throw new Error("Erreur lors de la suppression de l'utilisateur");
       }
-
+  
       setUsers((prevUsers) =>
         prevUsers.filter((user) => user.matricule !== matricule)
       );
