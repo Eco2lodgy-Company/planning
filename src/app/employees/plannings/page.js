@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 import { FaTasks, FaCheckCircle, FaHourglassHalf } from "react-icons/fa";
-
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 export default function TaskCalendar() {
     const [tasks, setTasks] = useState([]);
     const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -15,9 +16,9 @@ export default function TaskCalendar() {
         fetch(`/api/tache/${userId}`)
             .then(res => res.json())
             .then(data => setTasks(data))
+            .then(() => setLoading(false))
             .catch(err => console.error("Error fetching tasks:", err));
-            setLoading(false);
-
+            
     }, [currentWeekStart]);
     const nextWeek = () => setCurrentWeekStart(addDays(currentWeekStart, 7));
     const prevWeek = () => setCurrentWeekStart(addDays(currentWeekStart, -7));
@@ -75,6 +76,8 @@ export default function TaskCalendar() {
                     </tbody>
                 </table>
             </div>
+            <ToastContainer />
+
         </div>
     );
 }
