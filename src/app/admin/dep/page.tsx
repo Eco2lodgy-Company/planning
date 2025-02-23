@@ -117,11 +117,9 @@ export default function DepartementsPage() {
   };
 
   const handleDeleteDepartement = async (id) => {
-    // if (typeof window !== "undefined") {
-    //   const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer ce département ?");
-    //   if (!confirmDelete) return;
-    // }
-  
+    const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer ce département ?");
+    if (!confirmDelete) return;
+
     try {
       const response = await fetch(`/api/departement/delete`, {
         method: "DELETE",
@@ -130,11 +128,11 @@ export default function DepartementsPage() {
         },
         body: JSON.stringify({ id }),
       });
-  
+
       if (!response.ok) {
         throw new Error("Erreur lors de la suppression du département");
       }
-  
+
       setDepartements((prevDepartements) =>
         prevDepartements.filter((dep) => dep.id !== id)
       );
