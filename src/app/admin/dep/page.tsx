@@ -117,10 +117,10 @@ export default function DepartementsPage() {
   };
 
   const handleDeleteDepartement = async (id) => {
-    useEffect(() => {
+    if (typeof window !== "undefined") {
       const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer ce département ?");
       if (!confirmDelete) return;
-    }, []);
+    }
   
     try {
       const response = await fetch(`/api/departement/delete`, {
