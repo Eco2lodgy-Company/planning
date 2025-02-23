@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
- 
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -19,11 +19,18 @@ jobs:
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H 195.35.24.128 >> ~/.ssh/known_hosts
+        echo "✅ SSH setup completed."
+
+    - name: Test SSH Connection
+      run: |
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@195.35.24.128 "echo '✅ Connected to VPS successfully!'"
+      continue-on-error: true
 
     - name: Deploy to VPS
       run: |
-        ssh -i ~/.ssh/id_rsa root@195.35.24.128 "
-          cd planning &&
-          git pull origin main &&
-          pm2 restart planning
-        "
+        ssh -i ~/.ssh/id_rsa root@195.35.24.128 << 'EOF'
+          cd planning || { echo "❌ Directory 'planning' not found"; exit 1; }
+          git pull origin main || { echo "❌ Failed to pull from main branch"; exit 1; }
+          pm2 restart planning || { echo "❌ PM2 restart failed"; exit 1; }
+          echo "✅ Deployment successful!"
+        EOF
