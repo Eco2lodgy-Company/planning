@@ -17,7 +17,6 @@ const WeeklyReports = () => {
 
 
   const [formData, setFormData] = useState(() => {
-    const user = localStorage.getItem("userId") || ""; // Récupération immédiate du localStorage
     return {
       user_name: user, 
       taches: '',
@@ -28,6 +27,14 @@ const WeeklyReports = () => {
       created_at: new Date().toISOString(), // Date actuelle par défaut
     };
   });
+
+  useEffect(() => {
+    const user = localStorage.getItem("userId") || ""; // Accès à localStorage uniquement après montage
+    setFormData((prevData) => ({
+      ...prevData,
+      user_name: user,
+    }));
+  }, []);
 
   // Colors for different days with gradients for a more modern look
   const dayColors = {
