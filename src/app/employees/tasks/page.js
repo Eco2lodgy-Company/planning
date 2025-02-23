@@ -4,6 +4,7 @@ import { format, startOfWeek, addDays, isWithinInterval, parseISO, endOfWeek } f
 import { FaTasks, FaCheckCircle, FaHourglassHalf, FaCheck } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { data } from "framer-motion/client";
 export default function TaskCalendar() {
     const [tasks, setTasks] = useState([]);
     const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -59,6 +60,8 @@ export default function TaskCalendar() {
             },
         }).then(() => {
             toast.success("Tâche marquée comme terminée");
+            fetchTasks();
+        
         }).catch(err => console.error("Error updating task:", err));
     };
 
