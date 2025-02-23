@@ -153,10 +153,10 @@ export default function UsersPage() {
   };
 
   const handleDeleteUser = async (matricule) => {
-    if (typeof window !== "undefined") {
-      const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?");
-      if (!confirmDelete) return;
-    }
+    // if (typeof window !== "undefined") {
+    //   const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?");
+    //   if (!confirmDelete) return;
+    // }
   
     try {
       const response = await fetch(`/api/users/delete`, {
