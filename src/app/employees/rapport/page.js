@@ -43,8 +43,9 @@ const WeeklyReports = () => {
     Wednesday: { bg: 'from-emerald-50 to-emerald-100', border: 'border-emerald-200', header: 'from-emerald-500 to-emerald-600' },
     Thursday: { bg: 'from-amber-50 to-amber-100', border: 'border-amber-200', header: 'from-amber-500 to-amber-600' },
     Friday: { bg: 'from-rose-50 to-rose-100', border: 'border-rose-200', header: 'from-rose-500 to-rose-600' },
-    Saturday: { bg: 'from-rose-50 to-rose-100', border: 'border-rose-200', header: 'from-rose-500 to-rose-600' },
-    Sunday: { bg: 'from-rose-50 to-rose-100', border: 'border-rose-200', header: 'from-rose-500 to-rose-600' }
+    Saturday: { bg: 'from-green-50 to-green-100', border: 'border-green-200', header: 'from-green-500 to-green-600' },
+    Sunday: { bg: 'from-yellow-50 to-yellow-100', border: 'border-yellow-200', header: 'from-yellow-500 to-yellow-600' }
+    
   };
   
   // Get dates for the current week

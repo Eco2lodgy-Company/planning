@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation'; 
 import Link from 'next/link'; 
 import { User, Mail, Shield, Settings, Edit, Calendar, CircleCheckBig, Save } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -12,10 +13,8 @@ export default function ProfilePage() {
 
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState([]);
-  const [userId, setUserId] = useState('');
   const [lastLogin, setLastLogin] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedName, setEditedName] = useState(user.name);
   const [editedEmail, setEditedEmail] = useState(user.email);
   const [editedPassword, setEditedPassword] = useState('');
   const [onGoingTasks, setOnGoingTasks] = useState([]);
@@ -248,6 +247,8 @@ f    } catch (error) {
           </div>
         </motion.main>
       </div>
+      <ToastContainer />
+
     </div>
   );
 }
