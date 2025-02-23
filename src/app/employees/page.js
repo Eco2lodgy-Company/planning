@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, CartesianGrid } from 'recharts';
-
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 
 import {
@@ -365,6 +366,8 @@ export default function EmployeeDashboard() {
           </motion.div>
         </motion.main>
       </div>
+      <ToastContainer />
+
     </div>
   );
 }
