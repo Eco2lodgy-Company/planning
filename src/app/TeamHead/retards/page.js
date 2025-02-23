@@ -22,8 +22,8 @@ export default function RetardListPage() {
     const timer = setTimeout(() => setLoading(false), 1200);
     return () => clearTimeout(timer);
   }, []);
-const userIdd=localStorage.getItem('userId');
   useEffect(() => {
+    const userIdd=localStorage.getItem('userId');
     const fetchAgents = async () => {
       try {
         const response = await fetch('/api/headside/agents/'+userIdd);
@@ -38,12 +38,7 @@ const userIdd=localStorage.getItem('userId');
     };
 
     fetchAgents();
-  },[]);
-
-
-
-
-  useEffect(() => {
+ 
     const fetchLate = async () => {
       try {
         const response = await fetch('/api/headside/retards');
