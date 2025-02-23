@@ -153,29 +153,33 @@ export default function UsersPage() {
   };
 
   const handleDeleteUser = async (matricule) => {
-    try {
-      const response = await fetch(`/api/users/delete`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id_user: matricule }),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Erreur lors de la suppression de l'utilisateur");
-      }
-  
-      setUsers((prevUsers) =>
-        prevUsers.filter((user) => user.matricule !== matricule)
-      );
-      toast.success("Utilisateur supprimé avec succès");
-    } catch (error) {
-      console.error(error.message);
-      toast.error("Erreur lors de la suppression de l'utilisateur");
+  if (typeof window !== "undefined") {
+    const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?");
+    if (!confirmDelete) return;
+  }
+
+  try {
+    const response = await fetch(`/api/users/delete`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id_user: matricule }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Erreur lors de la suppression de l'utilisateur");
     }
-  };
-  
+
+    setUsers((prevUsers) =>
+      prevUsers.filter((user) => user.matricule !== matricule)
+    );
+    toast.success("Utilisateur supprimé avec succès");
+  } catch (error) {
+    console.error(error.message);
+    toast.error("Erreur lors de la suppression de l'utilisateur");
+  }
+};
 
   const getDepartmentNameById = (id) => {
     const department = departements.find((dep) => dep.id === id);

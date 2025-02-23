@@ -28,7 +28,7 @@ export default function SIDEBAR() {
 
       {/* Sidebar */}
       <AnimatePresence>
-        {(isSidebarOpen || window.innerWidth >= 1024) && (
+      {(isSidebarOpen || (typeof window !== "undefined" && window.innerWidth >= 1024)) && (
           <motion.aside
             initial={{ x: -280 }}
             animate={{ x: 0 }}
