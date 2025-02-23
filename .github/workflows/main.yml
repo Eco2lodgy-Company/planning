@@ -36,7 +36,6 @@ jobs:
           echo "✅ Inside 'planning' directory"
           git pull origin main || { echo "❌ Failed to pull from main branch"; exit 1; }
           echo "✅ Code updated"
-          npm install && npm run build
           pm2 restart planning || { echo "❌ PM2 restart failed"; exit 1; }
           echo "✅ Application restarted"
         EOF
