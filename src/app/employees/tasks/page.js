@@ -12,12 +12,20 @@ export default function TaskCalendar() {
     useEffect(() => {
         const userId = localStorage.getItem("userId");
         if (!userId) return;
-
-        fetch(`/api/tache/${userId}`)
-            .then(res => res.json())
-            .then(data => setTasks(data))
-            .then(() => setLoading(false))
-            .catch(err => console.error("Error fetching tasks:", err));
+        const fetchTasks = async () => {
+            try {
+                const response = await fetch(`/api/tache/${userId}`);
+                if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+                const data = await response.json();
+                setTasks(data);
+            } catch (error) {
+                toast.error(error.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchTasks();
+        
     }, []);
 
     const nextWeek = () => setCurrentWeekStart(addDays(currentWeekStart, 7));
