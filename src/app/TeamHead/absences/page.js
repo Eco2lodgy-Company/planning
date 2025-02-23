@@ -47,14 +47,10 @@ export default function AbsenceListPage() {
       };
   
       fetchAgents();
-    },[]);
+   
 
 
     //recuperation et affichage des abscences
-
-
-    useEffect(() => {
-      const userIdd=localStorage.getItem('userId');
 
       const fetchAbsence = async () => {
         try {
