@@ -59,7 +59,7 @@ const WeeklyReports = () => {
       week.push(day);
     }
     return week;
-  };
+  }; 
       
   // Format date to YYYY-MM-DD
   const formatDate = (date) => {
