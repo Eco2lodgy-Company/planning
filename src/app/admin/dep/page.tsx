@@ -116,9 +116,11 @@ export default function DepartementsPage() {
     }));
   };
 
-  const handleDeleteDepartement = async (id: string) => {
-    const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer ce département ?");
-    if (!confirmDelete) return;
+  const handleDeleteDepartement = async (id) => {
+    useEffect(() => {
+      const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer ce département ?");
+      if (!confirmDelete) return;
+    }, []);
   
     try {
       const response = await fetch(`/api/departement/delete`, {
@@ -130,9 +132,7 @@ export default function DepartementsPage() {
       });
   
       if (!response.ok) {
-        // Add more detailed error response handling
-        const errorData = await response.json();
-        throw new Error(errorData?.message || "Erreur lors de la suppression du département");
+        throw new Error("Erreur lors de la suppression du département");
       }
   
       setDepartements((prevDepartements) =>
@@ -140,19 +140,15 @@ export default function DepartementsPage() {
       );
       toast.success("Département supprimé avec succès");
     } catch (error: unknown) {
-      let errorMessage = "Erreur lors de la suppression du département";
-      
-      if (error instanceof Error) {
-        errorMessage = error.message;
-        console.error("Error details:", error);
+      if (error && typeof error === 'object' && 'message' in error) {
+        const e = error as { message: string };
+        console.error(e.message);
       } else {
-        console.error("Unknown error:", error);
+        console.error("Unknown error", error);
       }
-  
-      toast.error(errorMessage);
+      toast.error("Erreur lors de la suppression du département");
     }
   };
-  
 
   return (
     <div className="flex h-screen bg-gray-100">
