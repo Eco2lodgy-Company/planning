@@ -22,8 +22,8 @@ jobs:
 
     - name: Deploy to VPS
       run: |
-        ssh -i ~/.ssh/id_rsa user@your_vps_ip "
-          cd /chemin/vers/ton/projet &&
+        ssh -i ~/.ssh/id_rsa root@195.35.24.128 "
+          cd planning &&
           git pull origin main &&
           pm2 restart planning
         "
