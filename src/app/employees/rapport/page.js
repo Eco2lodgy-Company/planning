@@ -14,11 +14,11 @@ const WeeklyReports = () => {
   const [tasks, setTasks] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
-
+ 
 
   const [formData, setFormData] = useState(() => {
     return {
-      user_name: user, 
+      user_name: '', 
       taches: '',
       date: new Date().toISOString().split("T")[0], // Date du jour par défaut
       blockage: '',
