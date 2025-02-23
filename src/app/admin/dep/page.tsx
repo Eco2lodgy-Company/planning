@@ -116,10 +116,10 @@ export default function DepartementsPage() {
     }));
   };
 
-  const handleDeleteDepartement = async (id) => {
+  const handleDeleteDepartement = async (id: string) => {
     const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer ce département ?");
     if (!confirmDelete) return;
-
+  
     try {
       const response = await fetch(`/api/departement/delete`, {
         method: "DELETE",
@@ -128,25 +128,31 @@ export default function DepartementsPage() {
         },
         body: JSON.stringify({ id }),
       });
-
+  
       if (!response.ok) {
-        throw new Error("Erreur lors de la suppression du département");
+        // Add more detailed error response handling
+        const errorData = await response.json();
+        throw new Error(errorData?.message || "Erreur lors de la suppression du département");
       }
-
+  
       setDepartements((prevDepartements) =>
         prevDepartements.filter((dep) => dep.id !== id)
       );
       toast.success("Département supprimé avec succès");
     } catch (error: unknown) {
-      if (error && typeof error === 'object' && 'message' in error) {
-        const e = error as { message: string };
-        console.error(e.message);
+      let errorMessage = "Erreur lors de la suppression du département";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        console.error("Error details:", error);
       } else {
-        console.error("Unknown error", error);
+        console.error("Unknown error:", error);
       }
-      toast.error("Erreur lors de la suppression du département");
+  
+      toast.error(errorMessage);
     }
   };
+  
 
   return (
     <div className="flex h-screen bg-gray-100">
