@@ -19,27 +19,23 @@ jobs:
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H 195.35.24.128 >> ~/.ssh/known_hosts
-        echo "✅ SSH setup completed."
 
-    - name: Test SSH Connection
+    - name: Install dependencies
       run: |
-        set -e
-        echo "Testing SSH connection..."
-        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@195.35.24.128 "echo '✅ SSH connection successful'"
-      continue-on-error: true
+        cd planning
+        npm install
+
+    - name: Build the app
+      run: |
+        cd planning
+        npm run build
 
     - name: Deploy to VPS
       run: |
-        set -e
-        echo "Starting deployment..."
-        ssh -i ~/.ssh/id_rsa root@195.35.24.128 << 'EOF'
-          set -e
-          echo "Connected to VPS!"
-          cd planning || { echo "❌ Directory 'planning' not found"; exit 1; }
-          echo "✅ Inside 'planning' directory"
-          git pull origin main || { echo "❌ Failed to pull from main branch"; exit 1; }
-          echo "✅ Code updated"
-          pm2 restart planning || { echo "❌ PM2 restart failed"; exit 1; }
-          echo "✅ Application restarted"
-        EOF
-      continue-on-error: true
+        ssh -i ~/.ssh/id_rsa root@195.35.24.128 "
+          cd planning &&
+          git pull origin main &&
+          npm install &&
+          npm run build &&
+          pm2 restart planning
+        "
