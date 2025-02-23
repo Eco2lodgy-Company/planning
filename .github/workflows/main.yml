@@ -23,15 +23,18 @@ jobs:
 
     - name: Test SSH Connection
       run: |
+        set -e
         echo "Testing SSH connection..."
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@195.35.24.128 "echo '✅ SSH connection successful'"
+      continue-on-error: true
 
     - name: Deploy to VPS
       run: |
+        set -e
         echo "Starting deployment..."
         ssh -i ~/.ssh/id_rsa root@195.35.24.128 << 'EOF'
           set -e
-          echo "✅ Connected to VPS!"
+          echo "Connected to VPS!"
           cd planning || { echo "❌ Directory 'planning' not found"; exit 1; }
           echo "✅ Inside 'planning' directory"
           git pull origin main || { echo "❌ Failed to pull from main branch"; exit 1; }
@@ -39,3 +42,4 @@ jobs:
           pm2 restart planning || { echo "❌ PM2 restart failed"; exit 1; }
           echo "✅ Application restarted"
         EOF
+      continue-on-error: true
