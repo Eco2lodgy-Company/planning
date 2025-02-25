@@ -21,11 +21,14 @@ export default function ProfilePage() {
   const [completedTasks, setCompletedTasks] = useState([]);
 
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-      router.push("/login");
-      return;
+    if (typeof window !== "undefined") {
+      const userId = localStorage.getItem("userId");
+
+      if (!userId) {
+        router.push("/login");
+      }
     }
+  }, [router]);
 
   //convert last login date format from timestamp to date and time
   const dateObj = new Date(lastLogin);
@@ -266,5 +269,4 @@ f    } catch (error) {
 
     </div>
   );
-});
 }

@@ -30,11 +30,14 @@ const WeeklyReports = () => {
     };
   });
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-      router.push("/login");
-      return;
+    if (typeof window !== "undefined") {
+      const userId = localStorage.getItem("userId");
+
+      if (!userId) {
+        router.push("/login");
+      }
     }
+  }, [router]);
 
   useEffect(() => {
     const user = localStorage.getItem("userId") || ""; // Accès à localStorage uniquement après montage
@@ -457,7 +460,6 @@ const WeeklyReports = () => {
 
     </div>
   );
-});
 };
 
 export default WeeklyReports;

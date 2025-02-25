@@ -25,11 +25,14 @@ export default function PermissionPage() {
     id_user: ''
   });
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-      router.push("/login");
-      return;
+    if (typeof window !== "undefined") {
+      const userId = localStorage.getItem("userId");
+
+      if (!userId) {
+        router.push("/login");
+      }
     }
+  }, [router]);
 
   const permissionTypes = [
     'Congé annuel',
@@ -388,5 +391,5 @@ export default function PermissionPage() {
       </AnimatePresence>
     </div>
   );
-});
+
 }

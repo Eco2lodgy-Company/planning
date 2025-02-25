@@ -15,11 +15,14 @@ export default function TaskCalendar() {
     const router = useRouter();
 
     useEffect(() => {
-        const userId = localStorage.getItem("userId");
-        if (!userId) {
-          router.push("/login");
-          return;
+        if (typeof window !== "undefined") {
+          const userId = localStorage.getItem("userId");
+    
+          if (!userId) {
+            router.push("/login");
+          }
         }
+      }, [router]);
 
     useEffect(() => {
         const userId = localStorage.getItem("userId");
@@ -101,7 +104,6 @@ export default function TaskCalendar() {
 
         </div>
     );
-});
 }
 
 // Fonction pour obtenir la couleur en fonction du statut de la tâche
