@@ -32,11 +32,14 @@ export default function EmployeeDashboard() {
 
 
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-      router.push("/login");
-      return;
+    if (typeof window !== "undefined") {
+      const userId = localStorage.getItem("userId");
+
+      if (!userId) {
+        router.push("/login");
+      }
     }
+  }, [router]);
   
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1200);
@@ -352,5 +355,4 @@ export default function EmployeeDashboard() {
 
     </div>
   );
-}, []);
 }
