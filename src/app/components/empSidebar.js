@@ -3,11 +3,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import router from "next/router";
-
-import { 
-  Home, Calendar, CircleCheckBig, Users, Shield, ClipboardMinus, LogOut 
-} from "lucide-react";
+import { Home, Calendar, CircleCheckBig, Users, Shield, ClipboardMinus, LogOut } from "lucide-react";
 
 const navigationItems = [
   { name: 'Dashboard', icon: Home, path: '/employees' },
@@ -26,14 +22,16 @@ export default function EmpSidebar() {
     localStorage.removeItem('userId');
     window.location.href = '/login';
   };
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const userId = localStorage.getItem("userId");
 
       if (!userId) {
         router.push("/login");
-        return;
       }
+    }
+  }, [router]);
 
   return (
     <motion.aside
@@ -72,5 +70,4 @@ export default function EmpSidebar() {
       </div>
     </motion.aside>
   );
-  }});
 }
