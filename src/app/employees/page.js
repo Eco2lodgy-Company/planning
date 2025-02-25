@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import { ResponsiveContainer } from 'recharts';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, CartesianGrid } from 'recharts';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -166,14 +167,6 @@ export default function EmployeeDashboard() {
   }, []);
 
 
-  const currentTasks = [
-    { id: 1, title: "Mise à jour du site web", status: "En cours", deadline: "2024-03-20", priority: "Haute" },
-    { id: 2, title: "Réunion client", status: "En cours", deadline: "2024-03-18", priority: "Moyenne" },
-    { id: 3, title: "Rapport mensuel", status: "En cours", deadline: "2024-03-25", priority: "Haute" },
-    { id: 4, title: "Test qualité", status: "En cours", deadline: "2024-03-19", priority: "Basse" },
-    { id: 5, title: "Documentation API", status: "En cours", deadline: "2024-03-22", priority: "Moyenne" }
-  ];
-
  
 
   if (loading) {
@@ -260,56 +253,47 @@ export default function EmployeeDashboard() {
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                {/* Diagramme en barres pour les totaux par statut */}
-               <motion.div
-                 whileHover={{ scale: 1.01 }}
-                 className="bg-white p-6 rounded-lg shadow-lg"
-               >
-                 <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                   <BarChart3 className="text-blue-500" aria-hidden="true" /> Projets par statut
-                 </h3>
-                 <BarChart
-                   width={500}
-                   height={300}
-                   data={statusData}
-                   margin={{ top: 25, right: 30, left: 20, bottom: 5 }}
-                 >
-                   <CartesianGrid strokeDasharray="3 3" />
-                   <XAxis dataKey="status" /> {/* Axe des X basé sur le statut */}
-                   <YAxis />
-                   <Tooltip />
-                   <Legend />
-                   <Bar dataKey="total" fill="#3b82f6" /> {/* Barre pour le total */}
-                 </BarChart>
-               </motion.div>
-         
+               
+<motion.div
+  whileHover={{ scale: 1.01 }}
+  className="bg-white p-6 rounded-lg shadow-lg"
+>
+  <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+    <BarChart3 className="h-6 w-6 text-blue-500" />
+    Statut des tâches
+  </h3>
+  <ResponsiveContainer width="100%" height={300}>
+    <BarChart data={statusData}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="status" />
+      <YAxis />
+      <Tooltip />
+      <Legend />
+      <Bar dataKey="total" fill="#4caf50" />
+    </BarChart>
+  </ResponsiveContainer>
+</motion.div>
                         {/* Diagramme en courbes pour les totaux par statut */}
-               <motion.div
-                 whileHover={{ scale: 1.01 }}
-                 className="bg-white p-6 rounded-lg shadow-lg"
-               >
-                 <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                   <BarChart3 className="text-blue-500" aria-hidden="true" /> Performance par statut
-                 </h3>
-                 <LineChart
-                   width={500}
-                   height={300}
-                   data={statusData}
-                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                 >
-                   <CartesianGrid strokeDasharray="3 3" />
-                   <XAxis dataKey="status" /> {/* Axe des X basé sur le statut */}
-                   <YAxis />
-                   <Tooltip />
-                   <Legend />
-                   {/* Ligne pour les totaux */}
-                   <Line
-                     type="monotone"
-                     dataKey="total"
-                     stroke="#3b82f6" // Couleur bleue
-                     activeDot={{ r: 8 }}
-                   />
-                 </LineChart>
-               </motion.div>
+                        <motion.div
+  whileHover={{ scale: 1.01 }}
+  className="bg-white p-6 rounded-lg shadow-lg"
+>
+  <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+    <PieChart className="h-6 w-6 text-blue-500" />
+    Évolution des tâches
+  </h3>
+  <ResponsiveContainer width="100%" height={300}>
+    <LineChart data={statusData}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="status" />
+      <YAxis />
+      <Tooltip />
+      <Legend />
+      <Line type="monotone" dataKey="total" stroke="#4caf50" />
+    </LineChart>
+  </ResponsiveContainer>
+</motion.div>
+
                    </div>
 
           {/* Current Tasks */}
