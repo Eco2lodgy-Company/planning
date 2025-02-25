@@ -1,7 +1,10 @@
 'use client';
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
+import router from "next/router";
+
 import { 
   Home, Calendar, CircleCheckBig, Users, Shield, ClipboardMinus, LogOut 
 } from "lucide-react";
@@ -17,11 +20,18 @@ const navigationItems = [
 
 export default function EmpSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const handleLogout = () => {
     localStorage.removeItem('userId');
     window.location.href = '/login';
   };
+  useEffect(() => {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        router.push("/login");
+        return;
+      }
 
   return (
     <motion.aside
@@ -60,4 +70,5 @@ export default function EmpSidebar() {
       </div>
     </motion.aside>
   );
+  });
 }
