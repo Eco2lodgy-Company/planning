@@ -41,8 +41,23 @@ export default function PermissionPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setLoading(false);
       // Ajouter des données d'exemple
+
+      const fetchLeaves = async () => {
+        const userId = localStorage.getItem("userId");
+            try {
+              const response = await fetch('/api/employees/permissions/' + userId);
+              if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+              const data = await response.json();
+              setPermissions(data);
+            } catch (error) {
+              toast.error(error.message);
+            } finally {
+              setLoading(false);
+            }
+          };
+      
+          fetchLeaves();
       
      
     }, 1500);
@@ -228,7 +243,7 @@ export default function PermissionPage() {
                     
                     return (
                       <motion.tr
-                        key={permission.id}
+                        key={permission.id_user}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
