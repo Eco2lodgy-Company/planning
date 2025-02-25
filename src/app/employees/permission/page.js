@@ -43,24 +43,8 @@ export default function PermissionPage() {
     const timer = setTimeout(() => {
       setLoading(false);
       // Ajouter des données d'exemple
-      setPermissions([
-        {
-          id: '1',
-          motif: 'Vacances d\'été',
-          datedebut: '2024-07-01',
-          datefin: '2024-07-15',
-          status: 'Accordé',
-          type: 'Congé annuel',
-        },
-        {
-          id: '2',
-          motif: 'Rendez-vous médical',
-          datedebut: '2024-03-20',
-          datefin: '2024-03-21',
-          status: 'En attente',
-          type: 'Congé maladie',
-        },
-      ]);
+      
+     
     }, 1500);
     return () => clearTimeout(timer);
   }, []);
