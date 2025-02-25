@@ -17,6 +17,7 @@ export default function PermissionPage() {
     datedebut: '',
     datefin: '',
     type: 'Congé annuel',
+    id_user: ''
   });
 
   const permissionTypes = [
@@ -25,6 +26,18 @@ export default function PermissionPage() {
     'Congé sans solde',
     'Permission exceptionnelle',
   ];
+
+  useEffect(() => {
+    const user = localStorage.getItem("userId");
+    console.log("UserId from localStorage:", user);
+    if (user) {
+      setNewPermission((prevData) => ({
+        ...prevData,
+        id_user: user,
+      }));
+    }
+  }, []);
+  
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -80,33 +93,52 @@ export default function PermissionPage() {
     return true;
   };
 
-  const handleSubmitPermission = () => {
+  const handleSubmitPermission = async () => {
     if (!newPermission.motif || !newPermission.datedebut || !newPermission.datefin || !newPermission.type) {
       toast.error('Veuillez remplir tous les champs');
       return;
     }
-
+  
     if (!validateDates(newPermission.datedebut, newPermission.datefin)) {
       return;
     }
-
+  
     const duration = differenceInDays(
       parseISO(newPermission.datefin),
       parseISO(newPermission.datedebut)
     ) + 1;
-
-    setPermissions(prev => [
-      ...prev,
-      {
-        id: (prev.length + 1).toString(),
-        ...newPermission,
-        status: 'En attente',
-      },
-    ]);
-    
-    setIsPopupOpen(false);
-    setNewPermission({ motif: '', datedebut: '', datefin: '', type: 'Congé annuel' });
-    toast.success(`Permission demandée pour ${duration} jour${duration > 1 ? 's' : ''}`);
+  
+    try {
+      const response = await fetch('/api/employees/permissions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newPermission),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Erreur lors de la soumission de la permission');
+      }
+  
+      const data = await response.json();
+  
+      // setPermissions(prev => [
+      //   ...prev,
+      //   {
+      //     id: data.id, // Utilise l'ID retourné par l'API
+      //     ...newPermission,
+      //     status: 'En attente',
+      //   },
+      // ]);
+  
+      setIsPopupOpen(false);
+      setNewPermission({ motif: '', datedebut: '', datefin: '', type: 'Congé annuel', id_user: '' });
+      toast.success(`Permission demandée pour ${duration} jour${duration > 1 ? 's' : ''}`);
+    } catch (error) {
+      toast.error('Erreur lors de la soumission de la permission');
+      console.error(error);
+    }
   };
 
   const getStatusColor = (status) => {
