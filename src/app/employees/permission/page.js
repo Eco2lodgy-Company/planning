@@ -64,6 +64,25 @@ export default function PermissionPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  const fetchLeaves = async () => {
+    const userId = localStorage.getItem("userId");
+    try {
+      const response = await fetch('/api/employees/permissions/' + userId);
+      if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+      const data = await response.json();
+      setPermissions(data);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
+
+
+
+
   const filteredPermissions = permissions.filter(permission => {
     const matchesSearch = permission.motif.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          permission.type?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -125,7 +144,7 @@ export default function PermissionPage() {
       // setPermissions(prev => [
       //   ...prev,
       //   {
-      //     id: data.id, // Utilise l'ID retourné par l'API
+      //     id: data.id_user, // Utilise l'ID retourné par l'API
       //     ...newPermission,
       //     status: 'En attente',
       //   },
@@ -134,6 +153,7 @@ export default function PermissionPage() {
       setIsPopupOpen(false);
       setNewPermission({ motif: '', datedebut: '', datefin: '', type: 'Congé annuel', id_user: '' });
       toast.success(`Permission demandée pour ${duration} jour${duration > 1 ? 's' : ''}`);
+      fetchLeaves();
     } catch (error) {
       toast.error('Erreur lors de la soumission de la permission');
       console.error(error);
