@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { format, startOfWeek, addDays, isWithinInterval, parseISO, endOfWeek } from "date-fns";
 import { FaTasks, FaCheckCircle, FaHourglassHalf, FaCheck } from "react-icons/fa";
 import { motion } from "framer-motion";
+import {useRouter} from "next/navigation";
 import {Loader2} from 'lucide-react';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,6 +12,14 @@ export default function TaskCalendar() {
     const [tasks, setTasks] = useState([]);
     const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
+
+    useEffect(() => {
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          router.push("/login");
+          return;
+        }
 
     useEffect(() => {
         const userId = localStorage.getItem("userId");
@@ -147,4 +156,5 @@ export default function TaskCalendar() {
 
         </div>
     );
+});
 }

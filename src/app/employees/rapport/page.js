@@ -6,6 +6,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion"; // Importer Framer Motion
 
+import { useRouter } from 'next/navigation';
 
 const WeeklyReports = () => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
@@ -14,6 +15,7 @@ const WeeklyReports = () => {
   const [tasks, setTasks] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const router = useRouter();
  
 
   const [formData, setFormData] = useState(() => {
@@ -27,6 +29,12 @@ const WeeklyReports = () => {
       created_at: new Date().toISOString(), // Date actuelle par défaut
     };
   });
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      router.push("/login");
+      return;
+    }
 
   useEffect(() => {
     const user = localStorage.getItem("userId") || ""; // Accès à localStorage uniquement après montage
@@ -449,6 +457,7 @@ const WeeklyReports = () => {
 
     </div>
   );
+});
 };
 
 export default WeeklyReports;

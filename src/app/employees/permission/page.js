@@ -2,6 +2,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'sonner';
+import { useRouter } from 'next/navigation';
+
+
+
 import { Plus, Calendar, Clock, FileText, X, Loader2, Filter, Search, ChevronDown } from 'lucide-react';
 import { format, differenceInDays, isAfter, isBefore, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -12,6 +16,7 @@ export default function PermissionPage() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const router = useRouter();
   const [newPermission, setNewPermission] = useState({
     motif: '',
     datedebut: '',
@@ -19,6 +24,12 @@ export default function PermissionPage() {
     type: 'Congé annuel',
     id_user: ''
   });
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      router.push("/login");
+      return;
+    }
 
   const permissionTypes = [
     'Congé annuel',
@@ -377,4 +388,5 @@ export default function PermissionPage() {
       </AnimatePresence>
     </div>
   );
+});
 }

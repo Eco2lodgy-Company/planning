@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 import { FaTasks, FaCheckCircle, FaHourglassHalf } from "react-icons/fa";
 import {  Loader2 } from 'lucide-react';
+import {useRouter} from "next/navigation";
 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,6 +12,14 @@ export default function TaskCalendar() {
     const [tasks, setTasks] = useState([]);
     const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
+
+    useEffect(() => {
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          router.push("/login");
+          return;
+        }
 
     useEffect(() => {
         const userId = localStorage.getItem("userId");
@@ -92,6 +101,7 @@ export default function TaskCalendar() {
 
         </div>
     );
+});
 }
 
 // Fonction pour obtenir la couleur en fonction du statut de la tâche
