@@ -27,7 +27,9 @@ export default function EmpSidebar() {
     window.location.href = '/login';
   };
   useEffect(() => {
+    if (typeof window !== "undefined") {
       const userId = localStorage.getItem("userId");
+
       if (!userId) {
         router.push("/login");
         return;
@@ -70,5 +72,5 @@ export default function EmpSidebar() {
       </div>
     </motion.aside>
   );
-  });
+  }});
 }
