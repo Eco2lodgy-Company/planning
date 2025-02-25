@@ -15,9 +15,10 @@ export default function TaskCalendar() {
     const router = useRouter();
 
     useEffect(() => {
-        const userId = localStorage.getItem("userId");
-        if (!userId) {
-          router.push("/login");
+        if (typeof window !== "undefined") {
+            const userId = localStorage.getItem("userId");
+            if (!userId) {
+              router.push("/login");
           return;
         }
 
@@ -156,5 +157,5 @@ export default function TaskCalendar() {
 
         </div>
     );
-});
+}});
 }
