@@ -28,8 +28,16 @@ export default function EmployeeDashboard() {
   const [totalTasks, setTotalTasks] = useState([]);
   const [PendingTasks, setPendingTasks]= useState([]);
   const [taskList, setTaskList]= useState([]);
+  const router = useRouter();
 
 
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      router.push("/login");
+      return;
+    }
+  
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1200);
     return () => clearTimeout(timer);
@@ -344,4 +352,5 @@ export default function EmployeeDashboard() {
 
     </div>
   );
+}, []);
 }

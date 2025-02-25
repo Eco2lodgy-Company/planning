@@ -19,7 +19,7 @@ export default function EmpSidebar() {
   const pathname = usePathname();
 
   const handleLogout = () => {
-    console.log("Déconnexion...");
+    localStorage.removeItem('userId');
     window.location.href = '/login';
   };
 
