@@ -10,14 +10,6 @@ import "react-toastify/dist/ReactToastify.css";
 
 
 import {
-  Home,
-  Calendar,
-  CircleCheckBig,    
-  Users,
-  ClipboardMinus,
-  Settings,
-  PlusCircle,
-  Trash2,
   CheckCircle,
   Clock,
   AlertCircle,
