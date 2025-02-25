@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { format, startOfWeek, addDays, isWithinInterval, parseISO, endOfWeek } from "date-fns";
 import { FaTasks, FaCheckCircle, FaHourglassHalf, FaCheck } from "react-icons/fa";
+import { motion } from "framer-motion";
+import {Loader2} from 'lucide-react';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { data } from "framer-motion/client";
@@ -76,11 +78,19 @@ export default function TaskCalendar() {
 
     if (loading) {
         return (
-          <div className="flex items-center justify-center h-screen bg-transparent">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+          <div className="flex items-center justify-center h-screen bg-gray-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-center gap-4"
+            >
+              <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+              <p className="text-gray-600 font-medium">Chargement des tâches...</p>
+            </motion.div>
           </div>
         );
-    }
+      }
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
