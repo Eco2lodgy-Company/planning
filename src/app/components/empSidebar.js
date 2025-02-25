@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { toast, Toaster } from 'sonner';
 import { Home, Calendar, CircleCheckBig, Users, Shield, ClipboardMinus, LogOut } from "lucide-react";
 
 const navigationItems = [
@@ -19,8 +20,13 @@ export default function EmpSidebar() {
   const router = useRouter();
 
   const handleLogout = () => {
+    
+
     localStorage.removeItem('userId');
     window.location.href = '/login';
+    toast.success('Déconnexion réussie\nÀ bientôt !');
+    
+
   };
 
   useEffect(() => {
@@ -38,9 +44,10 @@ export default function EmpSidebar() {
       initial={{ x: -200 }}
       animate={{ x: 0 }}
       transition={{ type: "spring", stiffness: 60 }}
-      className="w-full max-w-72 bg-gray-900 text-white shadow-lg p-6 flex flex-col justify-between h-screen sm:w-72"
+      className="w-full sm:w-72 bg-gray-900 text-white shadow-lg p-6 flex flex-col justify-between h-screen sm:max-w-none"
     >
       <div>
+      <Toaster position="top-right" />
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Calendar className="text-blue-500" /> ECO2LODGY
         </h1>
