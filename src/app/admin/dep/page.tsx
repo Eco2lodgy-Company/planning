@@ -134,7 +134,7 @@ export default function DepartementsPage() {
       }
 
       setDepartements((prevDepartements) =>
-        prevDepartements.filter((dep) => dep.id !== id)
+        prevDepartements.filter((dep) => dep?.id !== id)
       );
       toast.success("Département supprimé avec succès");
     } catch (error: unknown) {
@@ -260,9 +260,9 @@ export default function DepartementsPage() {
         </AnimatePresence>
 
         <div className="space-y-4">
-          {departements.map((departement) => (
-            <div key={departement.id} className="flex justify-between items-center p-4 bg-white shadow rounded-lg">
-              <span className="text-lg font-medium text-gray-800">{departement.titre}</span>
+          {departements && departements.map((departement) => (
+            <div key={departement?.id} className="flex justify-between items-center p-4 bg-white shadow rounded-lg">
+               <span className="text-lg font-medium text-gray-800">{departement?.titre || 'Titre non spécifié'}</span>
               <div className="space-x-4">
                 <button
                   onClick={() => handleEditDepartement(departement)}
