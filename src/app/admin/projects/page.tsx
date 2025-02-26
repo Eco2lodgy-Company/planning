@@ -262,7 +262,7 @@ export default function Projects() {
   return (
     <div className="flex h-screen bg-gray-100">
       <div className="flex-1 flex flex-col">
-        <header className="h-16 bg-white shadow-md flex items-center justify-between px-6">
+        <header className="flex flex-col sm:flex-row items-center mb-2 justify-between p-6 bg-white shadow gap-4">
           <h1 className="text-xl font-bold text-gray-800">Gestion des Projets</h1>
           <button
             onClick={() => setIsPopoverOpen(true)}

@@ -188,7 +188,12 @@ export default function UsersPage() {
     <div className="flex h-screen bg-gray-100">
       <ToastContainer />
       <div className="flex-1 p-8">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">Gestion des Utilisateurs</h1>
+      <header className=" mb-2 flex flex-col sm:flex-row items-center justify-between p-6 bg-white shadow gap-4">
+          <div className="flex items-center w-full">
+            <div className="lg:hidden w-8" /> {/* Spacer for mobile */}
+            <h2 className="text-xl font-bold text-gray-800 ml-4">Gestion des utilisateurs</h2>
+          </div>
+        </header>
         <div className="mb-6">
           <button
             onClick={() => setIsPopoverOpen(!isPopoverOpen)}

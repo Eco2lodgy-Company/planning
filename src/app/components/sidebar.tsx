@@ -1,6 +1,6 @@
 "use client";
 import { AnimatePresence, motion } from "framer-motion";
-import { Calendar, Home, Menu, Settings, Users, X, Sun, Moon, NotebookText, Clipboard, Archive, FileText } from "lucide-react";
+import { Calendar, Home, Menu, Settings, Users, X, Sun, Moon, NotebookText,SquareActivity , Clipboard, Archive, FileText, FolderKanban } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function SIDEBAR() {
@@ -95,7 +95,7 @@ export default function SIDEBAR() {
                     href="/admin/projects"
                     className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
                   >
-                    <Clipboard /> Projets
+                    <FolderKanban /> Projets
                   </a>
                 </li>
                 <li>
@@ -112,6 +112,14 @@ export default function SIDEBAR() {
                     className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
                   >
                     <FileText /> Rapport
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/admin/eval"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
+                  >
+                    <SquareActivity  /> Performance
                   </a>
                 </li>
                 <li>
