@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { AnimatePresence, motion } from "framer-motion";
 import { Calendar, Home, Menu, Settings, Users, X, Sun, Moon, NotebookText, Clipboard, Archive, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -6,8 +6,14 @@ import { useState, useEffect } from "react";
 export default function SIDEBAR() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isClient, setIsClient] = useState(false); // Track if component is mounted on the client
 
-  // Gestion du mode sombre
+  // Check if the component is mounted on the client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Manage dark mode
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add("dark");
@@ -18,7 +24,7 @@ export default function SIDEBAR() {
 
   return (
     <div>
-      {/* Bouton pour ouvrir/fermer la sidebar */}
+      {/* Button to open/close sidebar */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         className="lg:hidden fixed z-50 top-4 left-4 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg"
@@ -28,7 +34,7 @@ export default function SIDEBAR() {
 
       {/* Sidebar */}
       <AnimatePresence>
-      {(isSidebarOpen || (typeof window !== "undefined" && window.innerWidth >= 1024)) && (
+        {(isSidebarOpen || (isClient && window.innerWidth >= 1024)) && (
           <motion.aside
             initial={{ x: -280 }}
             animate={{ x: 0 }}
@@ -37,11 +43,11 @@ export default function SIDEBAR() {
             className="fixed lg:static z-50 w-64 bg-white dark:bg-gray-900 text-gray-800 dark:text-white shadow-lg h-screen"
           >
             <div className="p-6 flex items-center justify-between">
-              {/* Titre de la sidebar */}
+              {/* Sidebar title */}
               <h1 className="text-2xl font-bold flex items-center gap-2">
                 <Calendar className="text-blue-500" /> Gestion Planning
               </h1>
-              {/* Bouton jour/nuit */}
+              {/* Day/night toggle button */}
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className="p-2 rounded-lg transition hover:bg-gray-200 dark:hover:bg-gray-700"

@@ -4,7 +4,9 @@ import { X, Menu, Calendar, Home, Users, Settings } from "lucide-react";
 import { useState } from "react";
 import NAVBAR from "../components/sidebar"
 
-export default function DashboardLayout({children}) {
+import { ReactNode } from "react";
+
+export default function DashboardLayout({ children }: { children: ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     return (
       <div className="min-h-screen flex">
