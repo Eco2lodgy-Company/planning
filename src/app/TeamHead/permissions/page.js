@@ -181,7 +181,7 @@ export default function PermissionPage() {
   //Appel API pour metttre à jour la permission comme acceptée
   const handleAcceptPermission = async (permissionId) => {
 
-    fetch(`/api/headside/permissions/update/${permissionId}`, {
+    fetch(`/api/headside/permissions/update/accorded/${permissionId}`, {
       method: "PUT",
       body: JSON.stringify({ status: "Accordé" }),
       headers: {
@@ -192,6 +192,39 @@ export default function PermissionPage() {
       fetchLeaves();
   
   }).catch(err => console.error("Error updating task:", err));
+  } 
+
+
+  //Appel API pour metttre à jour la permission comme acceptée
+  const handleRejectPermission = async (permissionId) => {
+    if (!rejectMotif) {
+      toast.error('Veuillez saisir un motif de refus');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/headside/permissions/update/rejected/${permissionId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'Refusé', // Mettre à jour le statut
+          rejectMotif: rejectMotif, // Ajouter le motif du refus
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Erreur lors du refus de la permission');
+      }
+  
+      toast.success('Permission refusée avec succès');
+      setIsRejectFormOpen(false); // Fermer le formulaire de refus
+      setRejectMotif(''); // Réinitialiser le champ motif
+      fetchLeaves(); // Rafraîchir la liste des permissions
+    } catch (error) {
+      toast.error(error.message);
+    }
   } 
 
 
@@ -325,7 +358,7 @@ export default function PermissionPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleAcceptPermission(permission.id_user)}
+                              onClick={() => handleAcceptPermission(permission.id_p)}
                               className="text-green-500 hover:text-green-700"
                             >
                               <Check className="w-5 h-5" />
