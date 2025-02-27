@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 
 
-import { Plus, Calendar, Clock, FileText, X, Loader2, Filter, Search, ChevronDown } from 'lucide-react';
+import { Plus, Calendar, Clock, FileText, X,Check,XCircle, Loader2, Filter, Search, ChevronDown } from 'lucide-react';
 import { format, differenceInDays, isAfter, isBefore, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -266,6 +266,7 @@ export default function PermissionPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Période</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durée</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -299,6 +300,22 @@ export default function PermissionPage() {
                           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(permission.status)}`}>
                             {permission.status}
                           </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleAcceptPermission(permission.id_user)}
+                              className="text-green-500 hover:text-green-700"
+                            >
+                              <Check className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleRejectPermission(permission.id_user)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <XCircle className="w-5 h-5" />
+                            </button>
+                          </div>
                         </td>
                       </motion.tr>
                     );

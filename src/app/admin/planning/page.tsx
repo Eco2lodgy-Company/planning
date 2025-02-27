@@ -285,7 +285,6 @@ export default function Calendar() {
       setIsLoading(true);
       const response = await fetch("/api/tache");
       const result = await response.json();
-      
       if (response.ok) {
         setTasks(Array.isArray(result.data) ? result.data : []);
       } else {
