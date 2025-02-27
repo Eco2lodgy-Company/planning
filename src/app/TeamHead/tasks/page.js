@@ -123,10 +123,12 @@ export default function TaskManagementPage() {
   };
 
   const filteredTasks = tasks.filter((task) => {
-    const matchesSearch = task.libelle.toLowerCase().includes(searchTerm.toLowerCase());
+    const libelle = task.libelle ? task.libelle.toLowerCase() : '';
+    const matchesSearch = libelle.includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || task.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
+  
 
   if (loading) {
     return (
