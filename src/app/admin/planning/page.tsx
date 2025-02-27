@@ -1,6 +1,3 @@
-"use client"
-import React, { useEffect, useState } from 'react';
-import Calendrier from '@/app/admin/planning/Calendrier';
 
 const Home = () => {
   const [taches, setTaches] = useState([]);
