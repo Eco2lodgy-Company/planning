@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react";
-import Calendrier from "./Calendrier";
+import Calendrier from "./calendar";
 
 const Home = () => {
   const [taches, setTaches] = useState([]);
