@@ -134,7 +134,7 @@ export default function DepartementsPage() {
       }
 
       setDepartements((prevDepartements) =>
-        prevDepartements.filter((dep) => dep.id !== id)
+        prevDepartements.filter((dep) => dep?.id !== id)
       );
       toast.success("Département supprimé avec succès");
     } catch (error: unknown) {
@@ -152,7 +152,12 @@ export default function DepartementsPage() {
     <div className="flex h-screen bg-gray-100">
       <ToastContainer />
       <div className="flex-1 p-8">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">Gestion des Départements</h1>
+      <header className="flex flex-col sm:flex-row items-center mb-2 justify-between p-6 bg-white shadow gap-4">
+          <div className="flex items-center w-full">
+            <div className="lg:hidden w-8" /> {/* Spacer for mobile */}
+            <h2 className="text-xl font-bold text-gray-800 ml-4">Departement</h2>
+          </div>
+        </header>
         <div className="mb-6">
           <button
             onClick={() => setIsPopoverOpen(!isPopoverOpen)}
@@ -260,9 +265,9 @@ export default function DepartementsPage() {
         </AnimatePresence>
 
         <div className="space-y-4">
-          {departements.map((departement) => (
-            <div key={departement.id} className="flex justify-between items-center p-4 bg-white shadow rounded-lg">
-              <span className="text-lg font-medium text-gray-800">{departement.titre}</span>
+          {departements && departements.map((departement) => (
+            <div key={departement?.id} className="flex justify-between items-center p-4 bg-white shadow rounded-lg">
+               <span className="text-lg font-medium text-gray-800">{departement?.titre || 'Titre non spécifié'}</span>
               <div className="space-x-4">
                 <button
                   onClick={() => handleEditDepartement(departement)}

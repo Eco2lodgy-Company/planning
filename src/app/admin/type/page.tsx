@@ -6,12 +6,13 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function TypesPage() {
-  const [types, setTypes] = useState<Array<{ id: number; type: string }>>([]);
+  // Updated type definition to match database schema
+  const [types, setTypes] = useState<Array<{ id_type: number; type: string }>>([]);
   const [newtype, setNewType] = useState({
     type: "",
   });
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [editingType, setEditingType] = useState(null);
+  const [editingType, setEditingType] = useState<{ id_type: number; type: string } | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
@@ -19,7 +20,7 @@ export default function TypesPage() {
       try {
         const response = await fetch("/api/types");
         if (!response.ok) {
-          throw new Error("Erreur lors de la récupérationtypes");
+          throw new Error("Erreur lors de la récupération des types");
         }
         const data = await response.json();
         setTypes(data);
@@ -57,7 +58,7 @@ export default function TypesPage() {
         type: "",
       });
       setIsPopoverOpen(false);
-      toast.success("type ajouté avec succès");
+      toast.success("Type ajouté avec succès");
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'message' in error) {
         const e = error as { message: string };
@@ -69,12 +70,14 @@ export default function TypesPage() {
     }
   };
 
-  const handleEditType = (type) => {
+  const handleEditType = (type: { id_type: number; type: string }) => {
     setEditingType({ ...type });
     setIsEditModalOpen(true);
   };
 
   const handleUpdateType = async () => {
+    if (!editingType) return;
+    
     try {
       const response = await fetch("/api/types/edit", {
         method: "PATCH",
@@ -89,36 +92,36 @@ export default function TypesPage() {
       }
 
       const updatedType = await response.json();
-      if (editingType) {
-        setTypes((prevTypes) =>
-          prevTypes.map((type) =>
-            type.type === editingType.type ? { ...type, ...editingType } : type
-          )
-        );
-      }
+      setTypes((prevTypes) =>
+        prevTypes.map((type) =>
+          type.id_type === editingType.id_type ? { ...type, ...editingType } : type
+        )
+      );
 
       setIsEditModalOpen(false);
       setEditingType(null);
-      toast.success("type mis à jour avec succès");
+      toast.success("Type mis à jour avec succès");
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'message' in error) {
         const e = error as { message: string };
         console.error(e.message);
       } else {
-        console.error("Unknown error", error);
+        console.error("Erreur Inconnue", error);
       }
       toast.error("Erreur lors de la mise à jour du type");
     }
   };
 
-  const handleEditingInputChange = (field, value) => {
-    setEditingType((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleEditingInputChange = (field: string, value: string) => {
+    if (editingType) {
+      setEditingType((prev) => ({
+        ...prev!,
+        [field]: value,
+      }));
+    }
   };
 
-  const handleDeleteType = async (id) => {
+  const handleDeleteType = async (id_type: number) => {
     const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer ce type ?");
     if (!confirmDelete) return;
 
@@ -128,7 +131,7 @@ export default function TypesPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id_type }),
       });
 
       if (!response.ok) {
@@ -136,15 +139,15 @@ export default function TypesPage() {
       }
 
       setTypes((prevTypes) =>
-        prevTypes.filter((type) => type.id !== id)
+        prevTypes.filter((type) => type.id_type !== id_type)
       );
-      toast.success("type supprimé avec succès");
+      toast.success("Type supprimé avec succès");
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'message' in error) {
         const e = error as { message: string };
         console.error(e.message);
       } else {
-        console.error("Unknown error", error);
+        console.error("Erreur Inconnue", error);
       }
       toast.error("Erreur lors de la suppression du type");
     }
@@ -154,7 +157,12 @@ export default function TypesPage() {
     <div className="flex h-screen bg-gray-100">
       <ToastContainer />
       <div className="flex-1 p-8">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">Gestion des Types de Projets</h1>
+      <header className=" mb-2 flex flex-col sm:flex-row items-center justify-between p-6 bg-white shadow gap-4">
+          <div className="flex items-center w-full">
+            <div className="lg:hidden w-8" /> {/* Spacer for mobile */}
+            <h2 className="text-xl font-bold text-gray-800 ml-4">Type de Projet</h2>
+          </div>
+        </header>
         <div className="mb-6">
           <button
             onClick={() => setIsPopoverOpen(!isPopoverOpen)}
@@ -164,7 +172,7 @@ export default function TypesPage() {
           </button>
         </div>
 
-        {/* Popup pour ajouter un département */}
+        {/* Popup pour ajouter un type */}
         <AnimatePresence>
           {isPopoverOpen && (
             <motion.div
@@ -211,7 +219,7 @@ export default function TypesPage() {
           )}
         </AnimatePresence>
 
-        {/* Modal pour modifier un département */}
+        {/* Modal pour modifier un type */}
         <AnimatePresence>
           {isEditModalOpen && editingType && (
             <motion.div
@@ -263,7 +271,7 @@ export default function TypesPage() {
 
         <div className="space-y-4">
           {types.map((type) => (
-            <div key={type.id} className="flex justify-between items-center p-4 bg-white shadow rounded-lg">
+            <div key={type.id_type} className="flex justify-between items-center p-4 bg-white shadow rounded-lg">
               <span className="text-lg font-medium text-gray-800">{type.type}</span>
               <div className="space-x-4">
                 <button
@@ -273,7 +281,7 @@ export default function TypesPage() {
                   <PencilIcon className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => handleEditType(type.id)}
+                  onClick={() => handleDeleteType(type.id_type)}
                   className="text-red-600 hover:text-red-700 transition duration-300"
                 >
                   <TrashIcon className="w-5 h-5" />

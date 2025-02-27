@@ -4,16 +4,16 @@ import { NextResponse } from "next/server";
 export async function PATCH(req:Request) {
   try {
     const body = await req.json();
-    const { id, type } = body;
+    const { id_type, type } = body;
 
-    if (!id) {
+    if (!id_type) {
       return NextResponse.json({ error: "Le champ 'id' est obligatoire." }, { status: 400 });
     }
 
     const { data, error } = await supabase
       .from("typeprojet")
       .update({ type })
-      .eq("id", id);
+      .eq("id_type", id_type);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });

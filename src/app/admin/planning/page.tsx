@@ -1,20 +1,21 @@
 "use client"
 import { useState, useEffect, useMemo } from "react";
-import { format, startOfWeek, addDays, parseISO, isSameDay, isWithinInterval, isBefore, isAfter } from "date-fns";
+import { format, startOfWeek, addDays, parseISO, isSameDay, isWithinInterval, isBefore } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/SupabaseClient";
+import { data } from "framer-motion/client";
 
 interface Task {
   id_tache: number;
   libelle: string;
   niveau: number;
-  id_user: number;
-  id_projet: number;
+  nom_utilisateur: string;
+  nom_projet: string;
   echeance: number;
-  datedebut: Date;
-  status: number;
+  datedebut: string;
+  status: string;
   departement: number;
   priorite: number;
 }
@@ -54,9 +55,265 @@ interface TaskWithDates extends Task {
   endDate: Date;
 }
 
+
+const tasks: Task[] =[
+  {
+    "id_tache": 5,
+    "libelle": "Tâche 2",
+    "niveau": 2,
+    "nom_utilisateur": "Abdoul Rahim i",
+    "nom_projet": "Planning du lkkdflkj",
+    "echeance": 10,
+    "datedebut": "2025-02-07",
+    "status": "En cours",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 26,
+    "libelle": "Former les utilisateurs",
+    "niveau": 1,
+    "nom_utilisateur": "salim",
+    "nom_projet": "Planning du lkkdflkj",
+    "echeance": 3,
+    "datedebut": "2025-02-27",
+    "status": "pending",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 29,
+    "libelle": "Planifier la réunion",
+    "niveau": 1,
+    "nom_utilisateur": "Abdoul Rahim i",
+    "nom_projet": "Planning du lkkdflkj",
+    "echeance": 2,
+    "datedebut": "2025-02-15",
+    "status": "en cours",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 31,
+    "libelle": "Créer un prototype",
+    "niveau": 3,
+    "nom_utilisateur": "salim",
+    "nom_projet": "CVU",
+    "echeance": 25,
+    "datedebut": "2025-03-05",
+    "status": "pending",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 34,
+    "libelle": "Tester les performances",
+    "niveau": 3,
+    "nom_utilisateur": "Abdoul Rahim i",
+    "nom_projet": "CVU",
+    "echeance": 18,
+    "datedebut": "2025-02-22",
+    "status": "pending",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 36,
+    "libelle": "Déployer le projet",
+    "niveau": 3,
+    "nom_utilisateur": "salim",
+    "nom_projet": "Planning du lkkdflkj",
+    "echeance": 11,
+    "datedebut": "2025-03-10",
+    "status": "pending",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 20,
+    "libelle": "Développer le backend",
+    "niveau": 3,
+    "nom_utilisateur": "Jane Doe we",
+    "nom_projet": "CVU",
+    "echeance": 15,
+    "datedebut": "2025-02-15",
+    "status": "in_progress",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 25,
+    "libelle": "Mettre en place l'API",
+    "niveau": 3,
+    "nom_utilisateur": "Jane Doe we",
+    "nom_projet": "CVU",
+    "echeance": 14,
+    "datedebut": "2025-02-12",
+    "status": "done",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 41,
+    "libelle": "changer la couleur de l'interface",
+    "niveau": 1,
+    "nom_utilisateur": "Jane wick",
+    "nom_projet": "Killing Gane",
+    "echeance": 18,
+    "datedebut": "2025-02-13",
+    "status": "done",
+    "departement": 4,
+    "priorite": 1
+  },
+  {
+    "id_tache": 42,
+    "libelle": "changer la couleur de la charte de la plateforme",
+    "niveau": 1,
+    "nom_utilisateur": "Jane Doe we",
+    "nom_projet": "Killing Gane",
+    "echeance": 20,
+    "datedebut": "2025-02-22",
+    "status": "in progress",
+    "departement": 1,
+    "priorite": 1
+  },
+  {
+    "id_tache": 44,
+    "libelle": "Créer la maquette",
+    "niveau": 3,
+    "nom_utilisateur": "Abdoul Rahim i",
+    "nom_projet": "CVU",
+    "echeance": 1675036800,
+    "datedebut": "2025-02-20",
+    "status": "en cours",
+    "departement": 5,
+    "priorite": 2
+  },
+  {
+    "id_tache": 45,
+    "libelle": "modification des pages",
+    "niveau": 1,
+    "nom_utilisateur": "KOUNOU Gilbert",
+    "nom_projet": "Killing Gane",
+    "echeance": 12,
+    "datedebut": "2025-02-14",
+    "status": "done",
+    "departement": 1,
+    "priorite": 1
+  },
+  {
+    "id_tache": 22,
+    "libelle": "Créer l'interface utilisateur",
+    "niveau": 2,
+    "nom_utilisateur": "KOUNOU Gilbert",
+    "nom_projet": "CVU",
+    "echeance": 20,
+    "datedebut": "2025-03-01",
+    "status": "done",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 48,
+    "libelle": "configuerer le serveur",
+    "niveau": 2,
+    "nom_utilisateur": "KOUNOU Gilbert",
+    "nom_projet": "Uber eat",
+    "echeance": 2,
+    "datedebut": "2025-02-25",
+    "status": "done",
+    "departement": 1,
+    "priorite": 1
+  },
+  {
+    "id_tache": 49,
+    "libelle": "activer le certificat SSL",
+    "niveau": 1,
+    "nom_utilisateur": "KOUNOU Gilbert",
+    "nom_projet": "Uber eat",
+    "echeance": 1,
+    "datedebut": "2025-02-26",
+    "status": "done",
+    "departement": 1,
+    "priorite": 1
+  },
+  {
+    "id_tache": 50,
+    "libelle": "mmmmmmmmmmmmmmm",
+    "niveau": 1,
+    "nom_utilisateur": "KOUNOU Gilbert",
+    "nom_projet": "vlopdfmvoipdc",
+    "echeance": 1,
+    "datedebut": "2025-02-28",
+    "status": "pending",
+    "departement": 1,
+    "priorite": 2
+  },
+  {
+    "id_tache": 46,
+    "libelle": "faire un push",
+    "niveau": 2,
+    "nom_utilisateur": "KOUNOU Gilbert",
+    "nom_projet": "Uber eat",
+    "echeance": 1,
+    "datedebut": "2025-02-14",
+    "status": "done",
+    "departement": 1,
+    "priorite": 2
+  },
+  {
+    "id_tache": 40,
+    "libelle": "creer un nouveau endpoint",
+    "niveau": 1,
+    "nom_utilisateur": "KOUNOU Gilbert",
+    "nom_projet": "Killing Gane",
+    "echeance": 4,
+    "datedebut": "2025-02-18",
+    "status": "done",
+    "departement": 1,
+    "priorite": 2
+  },
+  {
+    "id_tache": 43,
+    "libelle": "creer une nouvelle API",
+    "niveau": 1,
+    "nom_utilisateur": "KOUNOU Gilbert",
+    "nom_projet": "Uber eat",
+    "echeance": 12,
+    "datedebut": "2025-02-19",
+    "status": "done",
+    "departement": 1,
+    "priorite": 1
+  },
+  {
+    "id_tache": 39,
+    "libelle": "creer une nouvelle api",
+    "niveau": 2,
+    "nom_utilisateur": "KOUNOU Gilbert",
+    "nom_projet": "Killing Gane",
+    "echeance": 14,
+    "datedebut": "2025-02-06",
+    "status": "done",
+    "departement": 1,
+    "priorite": 2
+  },
+  {
+    "id_tache": 37,
+    "libelle": "Collecter les retours",
+    "niveau": 1,
+    "nom_utilisateur": "KOUNOU Gilbert",
+    "nom_projet": "CVU",
+    "echeance": 7,
+    "datedebut": "2025-03-12",
+    "status": "done",
+    "departement": 5,
+    "priorite": 1
+  }
+]
+
 export default function Calendar() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
-  const [tasks, setTasks] = useState<Task[]>([]);
+  // const [tasks, setTasks] = useState<Task[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -117,26 +374,20 @@ export default function Calendar() {
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-    fetchProjects();
-    fetchDepartments();
-  }, []);
-
   const fetchData = async () => {
     try {
       setIsLoading(true);
 
       // Appel de la fonction PostgreSQL via Supabase
       const { data, error } = await supabase
-        .rpc('get_tasks_with_names');
+        .rpc('get_taches_with_names');
 
       if (error) {
         throw error;
       }
 
       // Mettre à jour l'état des tâches
-      setTasks(data || []);
+      // setTasks(data || []);
       console.log(data);
 
     } catch (error) {
@@ -148,55 +399,13 @@ export default function Calendar() {
     }
   };
 
-useEffect(() => {
-  fetchData();
-}, []);
-
-  // const fetchUser = async (id_user: number) => {
-  //   try {
-  //     const response = await fetch("/api/users/byid", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ id_user }),
-  //     });
-  //     const result = await response.json();
-  //     if (response.ok) {
-  //       return result.user;
-  //     } else {
-  //       console.error(`Erreur pour id_user ${id_user}:`, result.message);
-  //       return { id_user, nom_complet: "Utilisateur inconnu" };
-  //     }
-  //   } catch (error) {
-  //     console.error(`Erreur réseau pour id_user ${id_user}:`, error);
-  //     return { id_user, nom_complet: "Erreur réseau" };
-  //   }
-  // };
-
-  // const fetchUsersForTasks = async (tasks: Task[]) => {
-  //   const uniqueIds = [...new Set(tasks.map((task) => task.id_user).filter(Boolean))];
-  //   const usersData = await Promise.all(uniqueIds.map((id) => fetchUser(id as number)));
-  //   return usersData;
-  // };
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       setIsLoading(true);
-  //       const tasksResponse = await fetch("/api/tache");
-  //       const tasksResult = await tasksResponse.json();
-  //       if (tasksResult.data) setTasks(tasksResult.data);
-  //       const usersData = await fetchUsersForTasks(tasksResult.data || []);
-  //       setUsers(usersData);
-  //     } catch (error) {
-  //       setError("Erreur lors de la récupération des données.");
-  //       toast.error("Erreur lors de la récupération des données.");
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  // //   };
-
-  //   fetchData();
-  // }, []);
+  useEffect(() => {
+    fetchUsers();
+    fetchProjects();
+    fetchDepartments();
+    fetchData();
+    // console.log(data);
+  }, []);
 
   const processedTasks = useMemo(() => {
     return tasks.map(task => {
@@ -391,8 +600,8 @@ useEffect(() => {
                 className={`w-2 h-2 rounded-full ${getStatusColor(task.status)}`}
                 />
               </div>
-              <span className="text-xs text-gray-500 block mt-1">nom: {task.id_user}
-              </span>
+              {/* <span className="text-xs text-gray-500 block mt-1">nom: {task.id_user}
+              </span> */}
               {task.departement && (
                 <span className="text-xs text-gray-500 block"> departement: {task.departement}
                 </span>
@@ -455,7 +664,7 @@ useEffect(() => {
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Projet
         </label>
-        <select
+        {/* <select
           value={newTask.id_projet}
           onChange={(e) => setNewTask({ ...newTask, id_projet: Number(e.target.value) })}
           className="w-full p-2 border rounded-lg"
@@ -465,7 +674,7 @@ useEffect(() => {
         {projects && projects.map((pro)=>
            <option value={pro.id_projet}>{pro.project_name}</option>)
            }
-        </select>
+        </select> */}
         </div>
         <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -495,7 +704,7 @@ useEffect(() => {
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Departement
         </label>
-        <select
+        {/* <select
           value={newTask.departement}
           onChange={(e) => setNewTask({ ...newTask, departement: Number(e.target.value) })}
           className="w-full p-2 border rounded-lg"
@@ -505,7 +714,7 @@ useEffect(() => {
         {departments && departments.map((dep)=>
            <option value={dep.id}>{dep.titre}</option>)
            }
-        </select>
+        </select> */}
         </div>
         <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
