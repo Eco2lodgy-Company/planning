@@ -16,6 +16,9 @@ export default function PermissionPage() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [isRejectFormOpen, setIsRejectFormOpen] = useState(false); // État pour gérer l'affichage du formulaire de refus
+  const [rejectPermissionId, setRejectPermissionId] = useState(null); // État pour stocker l'ID de la permission à refuser
+  const [rejectMotif, setRejectMotif] = useState(''); // État pour stocker le motif du refus
   const router = useRouter();
   const [newPermission, setNewPermission] = useState({
     motif: '',
@@ -186,7 +189,7 @@ export default function PermissionPage() {
       },
   }).then(() => {
       toast.success("permission Accordé !");
-      fetchTasks();
+      fetchLeaves();
   
   }).catch(err => console.error("Error updating task:", err));
   } 
@@ -322,13 +325,16 @@ export default function PermissionPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleAcceptPermission(permission.id_p)}
+                              onClick={() => handleAcceptPermission(permission.id_user)}
                               className="text-green-500 hover:text-green-700"
                             >
                               <Check className="w-5 h-5" />
                             </button>
                             <button
-                              onClick={() => handleRejectPermission(permission.id_user)}
+                              onClick={() => {
+                                setRejectPermissionId(permission.id_user); // Stocker l'ID de la permission à refuser
+                                setIsRejectFormOpen(true); // Ouvrir le formulaire de refus
+                              }}
                               className="text-red-500 hover:text-red-700"
                             >
                               <XCircle className="w-5 h-5" />
@@ -353,6 +359,57 @@ export default function PermissionPage() {
         </div>
       </div>
 
+      {/* Formulaire de refus */}
+      <AnimatePresence>
+        {isRejectFormOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="bg-white rounded-lg p-6 w-full max-w-md"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Motif du refus</h3>
+                <button
+                  onClick={() => {
+                    setIsRejectFormOpen(false); // Fermer le formulaire
+                    setRejectMotif(''); // Réinitialiser le champ motif
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Motif</label>
+                  <textarea
+                    value={rejectMotif}
+                    onChange={(e) => setRejectMotif(e.target.value)}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    rows="3"
+                    placeholder="Saisissez le motif du refus"
+                  />
+                </div>
+                <button
+                  onClick={() => handleRejectPermission(rejectPermissionId)}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-sm transition-colors"
+                >
+                  Confirmer le refus
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Popup de demande de permission (existant) */}
       <AnimatePresence>
         {isPopupOpen && (
           <motion.div
