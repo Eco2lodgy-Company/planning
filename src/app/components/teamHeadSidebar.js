@@ -1,9 +1,10 @@
 "use client";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname,useRouter } from "next/navigation";
 import { 
-  Home, Calendar, FolderKanban, CheckCircle, Users, Shield, ClipboardMinus, Timer, User, AlarmClock 
+  Home, Calendar, FolderKanban,LogOut, CheckCircle, Users, Shield, ClipboardMinus, Timer, User, AlarmClock 
 } from "lucide-react";
 
 const navigationItems = [
@@ -21,6 +22,28 @@ const navigationItems = [
 
 export default function RespSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+
+  const handleLogout = () => {
+    
+
+    localStorage.removeItem('userId');
+    window.location.href = '/login';
+    toast.success('Déconnexion réussie\nÀ bientôt !');
+    
+
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const userId = localStorage.getItem("userId");
+
+      if (!userId) {
+        router.push("/login");
+      }
+    }
+  }, [router]);
 
   return (
     <motion.aside
@@ -45,9 +68,19 @@ export default function RespSidebar() {
             >
               <Icon aria-hidden="true" /> {item.name}
             </Link>
+            
           );
         })}
       </nav>
+      {/* Bouton de déconnexion ergonomique */}
+      <div className="border-t border-gray-700 mt-4 pt-4">
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 py-3 px-4 rounded-lg bg-red-600 hover:bg-red-700 transition text-white w-full"
+        >
+          <LogOut aria-hidden="true" /> Déconnexion
+        </button>
+      </div>
     </motion.aside>
   );
 }
