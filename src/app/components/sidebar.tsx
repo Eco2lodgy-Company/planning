@@ -1,9 +1,22 @@
 "use client";
 import { AnimatePresence, motion } from "framer-motion";
-import { Calendar, Home, Menu, Settings, Users, X, Sun, Moon, NotebookText,SquareActivity , Clipboard, Archive, FileText, FolderKanban } from "lucide-react";
+import { Calendar, Home, Menu, Settings, Users, X, Sun, Moon, NotebookText,SquareActivity , Clipboard, Archive, FileText, FolderKanban, LogOut } from "lucide-react";
+import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
+
 export default function SIDEBAR() {
+  const handleLogout = async () => {
+    const response = await fetch('/api/logout', { method: 'POST' });
+    if (response.ok) {
+      // Supprimez les données de session ou utilisateur localement
+      localStorage.removeItem('user');
+      // Redirection vers la page de connexion
+      window.location.href = '/login';
+    } else {
+      console.error('Erreur lors de la déconnexion');
+    }
+  };
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isClient, setIsClient] = useState(false); // Track if component is mounted on the client
@@ -21,6 +34,8 @@ export default function SIDEBAR() {
       document.documentElement.classList.remove("dark");
     }
   }, [isDarkMode]);
+
+ 
 
   return (
     <div>
@@ -128,6 +143,15 @@ export default function SIDEBAR() {
                     className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
                   >
                     <Settings /> Paramètres
+                  </a>
+                </li>
+                <li>
+                  <a
+                  onClick={handleLogout}
+                    href="/login"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
+                  >
+                    <LogOut  /> Se Deconnecter
                   </a>
                 </li>
               </ul>
