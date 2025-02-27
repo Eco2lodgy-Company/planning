@@ -1,0 +1,618 @@
+"use client"
+import { useState, useEffect, useMemo, StrictMode } from "react";
+import { format, startOfWeek, addDays, parseISO, isSameDay, isWithinInterval, isBefore } from "date-fns";
+import { fr } from "date-fns/locale";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
+import { ToastContainer } from "react-toastify";
+
+interface Task {
+  id_tache: number;
+  libelle: string;
+  niveau: number;
+  id_user: number | null;
+  id_projet: number | null;
+  echeance: number;
+  datedebut: string;
+  status: string;
+  departement: number | null;
+  priorite: number;
+}
+
+interface User {
+  id_user: number;
+  nom_complet: string;
+}
+
+interface Project {
+  id_projet: number;
+  project_name: string;
+}
+
+interface Department {
+  id: number;
+  titre: string;
+}
+
+interface TaskWithDates extends Task {
+  endDate: Date;
+}
+
+const getDifficultyLabel = (niveau: number): string => {
+  switch (niveau) {
+    case 1:
+      return "Facile";
+    case 2:
+      return "Moyen";
+    case 3:
+      return "Difficile";
+    default:
+      return "Inconnu";
+  }
+};
+
+const getPriorityLabel = (priorite: number): string => {
+  switch (priorite) {
+    case 1:
+      return "Basse";
+    case 2:
+      return "Moyenne";
+    case 3:
+      return "Élevée";
+    default:
+      return "Inconnue";
+  }
+};
+
+export default function Calendar() {
+  const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [newTask, setNewTask] = useState({
+    libelle: "",
+    niveau: 1,
+    id_projet: 0,
+    echeance: 1,
+    datedebut: "",
+    status: "pending",
+    departement: 0,
+    priorite: 1,
+    id_user: 0,
+  });
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch("/api/users");
+      const result = await response.json();
+      if (response.ok) {
+        setUsers(result);
+      } else {
+        console.error("Erreur lors de la récupération des utilisateurs:", result.message);
+      }
+    } catch (error) {
+      console.error("Erreur réseau lors de la récupération des utilisateurs:", error);
+    }
+  };
+
+  const fetchProjects = async () => {
+    try {
+      const response = await fetch("/api/projects");
+      const result = await response.json();
+      if (response.ok) {
+        setProjects(result.data);
+      } else {
+        console.error("Erreur lors de la récupération des projets:", result.message);
+      }
+    } catch (error) {
+      console.error("Erreur réseau lors de la récupération des projets:", error);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await fetch("/api/departement");
+      const result = await response.json();
+      if (response.ok) {
+        setDepartments(result);
+      } else {
+        console.error("Erreur lors de la récupération des départements:", result.message);
+      }
+    } catch (error) {
+      console.error("Erreur réseau lors de la récupération des départements:", error);
+    }
+  };
+
+  const fetchTasks = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/tache");
+      const result = await response.json();
+      console.log("API Response:", result);
+      
+      if (response.ok) {
+        // Corrigé pour utiliser correctement result.data
+        setTasks(Array.isArray(result.data) ? result.data : []);
+      } else {
+        setError("Erreur lors de la récupération des tâches.");
+        toast.error("Erreur lors de la récupération des tâches.");
+      }
+    } catch (error) {
+      setError("Erreur lors de la récupération des données.");
+      toast.error("Erreur lors de la récupération des données.");
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+    fetchProjects();
+    fetchDepartments();
+    fetchTasks();
+  }, []);
+
+  // Filtrage des tâches par utilisateur sélectionné
+  const filteredTasks = useMemo(() => {
+    if (selectedUserId === null) {
+      return tasks;
+    }
+    return tasks.filter(task => task.id_user === selectedUserId);
+  }, [tasks, selectedUserId]);
+
+  const processedTasks = useMemo(() => {
+    console.log("Processing tasks:", filteredTasks);
+    return Array.isArray(filteredTasks) ? filteredTasks.map(task => {
+      try {
+        const startDate = parseISO(task.datedebut);
+        let remainingDays = task.echeance;
+        let currentDate = startDate;
+        let endDate = startDate;
+        
+        while (remainingDays > 0) {
+          const dayOfWeek = currentDate.getDay();
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Skip weekends
+            remainingDays--;
+            endDate = currentDate;
+          }
+          currentDate = addDays(currentDate, 1);
+        }
+        
+        return {
+          ...task,
+          endDate,
+        };
+      } catch (error) {
+        console.error("Error processing task date:", task.datedebut, error);
+        // Retourner une tâche avec une date de fin par défaut pour éviter les erreurs
+        return {
+          ...task,
+          endDate: new Date(),
+        };
+      }
+    }) : [];
+  }, [filteredTasks]);
+
+  const getWeekDays = () => {
+    const start = startOfWeek(currentWeek, { weekStartsOn: 1 });
+    return Array.from({ length: 5 }).map((_, i) => addDays(start, i));
+  };
+
+  const getRemainingDays = (task: TaskWithDates, currentDate: Date) => {
+    try {
+      const startDate = parseISO(task.datedebut);
+      let remainingDays = task.echeance;
+      let tempDate = startDate;
+      
+      while (isBefore(tempDate, currentDate)) {
+        const dayOfWeek = tempDate.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+          remainingDays--;
+        }
+        tempDate = addDays(tempDate, 1);
+      }
+      
+      return remainingDays;
+    } catch (error) {
+      console.error("Error calculating remaining days:", error);
+      return 0;
+    }
+  };
+
+  const getTasksForDay = (date: Date) => {
+    return processedTasks.filter(task => {
+      try {
+        const startDate = parseISO(task.datedebut);
+        return isWithinInterval(date, { start: startDate, end: task.endDate }) ||
+               isSameDay(date, startDate) ||
+               isSameDay(date, task.endDate);
+      } catch (error) {
+        console.error("Error checking task for day:", error);
+        return false;
+      }
+    });
+  };
+
+  const getPriorityColor = (niveau: number) => {
+    switch (niveau) {
+      case 3:
+        return "bg-red-100 border-red-200";
+      case 2:
+        return "bg-orange-100 border-orange-200";
+      default:
+        return "bg-green-100 border-green-200";
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    const lowerStatus = status.toLowerCase();
+    switch (lowerStatus) {
+      case "done":
+        return "bg-green-500";
+      case "in_progress":
+      case "en cours":
+        return "bg-blue-500";
+      default:
+        return "bg-yellow-500";
+    }
+  };
+
+  // Fonctions pour récupérer les noms au lieu des IDs
+  const getUserName = (userId: number | null) => {
+    if (!userId) return "Non assigné";
+    const user = users.find(user => user.id_user === userId);
+    return user ? user.nom_complet : "Utilisateur inconnu";
+  };
+
+  const getProjectName = (projectId: number | null) => {
+    if (!projectId) return "Sans projet";
+    const project = projects.find(project => project.id_projet === projectId);
+    return project ? project.project_name : "Projet inconnu";
+  };
+
+  const getDepartmentName = (departmentId: number | null) => {
+    if (!departmentId) return "Sans département";
+    const department = departments.find(dept => dept.id === departmentId);
+    return department ? department.titre : "Département inconnu";
+  };
+
+  const handleAddTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    try {
+      const response = await fetch("/api/tache/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newTask),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Erreur lors de l'ajout de la tâche");
+      }
+  
+      toast.success("Tâche ajoutée avec succès");
+      setIsAddTaskModalOpen(false);
+      fetchTasks(); // Re-fetch tasks to update the list
+  
+      // Réinitialiser le formulaire
+      setNewTask({
+        libelle: "",
+        niveau: 1,
+        id_projet: 0,
+        echeance: 1,
+        datedebut: "",
+        status: "pending",
+        departement: 0,
+        priorite: 1,
+        id_user: 0,
+      });
+    } catch (error) {
+      toast.error("Erreur lors de l'ajout de la tâche");
+    }
+  };
+
+  const handleUserFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setSelectedUserId(value === "" ? null : Number(value));
+  };
+
+  return (
+    <StrictMode>
+    <div className="flex flex-col h-screen bg-gray-50">
+       <ToastContainer />
+      <header className="bg-white shadow-sm px-6 py-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">Calendrier des Tâches</h1>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setCurrentWeek((prev) => addDays(prev, -7))}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <span className="font-medium">
+              Semaine du {format(getWeekDays()[0], "d MMMM yyyy", { locale: fr })}
+            </span>
+            <button
+              onClick={() => setCurrentWeek((prev) => addDays(prev, 7))}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </header>
+      <div className="p-6 flex flex-wrap items-center gap-4">
+        <button
+          onClick={() => setIsAddTaskModalOpen(true)}
+          className="p-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition duration-300"
+        >
+          Ajouter une tâche
+        </button>
+        
+        {/* Filtre d'utilisateur */}
+        <div className="flex items-center">
+          <label htmlFor="userFilter" className="mr-2 text-gray-700 font-medium">
+            Filtrer par utilisateur:
+          </label>
+          <select
+            id="userFilter"
+            value={selectedUserId === null ? "" : selectedUserId}
+            onChange={handleUserFilterChange}
+            className="p-2 border rounded-lg min-w-[200px]"
+          >
+            {/* <option value="">Tous les utilisateurs</option> */}
+            {users.map((user) => (
+              <option key={user.id_user} value={user.id_user}>
+                {user.nom_complet}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        {/* Affichage du nombre de tâches filtrées */}
+        <div className="ml-4 text-gray-600">
+          {processedTasks.length} tâche{processedTasks.length !== 1 ? 's' : ''} affichée{processedTasks.length !== 1 ? 's' : ''}
+        </div>
+      </div>
+      <div className="flex-1 overflow-auto px-6 pb-6">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        ) : error ? (
+          <div className="flex justify-center items-center h-full">
+            <p className="text-red-500">{error}</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow">
+            <div className="grid grid-cols-5 border-b">
+              {getWeekDays().map((day) => (
+                <div
+                  key={day.toString()}
+                  className="p-4 font-medium text-gray-500 text-center border-r"
+                >
+                  {format(day, "EEEE d/MM", { locale: fr })}
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-5">
+              {getWeekDays().map((day) => {
+                const dayTasks = getTasksForDay(day);
+                return (
+                  <div key={day.toString()} className="p-2 border-r min-h-[120px] relative">
+                    <div className="space-y-2">
+                      {dayTasks.length === 0 ? (
+                        <div className="text-gray-400 text-sm italic text-center mt-4">
+                          Aucune tâche
+                        </div>
+                      ) : (
+                        dayTasks.map((task) => {
+                          try {
+                            const remainingDays = getRemainingDays(task, day);
+                            if (remainingDays <= 0) return null;
+
+                            return (
+                              <div
+                                key={task.id_tache}
+                                className={`p-2 rounded border ${getPriorityColor(task.niveau)}`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium">{task.libelle}</span>
+                                  <span
+                                    className={`w-2 h-2 rounded-full ${getStatusColor(task.status)}`}
+                                  />
+                                </div>
+                                <span className="text-xs text-gray-500 block mt-1">
+                                  Assigné à: {getUserName(task.id_user)}
+                                </span>
+                                <span className="text-xs text-gray-500 block">
+                                  Projet: {getProjectName(task.id_projet)}
+                                </span>
+                                <span className="text-xs text-gray-500 block">
+                                  Département: {getDepartmentName(task.departement)}
+                                </span>
+                                <span className="text-xs text-gray-500 block">
+                                  Difficulté: {getDifficultyLabel(task.niveau)}
+                                </span>
+                                <span className="text-xs text-gray-500 block">
+                                  Priorité: {getPriorityLabel(task.priorite)}
+                                </span>
+                                <span className="text-xs text-gray-500 block">
+                                  {remainingDays} jour{remainingDays > 1 ? 's' : ''} restant{remainingDays > 1 ? 's' : ''}
+                                </span>
+                              </div>
+                            );
+                          } catch (error) {
+                            console.error("Error rendering task:", error);
+                            return null;
+                          }
+                        })
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+      {isAddTaskModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white shadow-2xl p-8 rounded-lg w-2/3 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">Ajouter une tâche</h2>
+            <form onSubmit={handleAddTask}>
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Libellé
+                  </label>
+                  <input
+                    type="text"
+                    value={newTask.libelle}
+                    onChange={(e) => setNewTask({ ...newTask, libelle: e.target.value })}
+                    className="w-full p-2 border rounded-lg"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Niveau
+                  </label>
+                  <select
+                    value={newTask.niveau}
+                    onChange={(e) => setNewTask({ ...newTask, niveau: Number(e.target.value) })}
+                    className="w-full p-2 border rounded-lg"
+                    required
+                  >
+                    <option value={1}>Facile</option>
+                    <option value={2}>Moyen</option>
+                    <option value={3}>Difficile</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Projet
+                  </label>
+                  <select
+                    value={newTask.id_projet}
+                    onChange={(e) => setNewTask({ ...newTask, id_projet: Number(e.target.value) })}
+                    className="w-full p-2 border rounded-lg"
+                    required
+                  >
+                    <option value={0}>Choisissez le projet</option>
+                    {projects.map((project) => (
+                      <option key={project.id_projet} value={project.id_projet}>
+                        {project.project_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Échéance (jours)
+                  </label>
+                  <input
+                    type="number"
+                    value={newTask.echeance}
+                    onChange={(e) => setNewTask({ ...newTask, echeance: Number(e.target.value) })}
+                    className="w-full p-2 border rounded-lg"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Date de début
+                  </label>
+                  <input
+                    type="date"
+                    value={newTask.datedebut}
+                    onChange={(e) => setNewTask({ ...newTask, datedebut: e.target.value })}
+                    className="w-full p-2 border rounded-lg"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Departement
+                  </label>
+                  <select
+                    value={newTask.departement}
+                    onChange={(e) => setNewTask({ ...newTask, departement: Number(e.target.value) })}
+                    className="w-full p-2 border rounded-lg"
+                    required
+                  >
+                    <option value={0}>Choisissez le département</option>
+                    {departments.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.titre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Priorité
+                  </label>
+                  <select
+                    value={newTask.priorite}
+                    onChange={(e) => setNewTask({ ...newTask, priorite: Number(e.target.value) })}
+                    className="w-full p-2 border rounded-lg"
+                    required
+                  >
+                    <option value={1}>Basse</option>
+                    <option value={2}>Moyenne</option>
+                    <option value={3}>Élevée</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Utilisateur
+                  </label>
+                  <select
+                    value={newTask.id_user}
+                    onChange={(e) => setNewTask({ ...newTask, id_user: Number(e.target.value) })}
+                    className="w-full p-2 border rounded-lg"
+                    required
+                  >
+                    <option value={0}>Sélectionnez un utilisateur</option>
+                    {users && users.map((user) => (
+                      <option key={user.id_user} value={user.id_user}>
+                        {user.nom_complet}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setIsAddTaskModalOpen(false)}
+                  className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-300"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
+                >
+                  Ajouter
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+    </StrictMode>
+  );
+}
