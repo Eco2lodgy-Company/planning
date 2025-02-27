@@ -128,12 +128,25 @@ export default function WeeklyReports() {
 
 
   const exportToCSV = () => {
+    if (filteredReports.length === 0) {
+      toast.error("Aucun rapport à exporter.");
+      return;
+    }
+  
     const headers = ["Date", "Tâches", "Blocage", "Solution", "Temps", "Utilisateur"];
     const rows = filteredReports.map((report) => {
-      const date = format(parseISO(report.date), "yyyy-MM-dd");
+      // Vérifier que report.date est défini et valide
+      const date = report.date ? format(parseISO(report.date), "yyyy-MM-dd") : "Date inconnue";
       const temps = report.temps ? "Matin" : "Soir";
       const utilisateur = getUserName(report.userId);
-      return [date, report.taches, report.blockage, report.solution, temps, utilisateur];
+      return [
+        date,
+        report.taches || "N/A", // Gérer les tâches manquantes
+        report.blockage || "N/A", // Gérer les blocages manquants
+        report.solution || "N/A", // Gérer les solutions manquantes
+        temps,
+        utilisateur,
+      ];
     });
   
     const csvContent = [
@@ -146,6 +159,11 @@ export default function WeeklyReports() {
   };
 
   const exportToPDF = () => {
+    if (filteredReports.length === 0) {
+      toast.error("Aucun rapport à exporter.");
+      return;
+    }
+  
     const doc = new jsPDF();
   
     doc.setFontSize(18);
@@ -153,7 +171,8 @@ export default function WeeklyReports() {
   
     let y = 20;
     filteredReports.forEach((report) => {
-      const date = format(parseISO(report.date), "yyyy-MM-dd");
+      // Vérifier que report.date est défini et valide
+      const date = report.date ? format(parseISO(report.date), "yyyy-MM-dd") : "Date inconnue";
       const temps = report.temps ? "Matin" : "Soir";
       const utilisateur = getUserName(report.userId);
   
@@ -161,7 +180,7 @@ export default function WeeklyReports() {
       doc.text(`Date: ${date}`, 10, y);
       doc.text(`Temps: ${temps}`, 10, y + 10);
       doc.text(`Utilisateur: ${utilisateur}`, 10, y + 20);
-      doc.text(`Tâches: ${report.taches}`, 10, y + 30);
+      doc.text(`Tâches: ${report.taches || "N/A"}`, 10, y + 30); // Gérer les tâches manquantes
       if (report.blockage) {
         doc.text(`Blocage: ${report.blockage}`, 10, y + 40);
       }
@@ -173,7 +192,6 @@ export default function WeeklyReports() {
   
     doc.save(`rapports_${format(currentWeek, "yyyy-MM-dd")}.pdf`);
   };
-  
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
