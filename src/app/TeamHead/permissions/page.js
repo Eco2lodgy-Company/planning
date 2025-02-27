@@ -197,6 +197,7 @@ export default function PermissionPage() {
 
   //Appel API pour metttre à jour la permission comme acceptée
   const handleRejectPermission = async (permissionId) => {
+    toast.warning(permissionId);
     if (!rejectMotif) {
       toast.error('Veuillez saisir un motif de refus');
       return;
@@ -365,7 +366,7 @@ export default function PermissionPage() {
                             </button>
                             <button
                               onClick={() => {
-                                setRejectPermissionId(permission.id_user); // Stocker l'ID de la permission à refuser
+                                setRejectPermissionId(permission.id_p); // Stocker l'ID de la permission à refuser
                                 setIsRejectFormOpen(true); // Ouvrir le formulaire de refus
                               }}
                               className="text-red-500 hover:text-red-700"

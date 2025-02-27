@@ -4,14 +4,14 @@ import { supabase } from "@/lib/SupabaseClient";
 
 export async function PUT(req, { params }) {
     try {
-        const { leaveId } = params;
+        const { taskId } = params;
         const { status,rejectMotif } = await req.json();
 
-        if (!leaveId || !status) {
+        if (!taskId || !status ||!rejectMotif) {
             return NextResponse.json({ error: "Données invalides" }, { status: 400 });
         }
 
-        console.log("leaveId",leaveId);
+        console.log("taskId",taskId);
         console.log("status",status);
         console.log("rejectMotif",rejectMotif);
 
@@ -19,11 +19,12 @@ export async function PUT(req, { params }) {
         const { data, error } = await supabase
             .from("permissions") // Remplace par le nom de ta table
             .update({ status:status,motif_rejet:rejectMotif })
-            .eq("id_p", leaveId)
+            .eq("id_p", taskId)
             .select(); // Récupère la ligne mise à jour
 
         if (error) {
             throw new Error(error.message);
+            //console.log(error.message);
         }
 
         return NextResponse.json({ message: "permission mise à jour", task: data[0] });
