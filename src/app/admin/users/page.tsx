@@ -185,7 +185,7 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100" style={{color: 'black'}}>
       <ToastContainer />
       <div className="flex-1 p-8">
       <header className=" mb-2 flex flex-col sm:flex-row items-center justify-between p-6 bg-white shadow gap-4">
