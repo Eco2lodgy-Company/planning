@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 
 
-import { Plus, Calendar, Clock, FileText, X, Loader2, Filter, Search, ChevronDown } from 'lucide-react';
+import { Plus, Calendar, Clock, FileText, X,Check,XCircle, Loader2, Filter, Search, ChevronDown } from 'lucide-react';
 import { format, differenceInDays, isAfter, isBefore, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -16,6 +16,9 @@ export default function PermissionPage() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [isRejectFormOpen, setIsRejectFormOpen] = useState(false); // État pour gérer l'affichage du formulaire de refus
+  const [rejectPermissionId, setRejectPermissionId] = useState(null); // État pour stocker l'ID de la permission à refuser
+  const [rejectMotif, setRejectMotif] = useState(''); // État pour stocker le motif du refus
   const router = useRouter();
   const [newPermission, setNewPermission] = useState({
     motif: '',
@@ -174,6 +177,58 @@ export default function PermissionPage() {
     }
   };
 
+
+  //Appel API pour metttre à jour la permission comme acceptée
+  const handleAcceptPermission = async (permissionId) => {
+
+    fetch(`/api/headside/permissions/update/accorded/${permissionId}`, {
+      method: "PUT",
+      body: JSON.stringify({ status: "Accordé" }),
+      headers: {
+          "Content-Type": "application/json",
+      },
+  }).then(() => {
+      toast.success("permission Accordé !");
+      fetchLeaves();
+  
+  }).catch(err => console.error("Error updating task:", err));
+  } 
+
+
+  //Appel API pour metttre à jour la permission comme acceptée
+  const handleRejectPermission = async (permissionId) => {
+    toast.warning(permissionId);
+    if (!rejectMotif) {
+      toast.error('Veuillez saisir un motif de refus');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/headside/permissions/update/rejected/${permissionId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'Refusé', // Mettre à jour le statut
+          rejectMotif: rejectMotif, // Ajouter le motif du refus
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Erreur lors du refus de la permission');
+      }
+  
+      toast.success('Permission refusée avec succès');
+      setIsRejectFormOpen(false); // Fermer le formulaire de refus
+      setRejectMotif(''); // Réinitialiser le champ motif
+      fetchLeaves(); // Rafraîchir la liste des permissions
+    } catch (error) {
+      toast.error(error.message);
+    }
+  } 
+
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'En attente':
@@ -266,6 +321,7 @@ export default function PermissionPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Période</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durée</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -300,6 +356,25 @@ export default function PermissionPage() {
                             {permission.status}
                           </span>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleAcceptPermission(permission.id_p)}
+                              className="text-green-500 hover:text-green-700"
+                            >
+                              <Check className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                setRejectPermissionId(permission.id_p); // Stocker l'ID de la permission à refuser
+                                setIsRejectFormOpen(true); // Ouvrir le formulaire de refus
+                              }}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <XCircle className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </td>
                       </motion.tr>
                     );
                   })}
@@ -318,6 +393,57 @@ export default function PermissionPage() {
         </div>
       </div>
 
+      {/* Formulaire de refus */}
+      <AnimatePresence>
+        {isRejectFormOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="bg-white rounded-lg p-6 w-full max-w-md"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Motif du refus</h3>
+                <button
+                  onClick={() => {
+                    setIsRejectFormOpen(false); // Fermer le formulaire
+                    setRejectMotif(''); // Réinitialiser le champ motif
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Motif</label>
+                  <textarea
+                    value={rejectMotif}
+                    onChange={(e) => setRejectMotif(e.target.value)}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    rows="3"
+                    placeholder="Saisissez le motif du refus"
+                  />
+                </div>
+                <button
+                  onClick={() => handleRejectPermission(rejectPermissionId)}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-sm transition-colors"
+                >
+                  Confirmer le refus
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Popup de demande de permission (existant) */}
       <AnimatePresence>
         {isPopupOpen && (
           <motion.div
