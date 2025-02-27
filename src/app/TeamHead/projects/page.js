@@ -14,8 +14,7 @@ export default function ProjectsPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  //appel api pour recuperer les projets
-
+  // Appel API pour récupérer les projets
   useEffect(() => {
     const userIdd = localStorage.getItem('userId');
     const fetchProjects = async () => {
@@ -32,8 +31,7 @@ export default function ProjectsPage() {
     };
 
     fetchProjects();
-  },[]);
-
+  }, []);
 
   const handleMarkAsCompleted = async (id) => {
     const newStatus = "done"; // Valeur du nouveau statut
@@ -106,11 +104,11 @@ export default function ProjectsPage() {
                   <div className="flex flex-col">
                     <span className="font-semibold text-gray-800">{project.project_name}</span>
                     <span className={`text-sm ${project.status === 'done' ? 'text-green-500' : 'text-yellow-500'}`}>
-                      {project.status}
+                      {project.status === 'done' ? 'Terminé' : project.status}
                     </span>
                   </div>
                 </div>
-                {project.status !== 'Terminé' && (
+                {project.status !== 'done' && (
                   <motion.button
                     className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
                     onClick={() => handleMarkAsCompleted(project.id_projet)}
@@ -126,7 +124,6 @@ export default function ProjectsPage() {
         </motion.main>
       </div>
       <ToastContainer />
-
     </div>
   );
 }
