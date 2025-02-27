@@ -126,137 +126,53 @@ export default function WeeklyReports() {
     return user ? user.nom_complet : "Utilisateur inconnu";
   };
 
-  // const exportToCSV = () => {
-  //   const csvContent = "data:text/csv;charset=utf-8," 
-  //     + "ID,Tâches,Blocage,Solution,Date,Temps,Utilisateur\n" 
-  //     + filteredReports.map(report => 
-  //         `${report.id},${report.taches || "Non spécifiées"},${report.blockage || "Aucun"},` +
-  //         `${report.solution || "Aucune"},${report.date || "Non spécifiée"},` +
-  //         `${report.temps ? "Matin" : "Soir"},${getUserName(report.userId) || "Non assigné"}`
-  //       ).join("\n");
+
+  const exportToCSV = () => {
+    const headers = ["Date", "Tâches", "Blocage", "Solution", "Temps", "Utilisateur"];
+    const rows = filteredReports.map((report) => {
+      const date = format(parseISO(report.date), "yyyy-MM-dd");
+      const temps = report.temps ? "Matin" : "Soir";
+      const utilisateur = getUserName(report.userId);
+      return [date, report.taches, report.blockage, report.solution, temps, utilisateur];
+    });
   
-  //   const encodedUri = encodeURI(csvContent);
-  //   const link = document.createElement("a");
-  //   link.setAttribute("href", encodedUri);
-  //   link.setAttribute("download", "rapports.csv");
-  //   document.body.appendChild(link);
-  //   link.click();
-  // };
-//   const XLSX = require('xlsx');
-
-// const exportToCSV = () => {
-//   // Données simulées basées sur la fonction exportToCSV
-//   const filteredReports = [
-//     {
-//       id: 1,
-//       taches: "Finalisation du parcours sécurité",
-//       blockage: "Aucun",
-//       solution: "Aucune",
-//       date: "12/19/2019",
-//       temps: true,
-//       userId: 1
-//     },
-//     {
-//       id: 2,
-//       taches: "Purification des esters d'acides gras",
-//       blockage: "Pollution par la thiochimie",
-//       solution: "Date de décontamination non arrêtée",
-//       date: "12/19/2019",
-//       temps: false,
-//       userId: 1
-//     }
-//   ];
-
-//   const getUserName = () => {
-//     // Simuler une fonction pour obtenir le nom d'utilisateur
-//     return "James Thomson";
-//   };
-
-//   // Créer un nouveau classeur
-//   const workbook = XLSX.utils.book_new();
-
-//   // Créer une feuille de calcul avec les données
-//   const worksheetData = [
-//     ["Semaine du", "", "12/19/2019", "", "SUIVI HEBDOMADAIRE", "", "", "", "", "", "", "", ""],
-//     ["Agent :", "", "James Thomson", "", "", "", "", "", "", "", "", "", ""],
-//     ["HORAIRE", "", "", "", "", "", "", "", "", "", "", "", ""],
-//     ["Lundi", "", "Mardi", "", "Mercredi", "", "Jeudi", "", "Vendredi", "", "Samedi", "", "Dimanche"],
-//     ["8h-12h", "13h-17h", "9h-12h", "13h-17h", "7h-12h", "13h30-16h", "7h-12h", "13h-17h", "9h-11h30", "14h-16h", "", "", ""],
-//     ["FICHE DE TRAVAIL", "", "", "", "", "", "", "", "", "", "", "", ""],
-//     ["Titre", "", "", "Tâches", "", "", "", "", "", "", "", "", ""],
-//     ["Tâches administratives", "", "", "Finalisation du parcours sécurité", "", "", "", "", "", "", "", "", ""],
-//     ["", "", "", "Enregistrement sur la base de données ICGM", "", "", "", "", "", "", "", "", ""],
-//     ["", "", "", "Etc…", "", "", "", "", "", "", "", "", ""],
-//     ["Tâches scientifiques", "", "", "Purification des esters d'acides gras (stéarate, oléate, linoéate) par cristallisation dans un mélange eau/éthanol à doser", "", "", "", "", "", "", "", "", ""],
-//     ["", "", "", "Recherche bibliographique sur les procédés de réduction des esters en éthers, amorce de la rédaction du rapport afférent", "", "", "", "", "", "", "", "", ""],
-//     ["", "", "", "Etc…", "", "", "", "", "", "", "", "", ""],
-//     ["Tâches techniques", "", "", "Montage de la rampe à vide avec le régulateur ACOVACUUM X342F", "", "", "", "", "", "", "", "", ""],
-//     ["", "", "", "Commande de la résine Amberlite échangeuse d'ions pour future époxydation", "", "", "", "", "", "", "", "", ""],
-//     ["", "", "", "Commande et réception de la verrerie (tricols, erlens, béchers) pour phase de réduction", "", "", "", "", "", "", "", "", ""],
-//     ["", "", "", "Etc…", "", "", "", "", "", "", "", "", ""],
-//     ["Difficultés rencontrées mais résolues", "", "", "La pompe à vide primaire n'est pas assez performante", "", "", "", "", "", "", "", "", ""],
-//     ["", "", "", "Casse du robinet de la rampe => transmission au verrier pour réparation", "", "", "", "", "", "", "", "", ""],
-//     ["", "", "", "Etc…", "", "", "", "", "", "", "", "", ""],
-//     ["Points bloquants ou à résoudre", "", "", "Pollution par la thiochimie de l'espace de travail => date de décontamination non arrêtée", "", "", "", "", "", "", "", "", ""],
-//     ["", "", "", "Purification incomplète du lot SP021 : protocole à redimensionner", "", "", "", "", "", "", "", "", ""],
-//     ["", "", "", "Etc…", "", "", "", "", "", "", "", "", ""],
-//     ["Actions à court terme (- de 7 jours d'intervention)", "", "", "Vidange de la pompe à vide secondaire", "", "", "", "", "", "", "", "", ""],
-//     ["", "", "", "Finaliser le rapport 'éthérification'", "", "", "", "", "", "", "", "", ""],
-//     ["", "", "", "Etc…", "", "", "", "", "", "", "", "", ""]
-//   ];
-
-//   const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-
-//   // Ajouter la feuille de calcul au classeur
-//   XLSX.utils.book_append_sheet(workbook, worksheet, "Feuille1");
-
-//   // Écrire le fichier Excel dans un buffer
-//   const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-
-//   // Créer un Blob à partir du buffer
-//   const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-
-//   // Créer un lien de téléchargement
-//   const url = URL.createObjectURL(blob);
-//   const link = document.createElement('a');
-//   link.href = url;
-//   link.download = 'modeleFT_JamesThomson_19122019.xlsx';
-//   document.body.appendChild(link);
-//   link.click();
-
-//   // Nettoyer
-//   document.body.removeChild(link);
-//   URL.revokeObjectURL(url);
-// };
-
-// // Appeler la fonction pour tester
-// exportToCSV();
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.join(","))
+    ].join("\n");
   
-//   const exportToPDF = () => {
-//     const doc = new jsPDF();
-//     doc.text("Rapports Hebdomadaires", 10, 10);
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, `rapports_${format(currentWeek, "yyyy-MM-dd")}.csv`);
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
   
-//     let y = 20;
+    doc.setFontSize(18);
+    doc.text(`Rapports Hebdomadaires - Semaine du ${format(getWeekDays()[0], "d MMMM yyyy", { locale: fr })}`, 10, 10);
   
-//     filteredReports.forEach(report => {
-//       if (y > 280) {
-//         doc.addPage();
-//         y = 20;
-//       }
+    let y = 20;
+    filteredReports.forEach((report) => {
+      const date = format(parseISO(report.date), "yyyy-MM-dd");
+      const temps = report.temps ? "Matin" : "Soir";
+      const utilisateur = getUserName(report.userId);
   
-//       doc.text(`ID: ${report.id}`, 10, y);
-//       doc.text(`Tâches: ${report.taches || "Non spécifiées"}`, 10, y + 10);
-//       doc.text(`Blocage: ${report.blockage || "Aucun"}`, 10, y + 20);
-//       doc.text(`Solution: ${report.solution || "Aucune"}`, 10, y + 30);
-//       doc.text(`Date: ${report.date || "Non spécifiée"}`, 10, y + 40);
-//       doc.text(`Temps: ${report.temps ? "Matin" : "Soir"}`, 10, y + 50);
-//       doc.text(`Utilisateur: ${getUserName(report.userId) || "Non assigné"}`, 10, y + 60);
+      doc.setFontSize(12);
+      doc.text(`Date: ${date}`, 10, y);
+      doc.text(`Temps: ${temps}`, 10, y + 10);
+      doc.text(`Utilisateur: ${utilisateur}`, 10, y + 20);
+      doc.text(`Tâches: ${report.taches}`, 10, y + 30);
+      if (report.blockage) {
+        doc.text(`Blocage: ${report.blockage}`, 10, y + 40);
+      }
+      if (report.solution) {
+        doc.text(`Solution: ${report.solution}`, 10, y + 50);
+      }
+      y += 60;
+    });
   
-//       y += 70;
-//     });
-  
-//     doc.save("rapports.pdf");
-//   };
+    doc.save(`rapports_${format(currentWeek, "yyyy-MM-dd")}.pdf`);
+  };
   
 
   return (
@@ -300,14 +216,14 @@ export default function WeeklyReports() {
           </select>
           <div className="flex gap-3">
             <button
-              // onClick={exportToCSV}
+              onClick={exportToCSV}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
             >
               <FileDown className="w-4 h-4" />
               CSV
             </button>
             <button
-              // onClick={exportToPDF}
+              onClick={exportToPDF}
               className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm"
             >
               <Download className="w-4 h-4" />

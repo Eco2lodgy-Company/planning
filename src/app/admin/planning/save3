@@ -1,0 +1,968 @@
+"use client"
+import { useState, useEffect, useMemo, Suspense, useCallback } from "react";
+import { format, startOfWeek, addDays, parseISO, isSameDay, isWithinInterval, isBefore } from "date-fns";
+import { fr } from "date-fns/locale";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
+import dynamic from "next/dynamic";
+import React from "react";
+
+// Types
+interface Task {
+  id_tache: number;
+  libelle: string;
+  niveau: number;
+  id_user: number | null;
+  id_projet: number | null;
+  echeance: number;
+  datedebut: string;
+  status: string;
+  departement: number | null;
+  priorite: number;
+}
+
+interface User {
+  id_user: number;
+  nom_complet: string;
+}
+
+interface Project {
+  id_projet: number;
+  project_name: string;
+}
+
+interface Department {
+  id: number;
+  titre: string;
+}
+
+interface TaskWithDates extends Task {
+  endDate: Date;
+}
+
+// Constantes pour éviter les magic strings
+const STATUS = {
+  DONE: "done",
+  IN_PROGRESS: "in_progress",
+  EN_COURS: "en cours",
+  PENDING: "pending"
+};
+
+const ENDPOINTS = {
+  USERS: "/api/users",
+  PROJECTS: "/api/projects",
+  DEPARTMENTS: "/api/departement",
+  TASKS: "/api/tache",
+  ADD_TASK: "/api/tache/add"
+};
+
+// Lazy-loaded TaskModal with optimized loading component
+const TaskModal = dynamic(() => import("./TaskModal"), {
+  loading: () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-8 rounded-lg shadow-md">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="text-center mt-4">Chargement du formulaire...</p>
+      </div>
+    </div>
+  ),
+  ssr: false,
+});
+
+// Helper functions - moved outside component and memoized with useCallback where needed
+const getDifficultyLabel = (niveau: number): string => {
+  switch (niveau) {
+    case 1: return "Facile";
+    case 2: return "Moyen";
+    case 3: return "Difficile";
+    default: return "Inconnu";
+  }
+};
+
+const getPriorityLabel = (priorite: number): string => {
+  switch (priorite) {
+    case 1: return "Basse";
+    case 2: return "Moyenne";
+    case 3: return "Élevée";
+    default: return "Inconnue";
+  }
+};
+
+const getPriorityColor = (niveau: number) => {
+  switch (niveau) {
+    case 3: return "bg-red-100 border-red-200";
+    case 2: return "bg-orange-100 border-orange-200";
+    default: return "bg-green-100 border-green-200";
+  }
+};
+
+const getStatusColor = (status: string) => {
+  const lowerStatus = status.toLowerCase();
+  switch (lowerStatus) {
+    case STATUS.DONE: return "bg-green-500";
+    case STATUS.IN_PROGRESS:
+    case STATUS.EN_COURS: return "bg-blue-500";
+    default: return "bg-yellow-500";
+  }
+};
+
+// Cache pour stocker les résultats de getRemainingDays
+const remainingDaysCache = new Map();
+
+// Task list component - memoized to prevent unnecessary re-renders
+const DayTaskList = React.memo(({ day, tasks, users, projects, departments }: { 
+  day: Date, 
+  tasks: TaskWithDates[],
+  users: User[],
+  projects: Project[],
+  departments: Department[]
+}) => {
+  // Création des maps pour recherche O(1)
+  const userMap = useMemo(() => 
+    new Map(users.map(user => [user.id_user, user.nom_complet])), [users]
+  );
+  
+  const projectMap = useMemo(() => 
+    new Map(projects.map(project => [project.id_projet, project.project_name])), [projects]
+  );
+  
+  const deptMap = useMemo(() => 
+    new Map(departments.map(dept => [dept.id, dept.titre])), [departments]
+  );
+
+  // Fonctions de recherche optimisées
+  const getUserName = useCallback((userId: number | null) => {
+    if (!userId) return "Non assigné";
+    return userMap.get(userId) || "Utilisateur inconnu";
+  }, [userMap]);
+
+  const getProjectName = useCallback((projectId: number | null) => {
+    if (!projectId) return "Sans projet";
+    return projectMap.get(projectId) || "Projet inconnu";
+  }, [projectMap]);
+
+  const getDepartmentName = useCallback((departmentId: number | null) => {
+    if (!departmentId) return "Sans département";
+    return deptMap.get(departmentId) || "Département inconnu";
+  }, [deptMap]);
+  
+  const getRemainingDays = useCallback((task: TaskWithDates, currentDate: Date) => {
+    try {
+      // Vérifier si le résultat est déjà en cache
+      const cacheKey = `${task.id_tache}_${currentDate.toISOString().split('T')[0]}`;
+      if (remainingDaysCache.has(cacheKey)) {
+        return remainingDaysCache.get(cacheKey);
+      }
+
+      const startDate = parseISO(task.datedebut);
+      let remainingDays = task.echeance;
+      let tempDate = startDate;
+      
+      while (isBefore(tempDate, currentDate)) {
+        const dayOfWeek = tempDate.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+          remainingDays--;
+        }
+        tempDate = addDays(tempDate, 1);
+      }
+      
+      // Stocker le résultat dans le cache
+      remainingDaysCache.set(cacheKey, remainingDays);
+      return remainingDays;
+    } catch (error) {
+      console.error("Error calculating remaining days:", error);
+      return 0;
+    }
+  }, []);
+  
+  // Pré-calculer les jours restants pour toutes les tâches pour éviter les re-calculs
+  const taskRemainingDays = useMemo(() => {
+    return tasks.map(task => ({
+      task,
+      remainingDays: getRemainingDays(task, day)
+    })).filter(({ remainingDays }) => remainingDays > 0);
+  }, [tasks, day, getRemainingDays]);
+  
+  if (taskRemainingDays.length === 0) {
+    return (
+      <div className="p-2 border-r min-h-[120px] relative">
+        <div className="text-gray-400 text-sm italic text-center mt-4">
+          Aucune tâche
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="p-2 border-r min-h-[120px] relative">
+      <div className="space-y-2">
+        {taskRemainingDays.map(({ task, remainingDays }) => (
+          <div
+            key={task.id_tache}
+            className={`p-2 rounded border ${getPriorityColor(task.niveau)}`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">{task.libelle}</span>
+              <span
+                className={`w-2 h-2 rounded-full ${getStatusColor(task.status)}`}
+              />
+            </div>
+            <span className="text-xs text-gray-500 block mt-1">
+              Assigné à: {getUserName(task.id_user)}
+            </span>
+            <span className="text-xs text-gray-500 block">
+              Projet: {getProjectName(task.id_projet)}
+            </span>
+            <span className="text-xs text-gray-500 block">
+              Département: {getDepartmentName(task.departement)}
+            </span>
+            <span className="text-xs text-gray-500 block">
+              Difficulté: {getDifficultyLabel(task.niveau)}
+            </span>
+            <span className="text-xs text-gray-500 block">
+              Priorité: {getPriorityLabel(task.priorite)}
+            </span>
+            <span className="text-xs text-gray-500 block">
+              {remainingDays} jour{remainingDays > 1 ? 's' : ''} restant{remainingDays > 1 ? 's' : ''}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});
+
+// Add display name for improved debugging
+DayTaskList.displayName = "DayTaskList";
+
+// API service functions - centralized data fetching with caching
+const apiCache = new Map();
+
+const apiService = {
+  async fetchData(endpoint: string, transformFn?: (data: any) => any) {
+    // Vérifier le cache
+    if (apiCache.has(endpoint)) {
+      return apiCache.get(endpoint);
+    }
+    
+    try {
+      const response = await fetch(endpoint);
+      let result = await response.json();
+      
+      if (transformFn) {
+        result = transformFn(result);
+      }
+      
+      // Mettre en cache le résultat
+      apiCache.set(endpoint, result);
+      return result;
+    } catch (error) {
+      console.error(`Network error fetching ${endpoint}:`, error);
+      return [];
+    }
+  },
+
+  async fetchUsers() {
+    return this.fetchData(ENDPOINTS.USERS);
+  },
+
+  async fetchProjects() {
+    return this.fetchData(ENDPOINTS.PROJECTS, result => result.data || []);
+  },
+
+  async fetchDepartments() {
+    return this.fetchData(ENDPOINTS.DEPARTMENTS);
+  },
+
+  async fetchTasks() {
+    return this.fetchData(ENDPOINTS.TASKS, result => Array.isArray(result.data) ? result.data : []);
+  },
+
+  async addTask(taskData: any) {
+    try {
+      const response = await fetch(ENDPOINTS.ADD_TASK, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(taskData),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Error adding task");
+      }
+      
+      // Invalider le cache des tâches
+      apiCache.delete(ENDPOINTS.TASKS);
+      return true;
+    } catch (error) {
+      console.error("Error adding task:", error);
+      return false;
+    }
+  },
+  
+  // Fonction pour vider le cache
+  clearCache() {
+    apiCache.clear();
+  }
+};
+
+// Initial state for the form
+const initialTaskState = {
+  libelle: "",
+  niveau: 1,
+  id_projet: 0,
+  echeance: 1,
+  datedebut: "",
+  status: STATUS.PENDING,
+  departement: 0,
+  priorite: 1,
+  id_user: 0,
+};
+const taches=[
+  {
+    "id_tache": 5,
+    "libelle": "Tâche 2",
+    "niveau": 2,
+    "id_user": 1,
+    "id_projet": 3,
+    "echeance": 10,
+    "datedebut": "2025-02-07",
+    "status": "En cours",
+    "created_at": "2025-02-07 11:14:40.646844",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 26,
+    "libelle": "Former les utilisateurs",
+    "niveau": 1,
+    "id_user": 5,
+    "id_projet": 3,
+    "echeance": 3,
+    "datedebut": "2025-02-27",
+    "status": "pending",
+    "created_at": "2025-02-11 09:53:27.904066",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 29,
+    "libelle": "Planifier la réunion",
+    "niveau": 1,
+    "id_user": 1,
+    "id_projet": 3,
+    "echeance": 2,
+    "datedebut": "2025-02-15",
+    "status": "en cours",
+    "created_at": "2025-02-11 09:53:27.904066",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 31,
+    "libelle": "Créer un prototype",
+    "niveau": 3,
+    "id_user": 5,
+    "id_projet": 2,
+    "echeance": 25,
+    "datedebut": "2025-03-05",
+    "status": "pending",
+    "created_at": "2025-02-11 09:53:27.904066",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 34,
+    "libelle": "Tester les performances",
+    "niveau": 3,
+    "id_user": 1,
+    "id_projet": 2,
+    "echeance": 18,
+    "datedebut": "2025-02-22",
+    "status": "pending",
+    "created_at": "2025-02-11 09:53:27.904066",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 36,
+    "libelle": "Déployer le projet",
+    "niveau": 3,
+    "id_user": 5,
+    "id_projet": 3,
+    "echeance": 11,
+    "datedebut": "2025-03-10",
+    "status": "pending",
+    "created_at": "2025-02-11 09:53:27.904066",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 20,
+    "libelle": "Développer le backend",
+    "niveau": 3,
+    "id_user": 4,
+    "id_projet": 2,
+    "echeance": 15,
+    "datedebut": "2025-02-15",
+    "status": "in_progress",
+    "created_at": "2025-02-11 09:53:27.904066",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 25,
+    "libelle": "Mettre en place l'API",
+    "niveau": 3,
+    "id_user": 4,
+    "id_projet": 2,
+    "echeance": 14,
+    "datedebut": "2025-02-12",
+    "status": "done",
+    "created_at": "2025-02-11 09:53:27.904066",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 41,
+    "libelle": "changer la couleur de l'interface",
+    "niveau": 1,
+    "id_user": 44,
+    "id_projet": 7,
+    "echeance": 18,
+    "datedebut": "2025-02-13",
+    "status": "done",
+    "created_at": "2025-02-18 08:22:32.245784",
+    "departement": 4,
+    "priorite": 1
+  },
+  {
+    "id_tache": 42,
+    "libelle": "changer la couleur de la charte de la plateforme",
+    "niveau": 1,
+    "id_user": 4,
+    "id_projet": 7,
+    "echeance": 20,
+    "datedebut": "2025-02-22",
+    "status": "in progress",
+    "created_at": "2025-02-18 08:23:44.25579",
+    "departement": 1,
+    "priorite": 1
+  },
+  {
+    "id_tache": 44,
+    "libelle": "Créer la maquette",
+    "niveau": 3,
+    "id_user": 1,
+    "id_projet": 2,
+    "echeance": 1675036800,
+    "datedebut": "2025-02-20",
+    "status": "en cours",
+    "created_at": "2025-02-19 13:00:37.894191",
+    "departement": 5,
+    "priorite": 2
+  },
+  {
+    "id_tache": 45,
+    "libelle": "modification des pages",
+    "niveau": 1,
+    "id_user": 30,
+    "id_projet": 7,
+    "echeance": 12,
+    "datedebut": "2025-02-14",
+    "status": "done",
+    "created_at": "2025-02-19 14:21:24.772028",
+    "departement": 1,
+    "priorite": 1
+  },
+  {
+    "id_tache": 22,
+    "libelle": "Créer l'interface utilisateur",
+    "niveau": 2,
+    "id_user": 30,
+    "id_projet": 2,
+    "echeance": 20,
+    "datedebut": "2025-03-01",
+    "status": "done",
+    "created_at": "2025-02-11 09:53:27.904066",
+    "departement": 5,
+    "priorite": 1
+  },
+  {
+    "id_tache": 48,
+    "libelle": "configuerer le serveur",
+    "niveau": 2,
+    "id_user": 30,
+    "id_projet": 4,
+    "echeance": 2,
+    "datedebut": "2025-02-25",
+    "status": "done",
+    "created_at": "2025-02-24 07:54:38.25659",
+    "departement": 1,
+    "priorite": 1
+  },
+  {
+    "id_tache": 49,
+    "libelle": "activer le certificat SSL",
+    "niveau": 1,
+    "id_user": 30,
+    "id_projet": 4,
+    "echeance": 1,
+    "datedebut": "2025-02-26",
+    "status": "done",
+    "created_at": "2025-02-24 07:58:25.00683",
+    "departement": 1,
+    "priorite": 1
+  },
+  {
+    "id_tache": 50,
+    "libelle": "mmmmmmmmmmmmmmm",
+    "niveau": 1,
+    "id_user": 30,
+    "id_projet": 16,
+    "echeance": 1,
+    "datedebut": "2025-02-28",
+    "status": "done",
+    "created_at": "2025-02-26 15:55:54.403301",
+    "departement": 1,
+    "priorite": 2
+  },
+  {
+    "id_tache": 46,
+    "libelle": "faire un push",
+    "niveau": 2,
+    "id_user": 30,
+    "id_projet": 4,
+    "echeance": 1,
+    "datedebut": "2025-02-14",
+    "status": "done",
+    "created_at": "2025-02-19 14:21:57.303821",
+    "departement": 1,
+    "priorite": 2
+  },
+  {
+    "id_tache": 40,
+    "libelle": "creer un nouveau endpoint",
+    "niveau": 1,
+    "id_user": 30,
+    "id_projet": 7,
+    "echeance": 4,
+    "datedebut": "2025-02-18",
+    "status": "done",
+    "created_at": "2025-02-17 12:34:45.790251",
+    "departement": 1,
+    "priorite": 2
+  },
+  {
+    "id_tache": 43,
+    "libelle": "creer une nouvelle API",
+    "niveau": 1,
+    "id_user": 30,
+    "id_projet": 4,
+    "echeance": 12,
+    "datedebut": "2025-02-19",
+    "status": "done",
+    "created_at": "2025-02-19 12:09:56.976913",
+    "departement": 1,
+    "priorite": 1
+  },
+  {
+    "id_tache": 39,
+    "libelle": "creer une nouvelle api",
+    "niveau": 2,
+    "id_user": 30,
+    "id_projet": 7,
+    "echeance": 14,
+    "datedebut": "2025-02-06",
+    "status": "done",
+    "created_at": "2025-02-17 12:00:21.04862",
+    "departement": 1,
+    "priorite": 2
+  },
+  {
+    "id_tache": 37,
+    "libelle": "Collecter les retours",
+    "niveau": 1,
+    "id_user": 30,
+    "id_projet": 2,
+    "echeance": 7,
+    "datedebut": "2025-03-12",
+    "status": "done",
+    "created_at": "2025-02-11 09:53:27.904066",
+    "departement": 5,
+    "priorite": 1
+  }
+]
+
+export default function Calendar() {
+  const [currentWeek, setCurrentWeek] = useState<Date>(() => new Date());
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [newTask, setNewTask] = useState(initialTaskState);
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState({
+    users: false,
+    projects: false,
+    departments: false,
+    tasks: false
+  });
+
+  // Fonction optimisée pour charger les données en parallèle
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    // Utiliser Promise.allSettled pour charger toutes les données en parallèle
+    const [usersResult, projectsResult, departmentsResult, tasksResult] = await Promise.allSettled([
+      apiService.fetchUsers(),
+      apiService.fetchProjects(),
+      apiService.fetchDepartments(),
+      apiService.fetchTasks()
+    ]);
+    
+    // Traiter les résultats
+    if (usersResult.status === 'fulfilled') {
+      setUsers(usersResult.value);
+      setDataLoaded(prev => ({ ...prev, users: true }));
+    }
+    
+    if (projectsResult.status === 'fulfilled') {
+      setProjects(projectsResult.value);
+      setDataLoaded(prev => ({ ...prev, projects: true }));
+    }
+    
+    if (departmentsResult.status === 'fulfilled') {
+      setDepartments(departmentsResult.value);
+      setDataLoaded(prev => ({ ...prev, departments: true }));
+    }
+    
+    if (tasksResult.status === 'fulfilled') {
+      // setTasks(tasksResult.value);
+      setTasks(taches);
+      setDataLoaded(prev => ({ ...prev, tasks: true }));
+    } else {
+      setError("Erreur lors de la récupération des tâches.");
+      toast.error("Erreur lors de la récupération des tâches.");
+    }
+    
+    setIsLoading(false);
+  }, []);
+
+  // Load data on component mount
+  useEffect(() => {
+    loadData();
+    
+    // Nettoyer le cache lors du démontage du composant
+    return () => {
+      apiService.clearCache();
+      remainingDaysCache.clear();
+    };
+  }, [loadData]);
+
+  // Implement intersection observer for lazy loading calendar cells
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: '100px',
+      threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('opacity-100');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    // Utiliser requestAnimationFrame pour éviter de bloquer le thread principal
+    const setupObserver = requestAnimationFrame(() => {
+      const dayCells = document.querySelectorAll('.day-cell');
+      dayCells.forEach(cell => {
+        cell.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+        observer.observe(cell);
+      });
+    });
+
+    return () => {
+      cancelAnimationFrame(setupObserver);
+      observer.disconnect();
+    };
+  }, [currentWeek, dataLoaded.tasks]);
+
+  // Memoized filtered tasks
+  const filteredTasks = useMemo(() => {
+    if (selectedUserId === null) {
+      return tasks;
+    }
+    return tasks.filter(task => task.id_user === selectedUserId);
+  }, [tasks, selectedUserId]);
+
+  // Process tasks only when filtered tasks change
+  const processedTasks = useMemo(() => {
+    if (!Array.isArray(filteredTasks)) return [];
+    
+    return filteredTasks.map(task => {
+      try {
+        const startDate = parseISO(task.datedebut);
+        let remainingDays = task.echeance;
+        let currentDate = startDate;
+        let endDate = startDate;
+        
+        // Skip weekends when calculating task duration
+        while (remainingDays > 0) {
+          const dayOfWeek = currentDate.getDay();
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Skip weekends
+            remainingDays--;
+            endDate = currentDate;
+          }
+          currentDate = addDays(currentDate, 1);
+        }
+        
+        return {
+          ...task,
+          endDate,
+        };
+      } catch (error) {
+        console.error("Error processing task date:", task.datedebut, error);
+        return {
+          ...task,
+          endDate: new Date(),
+        };
+      }
+    });
+  }, [filteredTasks]);
+
+  // Memoize week days calculation
+  const weekDays = useMemo(() => {
+    const start = startOfWeek(currentWeek, { weekStartsOn: 1 });
+    return Array.from({ length: 5 }).map((_, i) => addDays(start, i));
+  }, [currentWeek]);
+
+  // Memoize task filtering for each day with a Map for better performance
+  const tasksForDayMap = useMemo(() => {
+    const map = new Map();
+    
+    weekDays.forEach(day => {
+      const dateStr = day.toISOString().split('T')[0];
+      const dayTasks = processedTasks.filter(task => {
+        try {
+          const startDate = parseISO(task.datedebut);
+          return isWithinInterval(day, { start: startDate, end: task.endDate }) ||
+                isSameDay(day, startDate) ||
+                isSameDay(day, task.endDate);
+        } catch (error) {
+          return false;
+        }
+      });
+      
+      map.set(dateStr, dayTasks);
+    });
+    
+    return map;
+  }, [processedTasks, weekDays]);
+
+  // Fonction optimisée pour récupérer les tâches d'un jour
+  const getTasksForDay = useCallback((date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return tasksForDayMap.get(dateStr) || [];
+  }, [tasksForDayMap]);
+
+  // Handle task addition with proper form reset
+  const handleAddTask = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    const success = await apiService.addTask(newTask);
+    if (success) {
+      toast.success("Tâche ajoutée avec succès");
+      setIsAddTaskModalOpen(false);
+      
+      // Refresh tasks list
+      const taskData = await apiService.fetchTasks();
+      setTasks(taskData);
+      
+      // Reset form
+      setNewTask(initialTaskState);
+    } else {
+      toast.error("Erreur lors de l'ajout de la tâche");
+    }
+  }, [newTask]);
+
+  const handleUserFilterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setSelectedUserId(value === "" ? null : Number(value));
+  }, []);
+
+  // Navigation semaine précédente/suivante
+  const goToPrevWeek = useCallback(() => {
+    setCurrentWeek(prev => addDays(prev, -7));
+  }, []);
+  
+  const goToNextWeek = useCallback(() => {
+    setCurrentWeek(prev => addDays(prev, 7));
+  }, []);
+  
+  // Ouvrir/fermer modal
+  const openAddTaskModal = useCallback(() => {
+    setIsAddTaskModalOpen(true);
+  }, []);
+  
+  const closeAddTaskModal = useCallback(() => {
+    setIsAddTaskModalOpen(false);
+  }, []);
+
+  // Check if all data is loaded
+  const allDataLoaded = dataLoaded.users && dataLoaded.projects && dataLoaded.departments;
+setTasks(taches)
+  return (
+    <div className="flex flex-col h-screen bg-gray-50">
+      <header className="bg-white shadow-sm px-6 py-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">Calendrier des Tâches</h1>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={goToPrevWeek}
+              className="p-2 hover:bg-gray-100 rounded-full"
+              aria-label="Semaine précédente"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <span className="font-medium">
+              Semaine du {format(weekDays[0], "d MMMM yyyy", { locale: fr })}
+            </span>
+            <button
+              onClick={goToNextWeek}
+              className="p-2 hover:bg-gray-100 rounded-full"
+              aria-label="Semaine suivante"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </header>
+      
+      {/* Controls section with loading states */}
+      <div className="p-6 flex flex-wrap items-center gap-4">
+        <button
+          onClick={openAddTaskModal}
+          className="p-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition duration-300 disabled:bg-blue-300"
+          disabled={!allDataLoaded}
+        >
+          {allDataLoaded ? "Ajouter une tâche" : (
+            <span className="flex items-center">
+              <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+              Chargement...
+            </span>
+          )}
+        </button>
+        
+        {/* User filter with improved UX */}
+        <div className="flex items-center">
+          <label htmlFor="userFilter" className="mr-2 text-gray-700 font-medium">
+            Filtrer par utilisateur:
+          </label>
+          {dataLoaded.users ? (
+            <select
+              id="userFilter"
+              value={selectedUserId === null ? "" : selectedUserId}
+              onChange={handleUserFilterChange}
+              className="p-2 border rounded-lg min-w-[200px]"
+            >
+              <option value="1">Tous les utilisateurs</option>
+              {users.map((user) => (
+                <option key={user.id_user} value={user.id_user}>
+                  {user.nom_complet}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="p-2 border rounded-lg min-w-[200px] bg-gray-100 animate-pulse">
+              Chargement...
+            </div>
+          )}
+        </div>
+        
+        {/* Task count with loading state */}
+        <div className="ml-4 text-gray-600">
+          {dataLoaded.tasks ? 
+            `${processedTasks.length} tâche${processedTasks.length !== 1 ? 's' : ''} affichée${processedTasks.length !== 1 ? 's' : ''}` :
+            <span className="animate-pulse">Chargement des tâches...</span>
+          }
+        </div>
+      </div>
+      
+      {/* Calendar with improved loading states */}
+      <div className="flex-1 overflow-auto px-6 pb-6">
+        {isLoading && !dataLoaded.tasks ? (
+          <div className="flex justify-center items-center h-full">
+            <div className="flex flex-col items-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <p className="mt-4 text-gray-600">Chargement des tâches...</p>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="flex justify-center items-center h-full">
+            <p className="text-red-500">{error}</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow">
+            <div className="grid grid-cols-5 border-b">
+              {weekDays.map((day) => (
+                <div
+                  key={day.toString()}
+                  className="p-4 font-medium text-gray-500 text-center border-r"
+                >
+                  {format(day, "EEEE d/MM", { locale: fr })}
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-5">
+              {weekDays.map((day, index) => (
+                <div 
+                  key={day.toString()} 
+                  className="day-cell"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <Suspense fallback={
+                    <div className="p-2 border-r min-h-[120px] flex items-center justify-center">
+                      <div className="animate-pulse bg-gray-200 rounded-lg w-full h-24"></div>
+                    </div>
+                  }>
+                    <DayTaskList 
+                      day={day} 
+                      tasks={getTasksForDay(day)} 
+                      users={users}
+                      projects={projects}
+                      departments={departments}
+                    />
+                  </Suspense>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Task modal with lazy loading */}
+      {isAddTaskModalOpen && (
+        <TaskModal 
+          newTask={newTask}
+          setNewTask={setNewTask}
+          handleAddTask={handleAddTask}
+          closeModal={closeAddTaskModal}
+          users={users}
+          projects={projects}
+          departments={departments}
+        />
+      )}
+    </div>
+  );
+}

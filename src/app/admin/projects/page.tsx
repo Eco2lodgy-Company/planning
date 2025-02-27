@@ -258,6 +258,18 @@ export default function Projects() {
         return "";
     }
   };
+  const translateStatus = (status: string): string => {
+    switch (status) {
+      case "pending":
+        return "En attente";
+      case "in progress":
+        return "En cours";
+      case "done":
+        return "Terminé";
+      default:
+        return status; // Retourne le statut original si non trouvé
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -312,7 +324,7 @@ export default function Projects() {
                     <p className="text-sm">
                       <span className="font-medium">Statut:</span>{" "}
                       <span className={`px-2 py-1 rounded-full ${getStatusClass(project.status)}`}>
-                        {project.status}
+                      {translateStatus(project.status)}
                       </span>
                     </p>
                   </div>
