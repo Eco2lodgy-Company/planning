@@ -174,6 +174,24 @@ export default function PermissionPage() {
     }
   };
 
+
+  //Appel API pour metttre à jour la permission comme acceptée
+  const handleAcceptPermission = async (permissionId) => {
+
+    fetch(`/api/headside/permissions/update/${permissionId}`, {
+      method: "PUT",
+      body: JSON.stringify({ status: "Accordé" }),
+      headers: {
+          "Content-Type": "application/json",
+      },
+  }).then(() => {
+      toast.success("permission Accordé !");
+      fetchTasks();
+  
+  }).catch(err => console.error("Error updating task:", err));
+  } 
+
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'En attente':
@@ -304,7 +322,7 @@ export default function PermissionPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleAcceptPermission(permission.id_user)}
+                              onClick={() => handleAcceptPermission(permission.id_p)}
                               className="text-green-500 hover:text-green-700"
                             >
                               <Check className="w-5 h-5" />
