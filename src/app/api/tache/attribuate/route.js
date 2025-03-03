@@ -13,7 +13,7 @@ export async function PUT() {
 
         // Mise à jour de la permission dans Supabase
         const { data, error } = await supabase
-            .from("taches") // Remplace par le nom de ta table
+            .from("tache") // Remplace par le nom de ta table
             .update({ id_user: id_user,datedebut:datedebut })
             .eq("id_tache", id_tache)
             .select(); // Récupère la ligne mise à jour
