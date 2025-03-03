@@ -226,9 +226,9 @@ export default function TaskManagementPage() {
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{task.libelle}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.niveau}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.id_user}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.id_projet}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.departement}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.nom_utilisateur}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.nom_projet}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.nom_departement}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.echeance} jours</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.datedebut}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
