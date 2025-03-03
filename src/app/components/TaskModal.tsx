@@ -29,8 +29,8 @@ interface TaskModalProps {
     date: Date;
   };
   tasks: Task[];
-  selectedTask: string;
-  onSelectTask: (task: string) => void;
+  selectedTask: Task;
+  onSelectTask: (task: Task) => void;
   onAddTask: () => void;
 }
 

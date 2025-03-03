@@ -276,8 +276,7 @@
       // Récupérer les tâches pour une cellule donnée
       const getTasksForCell = (employeeId: number, day: any) => {
         const key = `${employeeId}-${format(day.date, 'yyyy-MM-dd')}`;
-        // return tasks[key] || [];
-        return tasks.filter(t => t.id_user === employeeId && t.datedebut === day.date.getTime());
+        return tasks[key] || [];
       };
 
       // Vérifier si une tâche est un projet
@@ -340,10 +339,10 @@
         ];
         
         // Création du corps du tableau
-        const tableBody = users.map(user => {
-          const employeeRow = [user.nom_complet];
+        const tableBody = employees.map(employee => {
+          const employeeRow = [employee.name];
           for (const day of days) {
-            const cellTasks = getTasksForCell(user.id_user, day);
+            const cellTasks = getTasksForCell(employee.id, day);
             employeeRow.push(cellTasks.join("\n\n"));
           }
           return employeeRow;
