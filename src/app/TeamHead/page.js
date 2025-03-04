@@ -19,6 +19,7 @@ import {
   Trash2,
   CheckCircle,
   Clock,
+  LayoutList,
   AlertCircle,
   BarChart3,
   Shield,
@@ -117,9 +118,9 @@ export default function TeamLeaderDashboard() {
     { status: 'Terminés', total: doneProjects },
   ];
   const tasks = {
-    enCours: 8,
-    terminees: 15,
-    enRetard: 3,
+    enCours: progressProjects,
+    terminees: doneProjects,
+    enAttente: pendingProjects,
     total: 26
   };
 
@@ -206,10 +207,10 @@ export default function TeamLeaderDashboard() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Tâches en retard</p>
-                  <h3 className="text-2xl font-bold text-red-600">{tasks.enRetard}</h3>
+                  <p className="text-sm text-gray-600">Projets en attente</p>
+                  <h3 className="text-2xl font-bold text-orange-600">{tasks.enAttente}</h3>
                 </div>
-                <AlertCircle className="h-10 w-10 text-red-500" aria-hidden="true" />
+                <LayoutList className="h-10 w-10 text-orange-500" aria-hidden="true" />
               </div>
             </motion.div>
           </div>
@@ -223,7 +224,7 @@ export default function TeamLeaderDashboard() {
 >
   <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
     <BarChart3 className="h-6 w-6 text-blue-500" />
-    Statut des tâches
+    Statut des Projets
   </h3>
   <ResponsiveContainer width="100%" height={300}>
     <BarChart data={statusData}>
@@ -243,7 +244,7 @@ export default function TeamLeaderDashboard() {
 >
   <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
     <PieChart className="h-6 w-6 text-blue-500" />
-    Évolution des tâches
+    Évolution des Projets
   </h3>
   <ResponsiveContainer width="100%" height={300}>
     <LineChart data={statusData}>
