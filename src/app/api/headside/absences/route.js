@@ -16,14 +16,11 @@ export async function POST(request) {
         );
       }
   
-      console.log(employe, date, raison);
-      let id_user=employe;
-      let date_absence = date;
-      let motif=raison;
+      
       // Insertion des données dans la table "retard"
       const { data, error } = await supabase
         .from("absences")
-        .insert([{ id_user, date_absence, motif }]);
+        .insert([{ id_user:employe, date_absence:date, motif:raison }]);
   
       if (error) {
         return NextResponse.json({ message: error.message }, { status: 500 });
