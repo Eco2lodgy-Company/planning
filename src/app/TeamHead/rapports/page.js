@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight,Loader2, Sun, Moon, Clock, AlertCircle, CheckCircle2, User, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Sun, Moon, Clock, AlertCircle, CheckCircle2, User, Plus, Download } from 'lucide-react';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { motion, AnimatePresence } from "framer-motion"; // Importer Framer Motion
-
+import { motion, AnimatePresence } from "framer-motion";
+import { jsPDF } from "jspdf"; // Importer jsPDF
 import { useRouter } from 'next/navigation';
 
 const WeeklyReports = () => {
@@ -15,24 +15,24 @@ const WeeklyReports = () => {
   const [tasks, setTasks] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState('all'); // Filtre par utilisateur
   const router = useRouter();
- 
 
   const [formData, setFormData] = useState(() => {
     return {
-      user_name: '', 
+      user_name: '',
       taches: '',
-      date: new Date().toISOString().split("T")[0], // Date du jour par défaut
+      date: new Date().toISOString().split("T")[0],
       blockage: '',
       solution: '',
-      temps: 'true', // Par défaut, le rapport est pour le matin
-      created_at: new Date().toISOString(), // Date actuelle par défaut
+      temps: 'true',
+      created_at: new Date().toISOString(),
     };
   });
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const userId = localStorage.getItem("userId");
-
       if (!userId) {
         router.push("/login");
       }
@@ -40,14 +40,13 @@ const WeeklyReports = () => {
   }, [router]);
 
   useEffect(() => {
-    const user = localStorage.getItem("userId") || ""; // Accès à localStorage uniquement après montage
+    const user = localStorage.getItem("userId") || "";
     setFormData((prevData) => ({
       ...prevData,
       user_name: user,
     }));
   }, []);
 
-  // Colors for different days with gradients for a more modern look
   const dayColors = {
     Monday: { bg: 'from-blue-50 to-blue-100', border: 'border-blue-200', header: 'from-blue-500 to-blue-600' },
     Tuesday: { bg: 'from-purple-50 to-purple-100', border: 'border-purple-200', header: 'from-purple-500 to-purple-600' },
@@ -56,29 +55,24 @@ const WeeklyReports = () => {
     Friday: { bg: 'from-rose-50 to-rose-100', border: 'border-rose-200', header: 'from-rose-500 to-rose-600' },
     Saturday: { bg: 'from-green-50 to-green-100', border: 'border-green-200', header: 'from-green-500 to-green-600' },
     Sunday: { bg: 'from-yellow-50 to-yellow-100', border: 'border-yellow-200', header: 'from-yellow-500 to-yellow-600' }
-    
   };
-  
-  // Get dates for the current week
+
   const getWeekDates = (date) => {
     const week = [];
     const monday = new Date(date);
     monday.setDate(date.getDate() - date.getDay() + 1);
-
     for (let i = 0; i < 7; i++) {
       const day = new Date(monday);
       day.setDate(monday.getDate() + i);
       week.push(day);
     }
     return week;
-  }; 
-      
-  // Format date to YYYY-MM-DD
+  };
+
   const formatDate = (date) => {
     return date.toISOString().split('T')[0];
   };
 
-  // Navigate between weeks
   const navigateWeek = (direction) => {
     const newDate = new Date(currentWeek);
     newDate.setDate(currentWeek.getDate() + (direction === 'next' ? 7 : -7));
@@ -88,13 +82,11 @@ const WeeklyReports = () => {
   useEffect(() => {
     const userId = localStorage.getItem('userId');
 
-    // Fetch dynamic tasks 
-
     const fetchTasks = async () => {
       fetch(`/api/tache/${userId}`)
-            .then(res => res.json())
-            .then(data => setTasks(data))
-            .catch(err => console.error("Error fetching tasks:", err));
+        .then(res => res.json())
+        .then(data => setTasks(data))
+        .catch(err => console.error("Error fetching tasks:", err));
     };
 
     fetchTasks();
@@ -104,20 +96,15 @@ const WeeklyReports = () => {
       const startDate = formatDate(weekDates[0]);
       const endDate = formatDate(weekDates[4]);
 
-      // API call - replace with actual implementation
-      const fetchRepport = async () => {
-        try {
-          const response = await fetch('/api/rapport/' + userId);
-          if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
-          const data = await response.json();
-          setReports(data);
-          setLoading(false);
-        } catch (error) {
-          console.error(error.message);
-        }
-      };
-
-      fetchRepport();
+      try {
+        const response = await fetch('/api/rapport/' + userId);
+        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+        const data = await response.json();
+        setReports(data);
+        setLoading(false);
+      } catch (error) {
+        console.error(error.message);
+      }
     };
 
     fetchReports();
@@ -125,15 +112,14 @@ const WeeklyReports = () => {
 
   const getDayReports = (date, isMorning) => {
     return reports
-      .filter(report => report && report.date) // Vérifier que report n'est pas null et que la date existe
+      .filter(report => report && report.date)
       .filter(report => {
         const reportDate = new Date(report.date).toISOString().split('T')[0];
         return reportDate === formatDate(date) && report.temps === isMorning;
-      });
+      })
+      .filter(report => selectedUser === 'all' || report.user_name === selectedUser);
   };
-  
 
-  // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -142,7 +128,6 @@ const WeeklyReports = () => {
     });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -153,35 +138,25 @@ const WeeklyReports = () => {
         },
         body: JSON.stringify(formData),
       });
-  
+
       if (!response.ok) throw new Error('Erreur lors de la soumission du rapport');
       
       toast.success('Rapport soumis avec succès');
-  
-      // Récupérer les rapports après l'ajout
-      const newReport = await response.json();
-  
-      // Réactualiser les rapports de la semaine
+
       const fetchReports = async () => {
         const userId = localStorage.getItem('userId');
-        const weekDates = getWeekDates(currentWeek);
-        const startDate = formatDate(weekDates[0]);
-        const endDate = formatDate(weekDates[4]);
-        
         try {
-          
           const response = await fetch('/api/rapport/' + userId);
           if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
           const data = await response.json();
-          setReports(data); // Mise à jour des rapports après l'ajout
+          setReports(data);
         } catch (error) {
           console.error(error.message);
         }
       };
-  
-      fetchReports(); // Récupérer les rapports mis à jour
-  
-      // Fermer le formulaire et réinitialiser les données
+
+      fetchReports();
+
       setIsFormOpen(false);
       setFormData({
         user_name: '',
@@ -192,10 +167,98 @@ const WeeklyReports = () => {
         temps: 'true',
         created_at: new Date().toISOString(),
       });
-  
     } catch (error) {
       console.error(error.message);
     }
+  };
+
+  // Fonction améliorée pour exporter en PDF
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const weekDates = getWeekDates(currentWeek);
+  
+    // En-tête propre et professionnel
+    doc.setFillColor(33, 150, 243);
+    doc.rect(0, 0, 210, 40, 'F');
+    doc.setFontSize(22);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.text("Rapport Hebdomadaire", 105, 20, { align: "center" });
+  
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "italic");
+    doc.text(
+      `${weekDates[0].toLocaleDateString('fr-FR')} - ${weekDates[4].toLocaleDateString('fr-FR')}`,
+      105,
+      30,
+      { align: "center" }
+    );
+  
+    let y = 50;
+    weekDates.forEach((date) => {
+      const dayName = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' });
+      const morningReports = getDayReports(date, true);
+      const eveningReports = getDayReports(date, false);
+  
+      // Séparateur pour chaque jour
+      doc.setFontSize(14);
+      doc.setTextColor(33, 150, 243);
+      doc.setFont("helvetica", "bold");
+      doc.text(dayName, 15, y);
+      doc.setDrawColor(200, 200, 200);
+      doc.line(15, y + 2, 195, y + 2);
+      y += 10;
+  
+      // Affichage des rapports
+      const renderReports = (title, reports) => {
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont("helvetica", "bold");
+        doc.text(title, 15, y);
+        y += 8;
+  
+        if (reports.length > 0) {
+          reports.forEach(report => {
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Utilisateur: ${report.user_name}`, 20, y);
+            y += 5;
+            doc.text(`Tâches: ${report.taches}`, 20, y);
+            y += 5;
+            if (report.blockage) {
+              doc.text(`Blocage: ${report.blockage}`, 20, y);
+              y += 5;
+            }
+            if (report.solution) {
+              doc.text(`Solution: ${report.solution}`, 20, y);
+              y += 5;
+            }
+            y += 5;
+          });
+        } else {
+          doc.setFontSize(10);
+          doc.text("Aucun rapport disponible.", 20, y);
+          y += 10;
+        }
+      };
+  
+      renderReports("Rapport du Matin", morningReports);
+      renderReports("Rapport du Soir", eveningReports);
+  
+      if (y > 260) {
+        doc.addPage();
+        y = 20;
+      }
+    });
+  
+    // Pied de page propre
+    doc.setDrawColor(220, 220, 220);
+    doc.line(10, 285, 200, 285);
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    doc.text("Généré Eco2logy planning software @kounou gilbert", 105, 290, { align: "center" });
+  
+    doc.save(`rapport-hebdomadaire-${formatDate(weekDates[0])}.pdf`);
   };
   
 
@@ -263,9 +326,7 @@ const WeeklyReports = () => {
             {date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' })}
           </h3>
         </div>
-        
         <div className="divide-y divide-gray-200">
-          {/* Morning Section */}
           <div className="p-3 space-y-3">
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1.5 rounded-full bg-yellow-100">
@@ -285,8 +346,6 @@ const WeeklyReports = () => {
               )}
             </div>
           </div>
-
-          {/* Evening Section */}
           <div className="p-3 space-y-3">
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1.5 rounded-full bg-indigo-100">
@@ -311,45 +370,65 @@ const WeeklyReports = () => {
     );
   };
 
+  // Liste unique des utilisateurs pour le filtre
+  const uniqueUsers = [...new Set(reports.map(report => report.user_name))];
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header with navigation */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm">
           <h1 className="text-2xl font-bold text-gray-900">Rapports Hebdomadaires</h1>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigateWeek('prev')}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              aria-label="Semaine précédente"
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <select
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              className="p-2 border border-gray-300 rounded-md"
             >
-              <ChevronLeft className="w-6 h-6 text-gray-600" />
-            </button>
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-gray-600" />
-              <span className="font-medium text-gray-900">
-                {getWeekDates(currentWeek)[0].toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} - 
-                {getWeekDates(currentWeek)[4].toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-              </span>
+              <option value="all">Tous les utilisateurs</option>
+              {uniqueUsers.map(user => (
+                <option key={user} value={user}>{user}</option>
+              ))}
+            </select>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigateWeek('prev')}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Semaine précédente"
+              >
+                <ChevronLeft className="w-6 h-6 text-gray-600" />
+              </button>
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-gray-600" />
+                <span className="font-medium text-gray-900">
+                  {getWeekDates(currentWeek)[0].toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} - 
+                  {getWeekDates(currentWeek)[4].toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </span>
+              </div>
+              <button
+                onClick={() => navigateWeek('next')}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Semaine suivante"
+              >
+                <ChevronRight className="w-6 h-6 text-gray-600" />
+              </button>
+              <button
+                onClick={() => setIsFormOpen(true)}
+                className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                aria-label="Soumettre un rapport"
+              >
+                <Plus className="w-6 h-6" />
+              </button>
+              <button
+                onClick={exportToPDF}
+                className="p-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors"
+                aria-label="Exporter en PDF"
+              >
+                <Download className="w-6 h-6" />
+              </button>
             </div>
-            <button
-              onClick={() => navigateWeek('next')}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              aria-label="Semaine suivante"
-            >
-              <ChevronRight className="w-6 h-6 text-gray-600" />
-            </button>
-            <button
-              onClick={() => setIsFormOpen(true)}
-              className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
-              aria-label="Soumettre un rapport"
-            >
-              <Plus className="w-6 h-6" />
-            </button>
           </div>
         </div>
-
-        {/* Weekly grid */}
+        
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {getWeekDates(currentWeek).map((date) => (
             <DayColumn key={date.toISOString()} date={date} />
@@ -357,108 +436,106 @@ const WeeklyReports = () => {
         </div>
       </div>
 
-     {/* Formulaire de soumission de rapport */}
-{isFormOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-    <div className="bg-white p-6 rounded-lg w-full max-w-md">
-      <h2 className="text-xl font-bold mb-4">Soumettre un rapport</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Nom d'utilisateur</label>
-          <select
-            name="user_name"
-            value={formData.user_name}
-            onChange={handleInputChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            required
-          >
-            <option value="">Sélectionnez un utilisateur</option>
-            {reports.map(user => (
-              <option key={user.user_id} value={user.user_id}>
-                {user.user_name}
-              </option>
-            ))}
-          </select>
+      {isFormOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Soumettre un rapport</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Nom d'utilisateur</label>
+                <select
+                  name="user_name"
+                  value={formData.user_name}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                  required
+                >
+                  <option value="">Sélectionnez un utilisateur</option>
+                  {reports.map(user => (
+                    <option key={user.user_id} value={user.user_id}>
+                      {user.user_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Tâches</label>
+                <select
+                  name="taches"
+                  value={formData.taches}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                  required
+                >
+                  <option value="">Sélectionnez une tâche</option>
+                  {tasks.map(task => (
+                    <option key={task.id} value={task.libelle}>
+                      {task.libelle}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Date</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Blocage</label>
+                <textarea
+                  name="blockage"
+                  value={formData.blockage}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Solution</label>
+                <textarea
+                  name="solution"
+                  value={formData.solution}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Temps</label>
+                <select
+                  name="temps"
+                  value={formData.temps}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="true">Matin</option>
+                  <option value="false">Soir</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsFormOpen(false)}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                >
+                  Soumettre
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Tâches</label>
-          <select
-            name="taches"
-            value={formData.taches}
-            onChange={handleInputChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            required
-          >
-            <option value="">Sélectionnez une tâche</option>
-            {tasks.map(task => (
-              <option key={task.id} value={task.libelle}>
-                {task.libelle}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Date</label>
-          <input
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleInputChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Blocage</label>
-          <textarea
-            name="blockage"
-            value={formData.blockage}
-            onChange={handleInputChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Solution</label>
-          <textarea
-            name="solution"
-            value={formData.solution}
-            onChange={handleInputChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Temps</label>
-          <select
-            name="temps"
-            value={formData.temps}
-            onChange={handleInputChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-          >
-            <option value="true">Matin</option>
-            <option value="false">Soir</option>
-          </select>
-        </div>
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => setIsFormOpen(false)}
-            className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
-          >
-            Annuler
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-          >
-            Soumettre
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
+      )}
       <ToastContainer />
-
     </div>
   );
 };
