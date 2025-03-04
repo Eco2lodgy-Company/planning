@@ -18,11 +18,15 @@ export async function POST(req:Request) {
 
     // Validation des données obligatoires
     if (!libelle || !niveau || !echeance || !datedebut) {
+      //console.log("body", libelle, niveau, id_user, id_projet, echeance, datedebut, status, departement, priorite);
+
       return NextResponse.json(
+        
         { error: "Les champs libelle, niveau, echeance, et datedebut sont obligatoires." },
         { status: 400 }
       );
     }
+
 
     // Insérer la tâche dans la table `taches`
     const { data, error } = await supabase.from("taches").insert([

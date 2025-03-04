@@ -87,7 +87,7 @@ export default function TaskManagementPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/tasks/', {
+      const response = await fetch('/api/tasks/add/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTask),
