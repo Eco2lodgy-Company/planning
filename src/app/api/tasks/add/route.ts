@@ -18,7 +18,6 @@ export async function POST(req:Request) {
 
     // Validation des données obligatoires
     if (!libelle || !niveau || !echeance || !datedebut) {
-      //console.log("body", libelle, niveau, id_user, id_projet, echeance, datedebut, status, departement, priorite);
 
       return NextResponse.json(
         
