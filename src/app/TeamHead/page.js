@@ -46,110 +46,63 @@ export default function TeamLeaderDashboard() {
 
   //recuperation des information de l'utilisateur connecté
   useEffect(() => {
-    
-    const userIdd=localStorage.getItem('userId');
-    const connectedUser = async () => {
+    const userIdd = localStorage.getItem('userId');
+  
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/profile/' + userIdd);
-        if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
-        const data = await response.json();
-        setUserData(data);
-        
-
+        const [
+          profileRes,
+          agentsCountRes,
+          progressProjectsRes,
+          doneProjectsRes,
+          pendingProjectsRes
+        ] = await Promise.all([
+          fetch(`/api/profile/${userIdd}`),
+          fetch(`/api/headside/agents/count/${userIdd}`),
+          fetch(`/api/headside/projets/count/progress/${userIdd}`),
+          fetch(`/api/headside/projets/count/done/${userIdd}`),
+          fetch(`/api/headside/projets/count/pending/${userIdd}`)
+        ]);
+  
+        if (!profileRes.ok || !agentsCountRes.ok || !progressProjectsRes.ok || !doneProjectsRes.ok || !pendingProjectsRes.ok) {
+          throw new Error('Erreur lors de la récupération des données');
+        }
+  
+        const [
+          profileData,
+          agentsCountData,
+          progressProjectsData,
+          doneProjectsData,
+          pendingProjectsData
+        ] = await Promise.all([
+          profileRes.json(),
+          agentsCountRes.json(),
+          progressProjectsRes.json(),
+          doneProjectsRes.json(),
+          pendingProjectsRes.json()
+        ]);
+  
+        setUserData(profileData);
+        setCountUsers(agentsCountData);
+        setProgressProjects(progressProjectsData);
+        setDoneProjects(doneProjectsData);
+        setPendingProjects(pendingProjectsData);
+  
         if (!toastShown) {
-          toast.success(`bienvenu dans le systeme`);
-          toast.success(`Vous êtes connecter en tant que ${data.nom_complet}`);
+          toast.success(`Bienvenue dans le système`);
+          toast.success(`Vous êtes connecté en tant que ${profileData.nom_complet}`);
           setToastShown(true);
         }
-
       } catch (error) {
         toast.error(error.message);
       } finally {
         setLoading(false);
       }
     };
-    
-    connectedUser();
-
-
-  //appel de l'api pour recuperer le nombre d'agents
-
-  const userCounter = async () => {
-    try {
-      const response = await fetch('/api/headside/agents/count/' + userIdd);
-      if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
-      const data = await response.json();
-      setCountUsers(data);
-
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
   
-  userCounter();
-
-
-  //appel api pour recuperer le nombre de projets en cours
-
-  const inprogressProjects = async () => {
-    try {
-      const response = await fetch('/api/headside/projets/count/progress/' + userIdd);
-      if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
-      const data = await response.json();
-      setProgressProjects(data);
-
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchData();
+  }, [toastShown]);
   
-  inprogressProjects();
-
-
-//appel api pour recuperer les projets terminer
-
-const doneProjects = async () => {
-  try {
-    const response = await fetch('/api/headside/projets/count/done/' + userIdd);
-    if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
-    const data = await response.json();
-    setDoneProjects(data);
-
-  } catch (error) {
-    toast.error(error.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
-doneProjects();
-
-//appel api pour recuperer les projets en attente
-
-//appel api pour recuperer les projets terminer
-
-const pendingProjects = async () => {
-  try {
-    const response = await fetch('/api/headside/projets/count/pending/' + userIdd);
-    if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
-    const data = await response.json();
-    setPendingProjects(data);
-
-  } catch (error) {
-    toast.error(error.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
-pendingProjects();
-
-
-  },[toastShown]); 
   
 
 

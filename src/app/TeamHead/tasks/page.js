@@ -11,6 +11,12 @@ const difficultyLevels = [
   { id: 3, name: 'Difficile' },
 ];
 
+
+
+
+
+
+
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
   'in progress': 'bg-blue-100 text-blue-800',
@@ -36,9 +42,13 @@ export default function TaskManagementPage() {
     status: 'pending',
     priorite: '',
   });
+
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+
+  
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1200);
@@ -106,6 +116,13 @@ export default function TaskManagementPage() {
       setIsSubmitting(false);
     }
   };
+
+  let statusLevel = "";
+if ( tasks.niveau === 1) {
+  statusLevel = "Facile";
+}else if ( tasks.niveau === 2) {
+  statusLevel = "Moyen";
+}else {statusLevel = "Difficile";}
 
   const handleEditTask = (taskId) => {
     const taskToEdit = tasks.find((task) => task.id === taskId);
@@ -225,7 +242,7 @@ export default function TaskManagementPage() {
                       className="hover:bg-gray-50 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{task.libelle}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.niveau}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{statusLevel}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.nom_utilisateur}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.nom_projet}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.nom_departement}</td>
