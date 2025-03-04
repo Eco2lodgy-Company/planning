@@ -1,4 +1,4 @@
-
+"use"
 import { cn } from "@/lib/utils";
 
 interface TaskCardProps {

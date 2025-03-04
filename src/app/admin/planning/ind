@@ -38,26 +38,10 @@ interface Task {
   nom_departement: string;
   priorite: number;
 }
-interface Project {
-  id_projet: number;
-  project_name: string;
-  project_type: number;
-  partenaire: string;
-  echeance: number;
-  chef_projet: number;
-  created_at: string;
-  status: string;
-  departement: number;
-  datedebut:string;
-}
-
 
 // Type pour les tâches assignées
 interface AssignedTasks {
   [key: string]: Task[];
-}
-interface AssignedProjects {
-  [key: string]: Project[];
 }
 
 // Couleurs par défaut pour les utilisateurs
@@ -109,9 +93,7 @@ const projectColors = {
 const Index = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dbTasks, setDbTasks] = useState<Task[]>([]);
-  const [dbProject, setDbProject] = useState<Project[]>([]);
   const [assignedTasks, setAssignedTasks] = useState<AssignedTasks>({});
-  const [assignedProjects, setAssignedProjects] = useState<AssignedProjects>({});
   const [selectedMonth, setSelectedMonth] = useState(getMonth(new Date()));
   const [selectedYear, setSelectedYear] = useState(getYear(new Date()));
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -182,48 +164,10 @@ const Index = () => {
     }
   };
 
-
-  const fetchProjects = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch("/api/projects");
-      const result = await response.json();
-      console.log("API Response:", result);
-      
-      if (response.ok) {
-        // Extraire les données de tâches depuis la réponse API
-        const ProjectsData = Array.isArray(result.data) ? result.data : [];
-        setDbProject(ProjectsData);
-        
-        // Organiser les tâches assignées par employé et date
-        const assignedProjectsMap: AssignedProjects = {};
-        ProjectsData.forEach(pro => {
-          if (pro.chef_projet && pro.datedebut) {
-            const key = `${pro.chef_projet}-${pro.datedebut.substring(0, 10)}`;
-            if (!assignedProjectsMap[key]) {
-              assignedProjectsMap[key] = [];
-            }
-            assignedProjectsMap[key].push(pro);
-          }
-        });
-        setAssignedProjects(assignedProjectsMap);
-      } else {
-        toast.error("Erreur lors de la récupération des tâches.");
-      }
-    } catch (error) {
-      toast.error("Erreur lors de la récupération des données.");
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-      // fetchProjects();
-    }
-  };
-
   // Charger les données au chargement du composant
   useEffect(() => {
     fetchUsers();
     fetchTasks();
-    fetchProjects();
   }, []);
 
   const years = Array.from({ length: 6 }, (_, i) => getYear(new Date()) + i - 2);
@@ -330,10 +274,6 @@ const Index = () => {
   const getTasksForCell = (employeeId: number, day: any) => {
     const key = `${employeeId}-${format(day.date, 'yyyy-MM-dd')}`;
     return assignedTasks[key] || [];
-  };
-  const getProjectsForCell = (employeeId: number, day: any) => {
-    const key = `${employeeId}-${format(day.date, 'yyyy-MM-dd')}`;
-    return assignedProjects[key] || [];
   };
 
   // Vérifier si une tâche est un projet (version modifiée pour Task)
@@ -691,14 +631,14 @@ const Index = () => {
                   </Select>
                 </div>
                 
-                {/* <Button 
+                <Button 
                   variant="outline" 
                   className="h-9 gap-2" 
-                  onClick={()=>{}}
+                  onClick={generatePDF}
                 >
                   <FileDown className="h-4 w-4" />
                   <span>Exporter en PDF</span>
-                </Button> */}
+                </Button>
               </div>
             </div>
 
@@ -729,7 +669,6 @@ const Index = () => {
                     </div>
                     {days.map((day, i) => {
                       const cellTasks = getTasksForCell(user.id_user, day);
-                      const cellProjects = getProjectsForCell(user.id_user, day);
                       return (
                         <div 
                           key={i} 
@@ -742,10 +681,7 @@ const Index = () => {
                             {cellTasks.map((task, j) => (
                               <TaskCard key={j} task={task.libelle} />
                             ))}
-                              {cellProjects.map((pro, j) => (
-                                <TaskCard key={j} task={pro.project_name} />
-                              ))}
-                            {(cellTasks.length + cellProjects.length)  < 3 && (
+                            {cellTasks.length < 3 && (
                               <button 
                                 className="mt-auto text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors flex items-center justify-center gap-1"
                               >
@@ -774,7 +710,6 @@ const Index = () => {
           day={modalData.day}
           tasks={dbTasks}
           selectedTask={selectedTaskId}
-          OnAddProject={fetchProjects}
           onSelectTask={setSelectedTaskId}
           onAddTask={handleAddTask}
         />

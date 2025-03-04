@@ -1,0 +1,9 @@
+import { div } from "framer-motion/client";
+
+export default function TaskPage() {
+    return (
+        <div>
+            <h1>Task Page</h1>
+        </div>
+    )
+}
