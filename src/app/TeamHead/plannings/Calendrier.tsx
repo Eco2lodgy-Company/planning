@@ -86,7 +86,7 @@ const Calendrier = ({ taches, utilisateurs }) => {
   };
 
   return (
-    <div >
+    <div style={{color:'black'}} >
       <select onChange={(e) => setSelectedUser(Number(e.target.value))}>
         <option value="">Sélectionner un utilisateur</option>
         {utilisateurs && utilisateurs.map(user => (
