@@ -10,7 +10,7 @@ export async function GET(req, { params }) {
 
     try {
         const { data, error } = await supabase
-            .rpc('get_user_reports', {user_id_param: userId});
+            .rpc('get_department_reports', {user_id_param: userId});
 
         if (error) {
             return NextResponse.json({ error: error.message }, { status: 500 });
