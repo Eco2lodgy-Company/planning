@@ -1,6 +1,6 @@
 "use client";
 import { AnimatePresence, motion } from "framer-motion";
-import { Calendar, Home, Menu, Settings, Users, X, Sun, Moon, NotebookText,SquareActivity , Clipboard, Archive, FileText, FolderKanban, LogOut } from "lucide-react";
+import { Calendar, Home, Menu, Settings, Users, X,History, Sun, Moon, NotebookText,SquareActivity , Clipboard, Archive, FileText, FolderKanban, LogOut } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
@@ -28,11 +28,7 @@ export default function SIDEBAR() {
 
   // Manage dark mode
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    
   }, [isDarkMode]);
 
  
@@ -63,12 +59,12 @@ export default function SIDEBAR() {
                 <Calendar className="text-blue-500" /> Gestion Planning
               </h1>
               {/* Day/night toggle button */}
-              <button
+              {/* <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className="p-2 rounded-lg transition hover:bg-gray-200 dark:hover:bg-gray-700"
               >
                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
+              </button> */}
             </div>
             <nav className="mt-8">
               <ul className="flex flex-col">
@@ -135,6 +131,14 @@ export default function SIDEBAR() {
                     className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
                   >
                     <SquareActivity  /> Performance
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/admin/history"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
+                  >
+                    <History   /> Historique
                   </a>
                 </li>
                 <li>
