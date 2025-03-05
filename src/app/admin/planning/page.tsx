@@ -151,17 +151,22 @@ const Index = () => {
     setIsLoading(true);
     try {
       const response = await fetch("/api/tache", {
-        cache: "no-store", // Désactive le cache
+        cache: "no-store", // Déjà présent
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
       });
       const result = await response.json();
-      console.log("API Response:", result);
-      
+      console.log("Fetched tasks:", result); // Ajoutez ceci pour debugger
+  
       if (response.ok) {
         const tasksData = Array.isArray(result.data) ? result.data : [];
         setDbTasks(tasksData);
-        
+  
         const assignedTasksMap: AssignedTasks = {};
-        tasksData.forEach(task => {
+        tasksData.forEach((task: Task) => {
           if (task.id_user && task.datedebut) {
             const key = `${task.id_user}-${task.datedebut.substring(0, 10)}`;
             if (!assignedTasksMap[key]) {
@@ -288,33 +293,39 @@ const Index = () => {
 
   const handleAddTask = async () => {
     if (!selectedTaskId || !modalData.employeeId || !modalData.day) return;
-    
+  
     const { employeeId, day } = modalData;
-    
-    // Formater la date au format ISO
-    const formattedDate = format(day.date, 'yyyy-MM-dd');
-    
+    const formattedDate = format(day.date, "yyyy-MM-dd");
+  
     try {
-      // Appeler l'API pour attribuer la tâche
-      const response = await fetch('/api/tache/attribuate', {
-        method: 'PUT',
+      const response = await fetch("/api/tache/attribuate", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           id_user: employeeId,
           datedebut: formattedDate,
-          id_tache: selectedTaskId
+          id_tache: selectedTaskId,
         }),
       });
-      
+  
       const result = await response.json();
-      
+  
       if (response.ok) {
-        // Mettre à jour l'état local avec la nouvelle tâche assignée
         toast.success("Tâche assignée avec succès !");
-        
-        // Rafraîchir les tâches
+  
+        // Mise à jour optimiste de l'état local
+        const newTask = dbTasks.find((task) => task.id_tache === selectedTaskId);
+        if (newTask) {
+          const key = `${employeeId}-${formattedDate}`;
+          setAssignedTasks((prev) => ({
+            ...prev,
+            [key]: [...(prev[key] || []), { ...newTask, datedebut: formattedDate }],
+          }));
+        }
+  
+        // Rafraîchir les données depuis le serveur
         await fetchTasks();
       } else {
         toast.error(`Erreur lors de l'attribution de la tâche: ${result.error}`);
@@ -323,7 +334,7 @@ const Index = () => {
       toast.error("Erreur lors de la communication avec le serveur");
       console.error(error);
     }
-    
+  
     setSelectedTaskId(null);
     setShowTaskModal(false);
   };
