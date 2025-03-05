@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { supabase } from "@/lib/SupabaseClient";
 import { motion, AnimatePresence } from 'framer-motion';
 import { Edit2, Trash2, Search, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
@@ -37,13 +38,30 @@ export default function AgentListPage() {
     toast(`Modifier l'agent ${matricule}`);
   };
 
-  const handleDeleteAgent = (matricule) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet agent ?')) {
-      setAgents(agents.filter(agent => agent.matricule !== matricule));
-      toast.success('Agent supprimé avec succès');
+  const handleDeleteAgent = async (matricule) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet agent ?')) return;
+  
+    try {
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('matricule', matricule);
+  
+      if (error) {
+        console.error('Erreur lors de la suppression:', error);
+        toast.error('Erreur lors de la suppression de l’agent.');
+        return;
+      }
+  
+      // Met à jour l'état local en supprimant l'agent de la liste
+      setAgents((prevAgents) => prevAgents.filter(agent => agent.matricule !== matricule));
+      toast.success('Agent supprimé avec succès !');
+      
+    } catch (err) {
+      console.error('Erreur inattendue:', err);
+      toast.error('Une erreur inattendue est survenue.');
     }
   };
-
   // Filtrage des agents
   const filteredAgents = agents.filter((agent) => {
     const agentName = agent.nom_complet ? agent.nom_complet.toLowerCase() : '';
