@@ -13,6 +13,7 @@ const WeeklyReports = () => {
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [user, setUser] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState('all'); // Filtre par utilisateur
@@ -79,6 +80,22 @@ const WeeklyReports = () => {
     setCurrentWeek(newDate);
   };
 
+
+  //
+  const fetchUser = async () => {
+    const userId = localStorage.getItem('userId');
+    try {
+      const response = await fetch('/api/users/getUserData/' + userId);
+      if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+      const data = await response.json();
+      setUser(data);
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+
+  fetchUser();
+
   useEffect(() => {
     const userId = localStorage.getItem('userId');
 
@@ -108,6 +125,7 @@ const WeeklyReports = () => {
     };
 
     fetchReports();
+    fetchUser();
   }, [currentWeek]);
 
   const getDayReports = (date, isMorning) => {
@@ -451,9 +469,9 @@ const WeeklyReports = () => {
                   required
                 >
                   <option value="">Sélectionnez un utilisateur</option>
-                  {reports.map(user => (
-                    <option key={user.user_id} value={user.user_id}>
-                      {user.user_name}
+                  {user.map(user => (
+                    <option key={user.id_user} value={user.id_user}>
+                      {user.nom_complet}
                     </option>
                   ))}
                 </select>
