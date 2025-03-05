@@ -151,7 +151,7 @@ const Index = () => {
     setIsLoading(true);
     try {
       const response = await fetch("/api/tache", {
-        cache: "no-store", // Déjà présent
+        cache: "no-store",
         headers: {
           "Cache-Control": "no-cache, no-store, must-revalidate",
           Pragma: "no-cache",
@@ -159,12 +159,13 @@ const Index = () => {
         },
       });
       const result = await response.json();
-      console.log("Fetched tasks:", result); // Ajoutez ceci pour debugger
+      console.log("Fetched tasks:", result);
   
       if (response.ok) {
         const tasksData = Array.isArray(result.data) ? result.data : [];
         setDbTasks(tasksData);
   
+        // Recalculer les tâches assignées
         const assignedTasksMap: AssignedTasks = {};
         tasksData.forEach((task: Task) => {
           if (task.id_user && task.datedebut) {
@@ -175,7 +176,7 @@ const Index = () => {
             assignedTasksMap[key].push(task);
           }
         });
-        setAssignedTasks(assignedTasksMap);
+        setAssignedTasks(assignedTasksMap); // Mise à jour complète
       } else {
         toast.error("Erreur lors de la récupération des tâches.");
       }
@@ -297,7 +298,24 @@ const Index = () => {
     const { employeeId, day } = modalData;
     const formattedDate = format(day.date, "yyyy-MM-dd");
   
+    const newTask = dbTasks.find((task) => task.id_tache === selectedTaskId);
+    if (!newTask) return;
+  
     try {
+      // Mise à jour optimiste
+      const key = `${employeeId}-${formattedDate}`;
+      const updatedTask = { ...newTask, datedebut: formattedDate };
+  
+      // Mise à jour des tâches assignées
+      setAssignedTasks((prev) => ({
+        ...prev,
+        [key]: [...(prev[key] || []), updatedTask],
+      }));
+  
+      // Mise à jour de la liste complète des tâches (optionnel, si nécessaire)
+      setDbTasks((prev) => [...prev.map(t => t.id_tache === selectedTaskId ? updatedTask : t)]);
+  
+      // Appel API pour persister les changements
       const response = await fetch("/api/tache/attribuate", {
         method: "PUT",
         headers: {
@@ -314,25 +332,26 @@ const Index = () => {
   
       if (response.ok) {
         toast.success("Tâche assignée avec succès !");
-  
-        // Mise à jour optimiste de l'état local
-        const newTask = dbTasks.find((task) => task.id_tache === selectedTaskId);
-        if (newTask) {
-          const key = `${employeeId}-${formattedDate}`;
-          setAssignedTasks((prev) => ({
-            ...prev,
-            [key]: [...(prev[key] || []), { ...newTask, datedebut: formattedDate }],
-          }));
-        }
-  
-        // Rafraîchir les données depuis le serveur
+        // Rafraîchir les données depuis le serveur pour garantir la synchronisation
         await fetchTasks();
       } else {
         toast.error(`Erreur lors de l'attribution de la tâche: ${result.error}`);
+        // Revenir à l'état précédent en cas d'échec
+        setAssignedTasks((prev) => {
+          const newTasks = { ...prev };
+          newTasks[key] = newTasks[key].filter(t => t.id_tache !== selectedTaskId);
+          return newTasks;
+        });
       }
     } catch (error) {
       toast.error("Erreur lors de la communication avec le serveur");
       console.error(error);
+      // Revenir à l'état précédent en cas d'erreur réseau
+      setAssignedTasks((prev) => {
+        const newTasks = { ...prev };
+        newTasks[key] = newTasks[key].filter(t => t.id_tache !== selectedTaskId);
+        return newTasks;
+      });
     }
   
     setSelectedTaskId(null);
