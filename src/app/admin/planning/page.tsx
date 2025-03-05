@@ -788,7 +788,7 @@ const Index = () => {
           selectedTask={selectedTaskId}
           OnAddProject={fetchProjects}
           onSelectTask={setSelectedTaskId}
-          onAddTask={handleAddTask}
+          onAddTask={fetchTasks}
         />
       )}
     </div>
