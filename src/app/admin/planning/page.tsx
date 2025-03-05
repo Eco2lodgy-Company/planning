@@ -298,24 +298,7 @@ const Index = () => {
     const { employeeId, day } = modalData;
     const formattedDate = format(day.date, "yyyy-MM-dd");
   
-    const newTask = dbTasks.find((task) => task.id_tache === selectedTaskId);
-    if (!newTask) return;
-  
     try {
-      // Mise à jour optimiste
-      const key = `${employeeId}-${formattedDate}`;
-      const updatedTask = { ...newTask, datedebut: formattedDate };
-  
-      // Mise à jour des tâches assignées
-      setAssignedTasks((prev) => ({
-        ...prev,
-        [key]: [...(prev[key] || []), updatedTask],
-      }));
-  
-      // Mise à jour de la liste complète des tâches (optionnel, si nécessaire)
-      setDbTasks((prev) => [...prev.map(t => t.id_tache === selectedTaskId ? updatedTask : t)]);
-  
-      // Appel API pour persister les changements
       const response = await fetch("/api/tache/attribuate", {
         method: "PUT",
         headers: {
@@ -332,26 +315,29 @@ const Index = () => {
   
       if (response.ok) {
         toast.success("Tâche assignée avec succès !");
-        // Rafraîchir les données depuis le serveur pour garantir la synchronisation
-        await fetchTasks();
+  
+        // Utiliser la tâche renvoyée par l'API pour mettre à jour l'état
+        const updatedTask = result.task;
+        const key = `${employeeId}-${formattedDate}`;
+  
+        // Mise à jour de assignedTasks
+        setAssignedTasks((prev) => ({
+          ...prev,
+          [key]: [...(prev[key] || []), updatedTask],
+        }));
+  
+        // Mise à jour de dbTasks (optionnel, si vous voulez garder la liste complète à jour)
+        setDbTasks((prev) =>
+          prev.map((task) =>
+            task.id_tache === updatedTask.id_tache ? updatedTask : task
+          )
+        );
       } else {
         toast.error(`Erreur lors de l'attribution de la tâche: ${result.error}`);
-        // Revenir à l'état précédent en cas d'échec
-        setAssignedTasks((prev) => {
-          const newTasks = { ...prev };
-          newTasks[key] = newTasks[key].filter(t => t.id_tache !== selectedTaskId);
-          return newTasks;
-        });
       }
     } catch (error) {
       toast.error("Erreur lors de la communication avec le serveur");
       console.error(error);
-      // Revenir à l'état précédent en cas d'erreur réseau
-      setAssignedTasks((prev) => {
-        const newTasks = { ...prev };
-        newTasks[key] = newTasks[key].filter(t => t.id_tache !== selectedTaskId);
-        return newTasks;
-      });
     }
   
     setSelectedTaskId(null);
