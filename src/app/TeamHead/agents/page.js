@@ -3,13 +3,13 @@ import { useState, useEffect } from 'react';
 import { supabase } from "@/lib/SupabaseClient";
 import { motion, AnimatePresence } from 'framer-motion';
 import { Edit2, Trash2, Search, ChevronDown } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from 'sonner' ;
 
 const statusColors = {
   'Actif': 'bg-green-100 text-green-800',
   'Inactif': 'bg-gray-100 text-red-800'
 };
-
+ 
 export default function AgentListPage() {
   const [loading, setLoading] = useState(true);
   const [agents, setAgents] = useState([]);
