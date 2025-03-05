@@ -1,6 +1,6 @@
 "use client";
 import { AnimatePresence, motion } from "framer-motion";
-import { Calendar, Home, Menu, Settings, Users, X,History, Sun, Moon, NotebookText,SquareActivity , Clipboard, Archive, FileText, FolderKanban, LogOut } from "lucide-react";
+import { Calendar, Home, Menu, Settings, Users, X,History, Sun, Moon, NotebookText,SquareActivity , Clipboard, Archive, FileText, FolderKanban, LogOut, ListChecks } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
@@ -34,7 +34,7 @@ export default function SIDEBAR() {
  
 
   return (
-    <div>
+    <div className="z-50  top-0 left-0 w-full h-full lg:w-64 lg:h-screen overflow-hidden">
       {/* Button to open/close sidebar */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -107,6 +107,14 @@ export default function SIDEBAR() {
                     className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
                   >
                     <FolderKanban /> Projets
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/admin/task"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
+                  >
+                    <ListChecks /> Taches
                   </a>
                 </li>
                 <li>
