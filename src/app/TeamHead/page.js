@@ -91,9 +91,10 @@ export default function TeamLeaderDashboard() {
         setPendingProjects(pendingProjectsData);
   
         
-          toast.success(`Bienvenue dans le système`);
-          toast.success(`Vous êtes connecté en tant que ${profileData.nom_complet}`);
-          //setToastShown(true);
+          
+          toast.success(<span>Hello !😉 <br />Nous sommes ravis de vous revoir <br/>Vous êtes connecté en tant que {profileData.nom_complet}</span>);
+
+        
         
       } catch (error) {
         toast.error(error.message);
