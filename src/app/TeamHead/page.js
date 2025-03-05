@@ -310,7 +310,6 @@ export default function TeamLeaderDashboard() {
           </motion.div>
         </motion.main>
       </div>
-      <ToastContainer />
       
     </div>
   );
