@@ -37,13 +37,30 @@ export default function AgentListPage() {
     toast(`Modifier l'agent ${matricule}`);
   };
 
-  const handleDeleteAgent = (matricule) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet agent ?')) {
-      setAgents(agents.filter(agent => agent.matricule !== matricule));
-      toast.success('Agent supprimé avec succès');
+  const handleDeleteAgent = async (id_user) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet agent ?')) return;
+  
+    try {
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('matricule', id_user);
+  
+      if (error) {
+        console.error('Erreur lors de la suppression:', error);
+        toast.error('Erreur lors de la suppression de l’agent.');
+        return;
+      }
+  
+      // Met à jour l'état local en supprimant l'agent de la liste
+      setAgents((prevAgents) => prevAgents.filter(agent => agent.matricule !== matricule));
+      toast.success('Agent supprimé avec succès !');
+      
+    } catch (err) {
+      console.error('Erreur inattendue:', err);
+      toast.error('Une erreur inattendue est survenue.');
     }
   };
-
   // Filtrage des agents
   const filteredAgents = agents.filter((agent) => {
     const agentName = agent.nom_complet ? agent.nom_complet.toLowerCase() : '';
@@ -154,7 +171,7 @@ export default function AgentListPage() {
                             <Edit2 className="w-5 h-5" />
                           </button>
                           <button
-                            onClick={() => handleDeleteAgent(agent.matricule)}
+                            onClick={() => handleDeleteAgent(agent.id_user)}
                             className="text-red-500 hover:text-red-700"
                           >
                             <Trash2 className="w-5 h-5" />
