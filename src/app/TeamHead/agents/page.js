@@ -37,14 +37,14 @@ export default function AgentListPage() {
     toast(`Modifier l'agent ${matricule}`);
   };
 
-  const handleDeleteAgent = async (id_user) => {
+  const handleDeleteAgent = async (matricule) => {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet agent ?')) return;
   
     try {
       const { error } = await supabase
         .from('users')
         .delete()
-        .eq('id_user', id_user);
+        .eq('matricule', matricule);
   
       if (error) {
         console.error('Erreur lors de la suppression:', error);
@@ -171,7 +171,7 @@ export default function AgentListPage() {
                             <Edit2 className="w-5 h-5" />
                           </button>
                           <button
-                            onClick={() => handleDeleteAgent(agent.id_user)}
+                            onClick={() => handleDeleteAgent(agent.matricule)}
                             className="text-red-500 hover:text-red-700"
                           >
                             <Trash2 className="w-5 h-5" />
