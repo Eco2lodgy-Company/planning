@@ -44,7 +44,7 @@ export default function AgentListPage() {
       const { error } = await supabase
         .from('users')
         .delete()
-        .eq('matricule', id_user);
+        .eq('id_user', id_user);
   
       if (error) {
         console.error('Erreur lors de la suppression:', error);
