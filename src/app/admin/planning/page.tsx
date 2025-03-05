@@ -150,16 +150,16 @@ const Index = () => {
   const fetchTasks = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/tache");
+      const response = await fetch("/api/tache", {
+        cache: "no-store", // Désactive le cache
+      });
       const result = await response.json();
       console.log("API Response:", result);
       
       if (response.ok) {
-        // Extraire les données de tâches depuis la réponse API
         const tasksData = Array.isArray(result.data) ? result.data : [];
         setDbTasks(tasksData);
         
-        // Organiser les tâches assignées par employé et date
         const assignedTasksMap: AssignedTasks = {};
         tasksData.forEach(task => {
           if (task.id_user && task.datedebut) {
@@ -181,6 +181,7 @@ const Index = () => {
       setIsLoading(false);
     }
   };
+  
 
 
   const fetchProjects = async () => {
