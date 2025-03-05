@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { supabase } from "@/lib/SupabaseClient";
 import { motion, AnimatePresence } from 'framer-motion';
 import { Edit2, Trash2, Search, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
