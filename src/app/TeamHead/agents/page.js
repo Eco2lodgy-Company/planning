@@ -39,6 +39,7 @@ export default function AgentListPage() {
   };
 
   const handleDeleteAgent = async (matricule) => {
+    alert("test du matricule",matricule);
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet agent ?')) return;
   
     try {
