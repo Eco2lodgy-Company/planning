@@ -92,8 +92,8 @@ export default function TeamLeaderDashboard() {
   
         
           
-        toast.success(<span>Hello !😉 <br />Nous sommes ravis de vous revoir <br/>Vous êtes connecté en tant que </span>);
-
+        toast.success(<span>Hello !😉 <br />Nous sommes ravis de vous revoir <br/>Vous êtes connecté en tant que {profileData.nom_complet}</span>);
+        alert(profileData.nom_complet);
         
         
       } catch (error) {
