@@ -117,7 +117,7 @@ const WeeklyReports = () => {
 
     //
   const fetchUser = async () => {
-    //const userId = localStorage.getItem('userId');
+    const userId = localStorage.getItem('userId');
     try {
       const response = await fetch('/api/users/getUserData/' + userId);
       if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
