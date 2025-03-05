@@ -11,7 +11,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return (
       <div className="min-h-screen flex">
         {/* Sidebar */}
-        <NAVBAR/>
+        <NAVBAR />
 
   
         {/* Main Content */}
