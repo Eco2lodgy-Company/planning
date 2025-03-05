@@ -90,11 +90,11 @@ export default function TeamLeaderDashboard() {
         setDoneProjects(doneProjectsData);
         setPendingProjects(pendingProjectsData);
   
-        if (!toastShown) {
+        
           toast.success(`Bienvenue dans le système`);
           toast.success(`Vous êtes connecté en tant que ${profileData.nom_complet}`);
-          setToastShown(true);
-        }
+          //setToastShown(true);
+        
       } catch (error) {
         toast.error(error.message);
       } finally {
