@@ -11,6 +11,8 @@ import {
   User,
   Building2
 } from 'lucide-react';
+import AJouterTache from './add';
+import { ToastContainer } from 'react-toastify';
 
 // Types
 interface Task {
@@ -46,6 +48,7 @@ function TaskManagementPage() {
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [sortField, setSortField] = useState<keyof Task>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [showTaskModal, setShowTaskModal] = useState(false);
   
   // New state for user and department details
   const [userDetails, setUserDetails] = useState<{[key: number]: UserDetail}>({});
@@ -211,8 +214,13 @@ function TaskManagementPage() {
     );
   }
 
+    function HandleAddTask(): void {
+        setShowTaskModal(true);
+    }
+
   return (
     <div className="flex h-screen">
+      <ToastContainer />
       {/* Contenu principal qui occupe l'espace restant */}
       <div className="flex-grow bg-gray-50 p-6 overflow-auto">
         <div className="max-w-7xl mx-auto">
@@ -260,7 +268,7 @@ function TaskManagementPage() {
               </div>
 
               <div className="flex items-center gap-2 justify-end">
-                <button type="submit"> Ajouter une Tache</button>
+                <button type="submit" onClick={HandleAddTask}> Ajouter une Tache</button>
               </div>
             </div>
           </div>
@@ -357,7 +365,15 @@ function TaskManagementPage() {
           </div>
         </div>
       </div>
+      {showTaskModal &&  (
+              <AJouterTache
+                
+                onClose={() => setShowTaskModal(false)}
+                isOpen={showTaskModal}
+              />
+            )}
     </div>
+    
   );
 }
 
