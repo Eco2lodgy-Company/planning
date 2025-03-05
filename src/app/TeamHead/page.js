@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { ResponsiveContainer } from 'recharts';
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast, Toaster } from 'sonner';
+
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, CartesianGrid } from 'recharts';
 
 import {
@@ -141,6 +141,7 @@ export default function TeamLeaderDashboard() {
   }
   return (
     <div className="flex h-screen bg-gray-100">
+      <Toaster position="top-right" />
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
