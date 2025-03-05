@@ -615,7 +615,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col animate-fade-in">
       <header className="bg-white shadow-sm border-b border-slate-200">
-        <div className="container mx-auto p-4 md:px-6 lg:px-8">
+        <div className="container mx-auto p-4 md:px-6 lg:px-8 fixed z-50 ">
           <h1 className="text-2xl font-semibold text-slate-800">Planning Hebdomadaire</h1>
         </div>
       </header>
