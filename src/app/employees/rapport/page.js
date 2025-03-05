@@ -80,20 +80,7 @@ const WeeklyReports = () => {
     setCurrentWeek(newDate);
   };
 
-   //
-   const fetchUser = async () => {
-    const userId = localStorage.getItem('userId');
-    try {
-      const response = await fetch('/api/users/getUserData/' + userId);
-      if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
-      const data = await response.json();
-      setUser(data);
-    } catch (error) {
-      console.error(error.message);
-    }
-  };
-
-  fetchUser();
+   
 
   useEffect(() => {
     const userId = localStorage.getItem('userId');
@@ -122,6 +109,22 @@ const WeeklyReports = () => {
         console.error(error.message);
       }
     };
+
+
+    //
+   const fetchUser = async () => {
+    const userId = localStorage.getItem('userId');
+    try {
+      const response = await fetch('/api/users/getUserData/' + userId);
+      if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+      const data = await response.json();
+      setUser(data);
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+
+  fetchUser();
 
     fetchReports();
     fetchUser();
