@@ -1,10 +1,6 @@
 "use client";
 import { AnimatePresence, motion } from "framer-motion";
-<<<<<<< HEAD
-import { Calendar, Home, Menu, Settings, Users, X,History, Sun, Moon, NotebookText,SquareActivity , Clipboard, Archive, FileText, FolderKanban, LogOut, ListChecks, Shield, AlarmClock, ClipboardMinus } from "lucide-react";
-=======
-import { Calendar, Home, Menu, Settings, Shield,Users, X,History, Sun, Moon, NotebookText,SquareActivity , Clipboard, Archive, FileText, FolderKanban, LogOut, ListChecks } from "lucide-react";
->>>>>>> 27cb1df51b76677ced28212bdb74c519eb6f2a41
+import { Calendar, Home, Menu, Settings, Users, X, History, Sun, Moon, NotebookText, SquareActivity, Clipboard, Archive, FileText, FolderKanban, LogOut, ListChecks, Shield, AlarmClock, ClipboardMinus } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
@@ -129,14 +125,14 @@ export default function SIDEBAR() {
                     <Users /> Utilisateurs
                   </a>
                 </li>
-                <li>
+                {/* <li>
                   <a
                     href="/admin/permission"
                     className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
                   >
                     <Shield /> Permissions
                   </a>
-                </li>
+                </li> */}
                 <li>
                   <a
                     href="/admin/retard"
