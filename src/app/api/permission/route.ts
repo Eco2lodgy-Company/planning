@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const { data, error } = await supabase.from("permissions").select("*");
+    const { data, error } = await supabase
+    .rpc("get_all_permissions");
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });

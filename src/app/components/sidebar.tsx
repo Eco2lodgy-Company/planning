@@ -1,6 +1,6 @@
 "use client";
 import { AnimatePresence, motion } from "framer-motion";
-import { Calendar, Home, Menu, Settings, Users, X,History, Sun, Moon, NotebookText,SquareActivity , Clipboard, Archive, FileText, FolderKanban, LogOut, ListChecks } from "lucide-react";
+import { Calendar, Home, Menu, Settings, Shield,Users, X,History, Sun, Moon, NotebookText,SquareActivity , Clipboard, Archive, FileText, FolderKanban, LogOut, ListChecks } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
@@ -134,6 +134,20 @@ export default function SIDEBAR() {
                   </a>
                 </li>
                 <li>
+
+
+                </li>
+                <li>
+                  <a
+                    href="/admin/permissions"
+                    className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
+                  >
+                    <Shield /> permissions
+                  </a>
+                </li>
+                <li>
+
+                  
                   <a
                     href="/admin/eval"
                     className="flex items-center gap-3 py-2.5 px-4 rounded transition hover:bg-gray-200 dark:hover:bg-gray-700"
