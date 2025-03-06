@@ -63,7 +63,7 @@ export default function PermissionPage() {
       const fetchLeaves = async () => {
         //const userId = localStorage.getItem("userId");
             try {
-              const response = await fetch('/api/permissions');
+              const response = await fetch('/api/permission');
               if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
               const data = await response.json();
               setPermissions(data);
