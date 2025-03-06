@@ -82,19 +82,27 @@ const WeeklyReports = () => {
 
 
   //
-  const fetchUser = async () => {
-    const userId = localStorage.getItem('userId');
-    try {
-      const response = await fetch('/api/users/getUserData/' + userId);
-      if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
-      const data = await response.json();
-      setUser(data);
-    } catch (error) {
-      console.error(error.message);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const userId = localStorage.getItem('userId');
+      if (userId) {
+        const fetchUser = async () => {
+          try {
+            const response = await fetch('/api/users/getUserData/' + userId);
+            if (!response.ok) throw new Error('Erreur lors de la récupération des informations');
+            const data = await response.json();
+            setUser(data);
+          } catch (error) {
+            console.error(error.message);
+          }
+        };
+        fetchUser();
+      } else {
+        router.push('/login');
+      }
     }
-  };
-
-  fetchUser();
+  }, [router]);
+  
 
   useEffect(() => {
     const userId = localStorage.getItem('userId');

@@ -39,6 +39,7 @@ export default function AgentListPage() {
   };
 
   const handleDeleteAgent = async (matricule) => {
+    alert("test du matricule",matricule);
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet agent ?')) return;
   
     try {
@@ -147,7 +148,7 @@ export default function AgentListPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredAgents.map((agent) => (
                     <motion.tr
-                      key={agent.matricule}
+                      key={agent.id_user}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
