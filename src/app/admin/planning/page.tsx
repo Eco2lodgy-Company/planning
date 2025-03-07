@@ -18,7 +18,7 @@ import { TaskModal } from '@/app/components/TaskModal';
 import { TaskCard } from '@/app/components/TaskCard';
 import { toast } from "sonner";
 
-// Définition des interfaces
+// Interfaces
 interface User {
   id_user: number;
   nom_complet: string;
@@ -60,7 +60,7 @@ interface AssignedProjects {
   [key: string]: Project[];
 }
 
-// Couleurs par défaut pour les utilisateurs
+// Couleurs (inchangées)
 const defaultColors = [
   { color: 'bg-blue-100 border-blue-200 text-blue-800', pdfColor: '#ebf8ff' },
   { color: 'bg-emerald-100 border-emerald-200 text-emerald-800', pdfColor: '#e6fffa' },
@@ -71,7 +71,6 @@ const defaultColors = [
   { color: 'bg-lime-100 border-lime-200 text-lime-800', pdfColor: '#f0fff4' }
 ];
 
-// Couleurs associées aux tâches pour le PDF
 const taskColors = {
   "Développement frontend": { color: '#2b6cb0', bgColor: '#ebf8ff' },
   "Développement backend": { color: '#2c7a7b', bgColor: '#e6fffa' },
@@ -90,7 +89,6 @@ const taskColors = {
   "Optimisation": { color: '#2c7a7b', bgColor: '#e6fffa' }
 };
 
-// Couleurs pour les projets dans le PDF
 const projectColors = {
   "Refonte site web": { color: '#1a365d', bgColor: '#e2e8f0' },
   "Application mobile": { color: '#276749', bgColor: '#e6fffa' },
@@ -120,7 +118,6 @@ const Index = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Récupérer les utilisateurs depuis l'API
   const fetchUsers = async () => {
     try {
       const response = await fetch("/api/users");
@@ -142,7 +139,6 @@ const Index = () => {
     }
   };
 
-  // Récupérer les tâches depuis l'API
   const fetchTasks = async () => {
     try {
       const response = await fetch("/api/tache", {
@@ -181,7 +177,6 @@ const Index = () => {
     }
   };
 
-  // Récupérer les projets depuis l'API
   const fetchProjects = async () => {
     try {
       const response = await fetch("/api/projects");
@@ -212,7 +207,6 @@ const Index = () => {
     }
   };
 
-  // Charger les données au montage avec parallélisation
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -281,6 +275,7 @@ const Index = () => {
     setShowTaskModal(true);
   };
 
+  // Nouvelle logique d'assignation des tâches, inspirée de fetchProjects
   const handleAddTask = async () => {
     if (!selectedTaskId || !modalData.employeeId || !modalData.day) return;
 
@@ -288,6 +283,7 @@ const Index = () => {
     const formattedDate = format(day.date, "yyyy-MM-dd");
 
     try {
+      // Étape 1 : Assigner la tâche via l'API
       const response = await fetch("/api/tache/attribuate", {
         method: "PUT",
         headers: {
@@ -304,13 +300,19 @@ const Index = () => {
 
       if (response.ok) {
         toast.success("Tâche assignée avec succès !");
-        await fetchTasks(); // Attendre la mise à jour des tâches
+
+        // Étape 2 : Recharger toutes les tâches pour synchroniser l'état, comme pour les projets
+        await fetchTasks();
+
+        // Vérification : S'assurer que la tâche assignée est bien dans assignedTasks
+        const key = `${employeeId}-${formattedDate}`;
+        console.log("Tasks for key after assignment:", assignedTasks[key]);
       } else {
         toast.error(`Erreur lors de l'attribution de la tâche: ${result.error}`);
       }
     } catch (error) {
       toast.error("Erreur lors de la communication avec le serveur");
-      console.error(error);
+      console.error("Erreur lors de l'assignation:", error);
     }
 
     setSelectedTaskId(null);
@@ -319,6 +321,7 @@ const Index = () => {
 
   const getTasksForCell = (employeeId: number, day: any) => {
     const key = `${employeeId}-${format(day.date, 'yyyy-MM-dd')}`;
+    console.log(`Tasks for ${key}:`, assignedTasks[key]); // Log pour débogage
     return assignedTasks[key] || [];
   };
 
