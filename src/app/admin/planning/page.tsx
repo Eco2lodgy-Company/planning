@@ -114,7 +114,7 @@ const Index = () => {
         const tasksData = Array.isArray(result.data) ? result.data : [];
         setDbTasks(tasksData);
 
-        const assignedTasksMap = {};
+        const assignedTasksMap: { [key: string]: any[] } = {};
         tasksData.forEach((task) => {
           if (task.id_user && task.datedebut) {
             const key = `${task.id_user}-${task.datedebut.substring(0, 10)}`;
@@ -126,7 +126,7 @@ const Index = () => {
         });
         setAssignedTasks(assignedTasksMap);
         console.log("Updated assignedTasks:", assignedTasksMap);
-        alert(assignedTasksMap);
+        alert(assignedTasksMap.libelle);
         return tasksData; // Retourner les données pour vérification dans handleAddTask
       } else {
         toast.error("Erreur lors de la récupération des tâches.");
