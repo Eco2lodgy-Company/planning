@@ -126,6 +126,7 @@ const Index = () => {
         });
         setAssignedTasks(assignedTasksMap);
         console.log("Updated assignedTasks:", assignedTasksMap);
+        alert(assignedTasksMap);
         return tasksData; // Retourner les données pour vérification dans handleAddTask
       } else {
         toast.error("Erreur lors de la récupération des tâches.");
