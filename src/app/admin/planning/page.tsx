@@ -18,49 +18,7 @@ import { TaskModal } from '@/app/components/TaskModal';
 import { TaskCard } from '@/app/components/TaskCard';
 import { toast } from "sonner";
 
-// Interfaces
-interface User {
-  id_user: number;
-  nom_complet: string;
-  color?: string;
-  pdfColor?: string;
-}
-
-interface Task {
-  id_tache: number;
-  libelle: string;
-  niveau: number;
-  id_user: number;
-  id_projet: number;
-  echeance: number;
-  datedebut: string;
-  status: string;
-  nom_departement: string;
-  priorite: number;
-}
-
-interface Project {
-  id_projet: number;
-  project_name: string;
-  project_type: number;
-  partenaire: string;
-  echeance: number;
-  chef_projet: number;
-  created_at: string;
-  status: string;
-  departement: number;
-  datedebut: string;
-}
-
-interface AssignedTasks {
-  [key: string]: Task[];
-}
-
-interface AssignedProjects {
-  [key: string]: Project[];
-}
-
-// Couleurs (inchangées)
+// Couleurs par défaut pour les utilisateurs
 const defaultColors = [
   { color: 'bg-blue-100 border-blue-200 text-blue-800', pdfColor: '#ebf8ff' },
   { color: 'bg-emerald-100 border-emerald-200 text-emerald-800', pdfColor: '#e6fffa' },
@@ -71,6 +29,7 @@ const defaultColors = [
   { color: 'bg-lime-100 border-lime-200 text-lime-800', pdfColor: '#f0fff4' }
 ];
 
+// Couleurs associées aux tâches pour le PDF
 const taskColors = {
   "Développement frontend": { color: '#2b6cb0', bgColor: '#ebf8ff' },
   "Développement backend": { color: '#2c7a7b', bgColor: '#e6fffa' },
@@ -89,6 +48,7 @@ const taskColors = {
   "Optimisation": { color: '#2c7a7b', bgColor: '#e6fffa' }
 };
 
+// Couleurs pour les projets dans le PDF
 const projectColors = {
   "Refonte site web": { color: '#1a365d', bgColor: '#e2e8f0' },
   "Application mobile": { color: '#276749', bgColor: '#e6fffa' },
@@ -106,24 +66,25 @@ const projectColors = {
 
 const Index = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [dbTasks, setDbTasks] = useState<Task[]>([]);
-  const [dbProject, setDbProject] = useState<Project[]>([]);
-  const [assignedTasks, setAssignedTasks] = useState<AssignedTasks>({});
-  const [assignedProjects, setAssignedProjects] = useState<AssignedProjects>({});
+  const [dbTasks, setDbTasks] = useState([]);
+  const [dbProject, setDbProject] = useState([]);
+  const [assignedTasks, setAssignedTasks] = useState({});
+  const [assignedProjects, setAssignedProjects] = useState({});
   const [selectedMonth, setSelectedMonth] = useState(getMonth(new Date()));
   const [selectedYear, setSelectedYear] = useState(getYear(new Date()));
   const [showTaskModal, setShowTaskModal] = useState(false);
-  const [modalData, setModalData] = useState<{ employeeId: number | null, day: any }>({ employeeId: null, day: null });
-  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
+  const [modalData, setModalData] = useState({ employeeId: null, day: null });
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Récupérer les utilisateurs depuis l'API
   const fetchUsers = async () => {
     try {
       const response = await fetch("/api/users");
       const result = await response.json();
       if (response.ok) {
-        const usersWithColors = result.map((user: User, index: number) => ({
+        const usersWithColors = result.map((user, index) => ({
           ...user,
           color: defaultColors[index % defaultColors.length].color,
           pdfColor: defaultColors[index % defaultColors.length].pdfColor
@@ -139,6 +100,7 @@ const Index = () => {
     }
   };
 
+  // Récupérer les tâches depuis l'API
   const fetchTasks = async () => {
     try {
       const response = await fetch("/api/tache", {
@@ -156,8 +118,8 @@ const Index = () => {
         const tasksData = Array.isArray(result.data) ? result.data : [];
         setDbTasks(tasksData);
 
-        const assignedTasksMap: AssignedTasks = {};
-        tasksData.forEach((task: Task) => {
+        const assignedTasksMap = {};
+        tasksData.forEach((task) => {
           if (task.id_user && task.datedebut) {
             const key = `${task.id_user}-${task.datedebut.substring(0, 10)}`;
             if (!assignedTasksMap[key]) {
@@ -177,6 +139,7 @@ const Index = () => {
     }
   };
 
+  // Récupérer les projets depuis l'API
   const fetchProjects = async () => {
     try {
       const response = await fetch("/api/projects");
@@ -187,8 +150,8 @@ const Index = () => {
         const projectsData = Array.isArray(result.data) ? result.data : [];
         setDbProject(projectsData);
 
-        const assignedProjectsMap: AssignedProjects = {};
-        projectsData.forEach((pro: Project) => {
+        const assignedProjectsMap = {};
+        projectsData.forEach((pro) => {
           if (pro.chef_projet && pro.datedebut) {
             const key = `${pro.chef_projet}-${pro.datedebut.substring(0, 10)}`;
             if (!assignedProjectsMap[key]) {
@@ -207,6 +170,7 @@ const Index = () => {
     }
   };
 
+  // Charger les données au montage avec parallélisation
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -233,7 +197,7 @@ const Index = () => {
     };
   });
 
-  const changeWeek = (direction: number) => {
+  const changeWeek = (direction) => {
     const newDate = new Date(currentDate);
     newDate.setDate(currentDate.getDate() + (direction * 7));
     if (
@@ -245,25 +209,25 @@ const Index = () => {
     setCurrentDate(newDate);
   };
 
-  const handleMonthChange = (value: string) => {
+  const handleMonthChange = (value) => {
     const month = parseInt(value, 10);
     setSelectedMonth(month);
     updateCurrentDateForFilters(month, selectedYear);
   };
 
-  const handleYearChange = (value: string) => {
+  const handleYearChange = (value) => {
     const year = parseInt(value, 10);
     setSelectedYear(year);
     updateCurrentDateForFilters(selectedMonth, year);
   };
 
-  const updateCurrentDateForFilters = (month: number, year: number) => {
+  const updateCurrentDateForFilters = (month, year) => {
     const newDate = new Date(year, month, 1);
     const firstMonday = startOfWeek(newDate, { weekStartsOn: 1 });
     setCurrentDate(firstMonday);
   };
 
-  const handleCellClick = (employeeId: number, day: any) => {
+  const handleCellClick = (employeeId, day) => {
     const key = `${employeeId}-${format(day.date, 'yyyy-MM-dd')}`;
     const currentTasks = assignedTasks[key] || [];
     if (currentTasks.length >= 3) {
@@ -275,7 +239,6 @@ const Index = () => {
     setShowTaskModal(true);
   };
 
-  // Nouvelle logique d'assignation des tâches, inspirée de fetchProjects
   const handleAddTask = async () => {
     if (!selectedTaskId || !modalData.employeeId || !modalData.day) return;
 
@@ -283,7 +246,6 @@ const Index = () => {
     const formattedDate = format(day.date, "yyyy-MM-dd");
 
     try {
-      // Étape 1 : Assigner la tâche via l'API
       const response = await fetch("/api/tache/attribuate", {
         method: "PUT",
         headers: {
@@ -300,11 +262,7 @@ const Index = () => {
 
       if (response.ok) {
         toast.success("Tâche assignée avec succès !");
-
-        // Étape 2 : Recharger toutes les tâches pour synchroniser l'état, comme pour les projets
         await fetchTasks();
-
-        // Vérification : S'assurer que la tâche assignée est bien dans assignedTasks
         const key = `${employeeId}-${formattedDate}`;
         console.log("Tasks for key after assignment:", assignedTasks[key]);
       } else {
@@ -319,22 +277,22 @@ const Index = () => {
     setShowTaskModal(false);
   };
 
-  const getTasksForCell = (employeeId: number, day: any) => {
+  const getTasksForCell = (employeeId, day) => {
     const key = `${employeeId}-${format(day.date, 'yyyy-MM-dd')}`;
-    console.log(`Tasks for ${key}:`, assignedTasks[key]); // Log pour débogage
+    console.log(`Tasks for ${key}:`, assignedTasks[key]);
     return assignedTasks[key] || [];
   };
 
-  const getProjectsForCell = (employeeId: number, day: any) => {
+  const getProjectsForCell = (employeeId, day) => {
     const key = `${employeeId}-${format(day.date, 'yyyy-MM-dd')}`;
     return assignedProjects[key] || [];
   };
 
-  const isProject = (task: Task): boolean => {
+  const isProject = (task) => {
     return task.libelle.startsWith('Projet:') || task.libelle.includes(' - Projet');
   };
 
-  const extractProjectName = (task: Task): string => {
+  const extractProjectName = (task) => {
     if (task.libelle.startsWith('Projet:')) {
       return task.libelle.substring(8).trim();
     } else if (task.libelle.includes(' - Projet')) {
@@ -343,14 +301,12 @@ const Index = () => {
     return task.libelle;
   };
 
-  const getTaskOrProjectColor = (task: Task) => {
+  const getTaskOrProjectColor = (task) => {
     if (isProject(task)) {
       const projectName = extractProjectName(task);
-      return projectColors[projectName as keyof typeof projectColors] || 
-             { color: '#4a5568', bgColor: '#f7fafc' };
+      return projectColors[projectName] || { color: '#4a5568', bgColor: '#f7fafc' };
     } else {
-      return taskColors[task.libelle as keyof typeof taskColors] || 
-             { color: '#4a5568', bgColor: '#f7fafc' };
+      return taskColors[task.libelle] || { color: '#4a5568', bgColor: '#f7fafc' };
     }
   };
 
@@ -388,7 +344,7 @@ const Index = () => {
       return userRow;
     });
 
-    (doc as any).autoTable({
+    doc.autoTable({
       head: tableHead,
       body: tableBody,
       startY: 40,
@@ -435,7 +391,7 @@ const Index = () => {
           if (cellTasks.length > 0) {
             let yOffset = data.cell.y + 5;
             
-            cellTasks.forEach((task, i) => {
+            cellTasks.forEach((task) => {
               const taskColor = getTaskOrProjectColor(task);
               if (taskColor) {
                 const { r, g, b } = hexToRgb(taskColor.bgColor);
@@ -477,7 +433,7 @@ const Index = () => {
       },
     });
     
-    const legendY = (doc as any).autoTable.previous.finalY + 15;
+    const legendY = doc.autoTable.previous.finalY + 15;
     doc.setFontSize(10);
     doc.setTextColor(45, 55, 72);
     doc.text("Légende:", 20, legendY);
@@ -490,8 +446,8 @@ const Index = () => {
     currentY += 5;
     
     const legendTasks = ["Développement frontend", "Réunion client", "Documentation"];
-    legendTasks.forEach((task, i) => {
-      const taskColor = taskColors[task as keyof typeof taskColors];
+    legendTasks.forEach((task) => {
+      const taskColor = taskColors[task];
       if (taskColor) {
         const { r, g, b } = hexToRgb(taskColor.bgColor);
         doc.setFillColor(r, g, b);
@@ -511,8 +467,8 @@ const Index = () => {
     currentY += 5;
     
     const legendProjects = ["Refonte site web", "Application mobile", "Dashboard analytique"];
-    legendProjects.forEach((project, i) => {
-      const projectColor = projectColors[project as keyof typeof projectColors];
+    legendProjects.forEach((project) => {
+      const projectColor = projectColors[project];
       if (projectColor) {
         const { r, g, b } = hexToRgb(projectColor.bgColor);
         doc.setFillColor(r, g, b);
@@ -535,7 +491,7 @@ const Index = () => {
     doc.text("Employés:", legendX, currentY);
     currentY += 5;
     
-    users.forEach((user, i) => {
+    users.forEach((user) => {
       if (user.pdfColor) {
         const { r, g, b } = hexToRgb(user.pdfColor);
         doc.setFillColor(r, g, b);
@@ -560,7 +516,7 @@ const Index = () => {
     toast.success("Le PDF a été généré avec succès !");
   };
 
-  const hexToRgb = (hex: string) => {
+  const hexToRgb = (hex) => {
     const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
     hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
     
@@ -587,7 +543,7 @@ const Index = () => {
     { value: "11", label: "Décembre" }
   ];
 
-  const getEmployeeBackgroundColor = (employeeId: number) => {
+  const getEmployeeBackgroundColor = (employeeId) => {
     const user = users.find(u => u.id_user === employeeId);
     if (!user || !user.color) return 'bg-slate-50/10';
     return user.color.split(' ')[0] + '/10';
