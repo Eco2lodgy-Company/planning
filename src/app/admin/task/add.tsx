@@ -270,7 +270,7 @@ export default function AjouterTache({
                 value={newTask.id_user || ""}
                 onChange={(e) => setNewTask({ ...newTask, id_user: Number(e.target.value) })}
                 className="w-full p-2 border rounded-lg"
-                required
+                
               >
                 <option value="">Sélectionnez un utilisateur</option>
                 {users.map((user) => (
