@@ -317,6 +317,8 @@ const Index = () => {
         toast.success("Tâche assignée avec succès !");
   
         // Utiliser la tâche renvoyée par l'API pour mettre à jour l'état
+        fetchTasks();
+
         const updatedTask = result.task;
         const key = `${employeeId}-${formattedDate}`;
   
