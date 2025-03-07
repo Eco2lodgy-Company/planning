@@ -18,7 +18,7 @@ import { TaskModal } from '@/app/components/TaskModal';
 import { TaskCard } from '@/app/components/TaskCard';
 import { toast } from "sonner";
 
-// Couleurs par défaut pour les utilisateurs
+// Couleurs (inchangées)
 const defaultColors = [
   { color: 'bg-blue-100 border-blue-200 text-blue-800', pdfColor: '#ebf8ff' },
   { color: 'bg-emerald-100 border-emerald-200 text-emerald-800', pdfColor: '#e6fffa' },
@@ -29,7 +29,6 @@ const defaultColors = [
   { color: 'bg-lime-100 border-lime-200 text-lime-800', pdfColor: '#f0fff4' }
 ];
 
-// Couleurs associées aux tâches pour le PDF
 const taskColors = {
   "Développement frontend": { color: '#2b6cb0', bgColor: '#ebf8ff' },
   "Développement backend": { color: '#2c7a7b', bgColor: '#e6fffa' },
@@ -48,7 +47,6 @@ const taskColors = {
   "Optimisation": { color: '#2c7a7b', bgColor: '#e6fffa' }
 };
 
-// Couleurs pour les projets dans le PDF
 const projectColors = {
   "Refonte site web": { color: '#1a365d', bgColor: '#e2e8f0' },
   "Application mobile": { color: '#276749', bgColor: '#e6fffa' },
@@ -78,7 +76,6 @@ const Index = () => {
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Récupérer les utilisateurs depuis l'API
   const fetchUsers = async () => {
     try {
       const response = await fetch("/api/users");
@@ -100,15 +97,14 @@ const Index = () => {
     }
   };
 
-  // Récupérer les tâches depuis l'API
   const fetchTasks = async () => {
     try {
       const response = await fetch("/api/tache", {
         cache: "no-store",
         headers: {
           "Cache-Control": "no-cache, no-store, must-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
+          "Pragma": "no-cache",
+          "Expires": "0",
         },
       });
       const result = await response.json();
@@ -130,16 +126,18 @@ const Index = () => {
         });
         setAssignedTasks(assignedTasksMap);
         console.log("Updated assignedTasks:", assignedTasksMap);
+        return tasksData; // Retourner les données pour vérification dans handleAddTask
       } else {
         toast.error("Erreur lors de la récupération des tâches.");
+        return null;
       }
     } catch (error) {
       toast.error("Erreur lors de la récupération des données.");
       console.error(error);
+      return null;
     }
   };
 
-  // Récupérer les projets depuis l'API
   const fetchProjects = async () => {
     try {
       const response = await fetch("/api/projects");
@@ -170,7 +168,6 @@ const Index = () => {
     }
   };
 
-  // Charger les données au montage avec parallélisation
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -246,6 +243,7 @@ const Index = () => {
     const formattedDate = format(day.date, "yyyy-MM-dd");
 
     try {
+      // Étape 1 : Assigner la tâche
       const response = await fetch("/api/tache/attribuate", {
         method: "PUT",
         headers: {
@@ -260,21 +258,37 @@ const Index = () => {
 
       const result = await response.json();
 
-      if (response.ok) {
-        toast.success("Tâche assignée avec succès !");
-        await fetchTasks();
-        const key = `${employeeId}-${formattedDate}`;
-        console.log("Tasks for key after assignment:", assignedTasks[key]);
-      } else {
+      if (!response.ok) {
         toast.error(`Erreur lors de l'attribution de la tâche: ${result.error}`);
+        return;
       }
+
+      toast.success("Tâche assignée avec succès !");
+
+      // Étape 2 : Recharger les tâches et attendre la mise à jour
+      const updatedTasks = await fetchTasks();
+
+      // Étape 3 : Vérifier que la tâche assignée est bien présente
+      if (updatedTasks) {
+        const key = `${employeeId}-${formattedDate}`;
+        const assigned = updatedTasks.find(
+          (task) => task.id_tache === selectedTaskId && task.id_user === employeeId && task.datedebut === formattedDate
+        );
+        if (!assigned) {
+          console.warn("Tâche assignée non trouvée dans les données rechargées:", { key, selectedTaskId });
+          toast.warning("La tâche a été assignée mais n'apparaît pas encore. Veuillez patienter ou recharger.");
+        } else {
+          console.log("Tâche assignée confirmée:", assigned);
+        }
+      }
+
+      // Étape 4 : Fermer le modal uniquement après mise à jour
+      setSelectedTaskId(null);
+      setShowTaskModal(false);
     } catch (error) {
       toast.error("Erreur lors de la communication avec le serveur");
       console.error("Erreur lors de l'assignation:", error);
     }
-
-    setSelectedTaskId(null);
-    setShowTaskModal(false);
   };
 
   const getTasksForCell = (employeeId, day) => {
