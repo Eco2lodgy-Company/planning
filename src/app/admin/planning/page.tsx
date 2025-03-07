@@ -38,6 +38,7 @@ interface Task {
   nom_departement: string;
   priorite: number;
 }
+
 interface Project {
   id_projet: number;
   project_name: string;
@@ -48,14 +49,13 @@ interface Project {
   created_at: string;
   status: string;
   departement: number;
-  datedebut:string;
+  datedebut: string;
 }
 
-
-// Type pour les tâches assignées
 interface AssignedTasks {
   [key: string]: Task[];
 }
+
 interface AssignedProjects {
   [key: string]: Project[];
 }
@@ -90,7 +90,7 @@ const taskColors = {
   "Optimisation": { color: '#2c7a7b', bgColor: '#e6fffa' }
 };
 
-// Nouvelles couleurs pour les projets dans le PDF
+// Couleurs pour les projets dans le PDF
 const projectColors = {
   "Refonte site web": { color: '#1a365d', bgColor: '#e2e8f0' },
   "Application mobile": { color: '#276749', bgColor: '#e6fffa' },
@@ -122,12 +122,10 @@ const Index = () => {
 
   // Récupérer les utilisateurs depuis l'API
   const fetchUsers = async () => {
-    setIsLoading(true);
     try {
       const response = await fetch("/api/users");
       const result = await response.json();
       if (response.ok) {
-        // Assigner des couleurs aux utilisateurs
         const usersWithColors = result.map((user: User, index: number) => ({
           ...user,
           color: defaultColors[index % defaultColors.length].color,
@@ -136,19 +134,16 @@ const Index = () => {
         setUsers(usersWithColors);
       } else {
         toast.error("Erreur lors de la récupération des utilisateurs");
-        console.error("Erreur lors de la récupération des utilisateurs:", result.message);
+        console.error("Erreur:", result.message);
       }
     } catch (error) {
       toast.error("Erreur réseau lors de la récupération des utilisateurs");
-      console.error("Erreur réseau lors de la récupération des utilisateurs:", error);
-    } finally {
-      setIsLoading(false);
+      console.error("Erreur réseau:", error);
     }
   };
-   
+
   // Récupérer les tâches depuis l'API
   const fetchTasks = async () => {
-    setIsLoading(true);
     try {
       const response = await fetch("/api/tache", {
         cache: "no-store",
@@ -160,12 +155,11 @@ const Index = () => {
       });
       const result = await response.json();
       console.log("Fetched tasks:", result);
-  
+
       if (response.ok) {
         const tasksData = Array.isArray(result.data) ? result.data : [];
         setDbTasks(tasksData);
-  
-        // Recalculer les tâches assignées
+
         const assignedTasksMap: AssignedTasks = {};
         tasksData.forEach((task: Task) => {
           if (task.id_user && task.datedebut) {
@@ -176,35 +170,30 @@ const Index = () => {
             assignedTasksMap[key].push(task);
           }
         });
-        setAssignedTasks(assignedTasksMap); // Mise à jour complète
+        setAssignedTasks(assignedTasksMap);
+        console.log("Updated assignedTasks:", assignedTasksMap);
       } else {
         toast.error("Erreur lors de la récupération des tâches.");
       }
     } catch (error) {
       toast.error("Erreur lors de la récupération des données.");
       console.error(error);
-    } finally {
-      setIsLoading(false);
     }
   };
-  
 
-
+  // Récupérer les projets depuis l'API
   const fetchProjects = async () => {
-    setIsLoading(true);
     try {
       const response = await fetch("/api/projects");
       const result = await response.json();
-      console.log("API Response:", result);
-      
+      console.log("Fetched projects:", result);
+
       if (response.ok) {
-        // Extraire les données de tâches depuis la réponse API
-        const ProjectsData = Array.isArray(result.data) ? result.data : [];
-        setDbProject(ProjectsData);
-        
-        // Organiser les tâches assignées par employé et date
+        const projectsData = Array.isArray(result.data) ? result.data : [];
+        setDbProject(projectsData);
+
         const assignedProjectsMap: AssignedProjects = {};
-        ProjectsData.forEach(pro => {
+        projectsData.forEach((pro: Project) => {
           if (pro.chef_projet && pro.datedebut) {
             const key = `${pro.chef_projet}-${pro.datedebut.substring(0, 10)}`;
             if (!assignedProjectsMap[key]) {
@@ -215,22 +204,27 @@ const Index = () => {
         });
         setAssignedProjects(assignedProjectsMap);
       } else {
-        toast.error("Erreur lors de la récupération des tâches.");
+        toast.error("Erreur lors de la récupération des projets.");
       }
     } catch (error) {
       toast.error("Erreur lors de la récupération des données.");
       console.error(error);
-    } finally {
-      setIsLoading(false);
-      // fetchProjects();
     }
   };
 
-  // Charger les données au chargement du composant
+  // Charger les données au montage avec parallélisation
   useEffect(() => {
-    fetchUsers();
-    fetchTasks();
-    fetchProjects();
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([fetchUsers(), fetchTasks(), fetchProjects()]);
+      } catch (error) {
+        console.error("Erreur lors du chargement initial:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
   }, []);
 
   const years = Array.from({ length: 6 }, (_, i) => getYear(new Date()) + i - 2);
@@ -241,21 +235,19 @@ const Index = () => {
       date,
       label: format(date, 'EEEE', { locale: fr }),
       formattedDate: format(date, 'dd/MM/yyyy'),
-      isWeekend: i >= 5 // Samedi (5) et dimanche (6) sont des week-ends
+      isWeekend: i >= 5
     };
   });
 
   const changeWeek = (direction: number) => {
     const newDate = new Date(currentDate);
     newDate.setDate(currentDate.getDate() + (direction * 7));
-    
     if (
       (selectedMonth !== null && getMonth(newDate) !== selectedMonth) ||
       (selectedYear !== null && getYear(newDate) !== selectedYear)
     ) {
       return;
     }
-    
     setCurrentDate(newDate);
   };
 
@@ -280,13 +272,10 @@ const Index = () => {
   const handleCellClick = (employeeId: number, day: any) => {
     const key = `${employeeId}-${format(day.date, 'yyyy-MM-dd')}`;
     const currentTasks = assignedTasks[key] || [];
-    
-    // Vérifier si le nombre maximum de tâches est atteint
     if (currentTasks.length >= 3) {
       toast.warning('Maximum 3 tâches par jour et par employé');
       return;
     }
-    
     setModalData({ employeeId, day });
     setSelectedTaskId(dbTasks.length > 0 ? dbTasks[0].id_tache : null);
     setShowTaskModal(true);
@@ -294,10 +283,10 @@ const Index = () => {
 
   const handleAddTask = async () => {
     if (!selectedTaskId || !modalData.employeeId || !modalData.day) return;
-  
+
     const { employeeId, day } = modalData;
     const formattedDate = format(day.date, "yyyy-MM-dd");
-  
+
     try {
       const response = await fetch("/api/tache/attribuate", {
         method: "PUT",
@@ -310,30 +299,12 @@ const Index = () => {
           id_tache: selectedTaskId,
         }),
       });
-  
+
       const result = await response.json();
-  
+
       if (response.ok) {
         toast.success("Tâche assignée avec succès !");
-  
-        // Utiliser la tâche renvoyée par l'API pour mettre à jour l'état
-        fetchTasks();
-
-        const updatedTask = result.task;
-        const key = `${employeeId}-${formattedDate}`;
-  
-        // Mise à jour de assignedTasks
-        setAssignedTasks((prev) => ({
-          ...prev,
-          [key]: [...(prev[key] || []), updatedTask],
-        }));
-  
-        // Mise à jour de dbTasks (optionnel, si vous voulez garder la liste complète à jour)
-        setDbTasks((prev) =>
-          prev.map((task) =>
-            task.id_tache === updatedTask.id_tache ? updatedTask : task
-          )
-        );
+        await fetchTasks(); // Attendre la mise à jour des tâches
       } else {
         toast.error(`Erreur lors de l'attribution de la tâche: ${result.error}`);
       }
@@ -341,7 +312,7 @@ const Index = () => {
       toast.error("Erreur lors de la communication avec le serveur");
       console.error(error);
     }
-  
+
     setSelectedTaskId(null);
     setShowTaskModal(false);
   };
@@ -350,17 +321,16 @@ const Index = () => {
     const key = `${employeeId}-${format(day.date, 'yyyy-MM-dd')}`;
     return assignedTasks[key] || [];
   };
+
   const getProjectsForCell = (employeeId: number, day: any) => {
     const key = `${employeeId}-${format(day.date, 'yyyy-MM-dd')}`;
     return assignedProjects[key] || [];
   };
 
-  // Vérifier si une tâche est un projet (version modifiée pour Task)
   const isProject = (task: Task): boolean => {
     return task.libelle.startsWith('Projet:') || task.libelle.includes(' - Projet');
   };
 
-  // Extraire le nom du projet d'une tâche (version modifiée pour Task)
   const extractProjectName = (task: Task): string => {
     if (task.libelle.startsWith('Projet:')) {
       return task.libelle.substring(8).trim();
@@ -370,7 +340,6 @@ const Index = () => {
     return task.libelle;
   };
 
-  // Obtenir la couleur pour une tâche ou un projet dans le PDF (version modifiée pour Task)
   const getTaskOrProjectColor = (task: Task) => {
     if (isProject(task)) {
       const projectName = extractProjectName(task);
@@ -383,7 +352,6 @@ const Index = () => {
   };
 
   const generatePDF = () => {
-    // Initialisation du document PDF
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
@@ -404,23 +372,19 @@ const Index = () => {
     doc.setLineWidth(0.5);
     doc.line(20, 30, 277, 30);
     
-    // Création de l'en-tête du tableau
     const tableHead = [
       ["Employés", ...days.map(day => `${format(day.date, 'EEEE', { locale: fr })}\n${format(day.date, 'dd/MM')}`)]
     ];
     
-    // Création du corps du tableau 
     const tableBody = users.map(user => {
       const userRow = [user.nom_complet];
       for (const day of days) {
         const cellTasks = getTasksForCell(user.id_user, day);
-        // Utiliser libelle au lieu du task object entier
         userRow.push(cellTasks.map(task => task.libelle).join("\n\n"));
       }
       return userRow;
     });
 
-    // Utilisation de autoTable avec type casting pour résoudre l'erreur
     (doc as any).autoTable({
       head: tableHead,
       body: tableBody,
@@ -473,7 +437,6 @@ const Index = () => {
               if (taskColor) {
                 const { r, g, b } = hexToRgb(taskColor.bgColor);
                 doc.setFillColor(r, g, b);
-                
                 doc.roundedRect(data.cell.x + 2, yOffset - 2, data.cell.width - 4, 7, 1, 1, 'F');
                 
                 if (isProject(task)) {
@@ -489,7 +452,7 @@ const Index = () => {
                   if (task.libelle.startsWith('Projet:')) {
                     displayText = `📋 ${task.libelle.substring(8).trim()}`;
                   } else if (task.libelle.includes(' - Projet')) {
-                    const [activity, _] = task.libelle.split(' - Projet');
+                    const [activity] = task.libelle.split(' - Projet');
                     displayText = `${activity} 📋`;
                   }
                   doc.text(displayText, data.cell.x + 8, yOffset + 2);
@@ -533,7 +496,6 @@ const Index = () => {
         
         doc.setTextColor(hexToRgb(taskColor.color).r, hexToRgb(taskColor.color).g, hexToRgb(taskColor.color).b);
         doc.text(`• ${task}`, legendX + 2, currentY + 1);
-        
         currentY += 7;
       }
     });
@@ -559,7 +521,6 @@ const Index = () => {
         
         doc.setTextColor(pColor.r, pColor.g, pColor.b);
         doc.text(`📋 ${project}`, legendX + 6, currentY + 1);
-        
         currentY += 7;
       }
     });
@@ -579,7 +540,6 @@ const Index = () => {
         
         doc.setTextColor(45, 55, 72);
         doc.text(user.nom_complet, legendX + 2, currentY + 1);
-        
         currentY += 7;
       }
     });
@@ -594,7 +554,6 @@ const Index = () => {
     }
     
     doc.save(`planning-${format(days[0].date, 'dd-MM-yyyy')}.pdf`);
-    
     toast.success("Le PDF a été généré avec succès !");
   };
 
@@ -656,11 +615,9 @@ const Index = () => {
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                
                 <div className="text-lg font-medium text-slate-800">
                   Semaine du {format(days[0].date, 'dd MMMM', { locale: fr })} au {format(days[6].date, 'dd MMMM yyyy', { locale: fr })}
                 </div>
-                
                 <Button 
                   onClick={() => changeWeek(1)}
                   variant="outline"
@@ -710,14 +667,14 @@ const Index = () => {
                   </Select>
                 </div>
                 
-                {/* <Button 
+                <Button 
                   variant="outline" 
                   className="h-9 gap-2" 
-                  onClick={()=>{}}
+                  onClick={generatePDF}
                 >
                   <FileDown className="h-4 w-4" />
                   <span>Exporter en PDF</span>
-                </Button> */}
+                </Button>
               </div>
             </div>
 
@@ -761,10 +718,10 @@ const Index = () => {
                             {cellTasks.map((task, j) => (
                               <TaskCard key={j} task={task.libelle} />
                             ))}
-                              {cellProjects.map((pro, j) => (
-                                <TaskCard key={j} task={pro.project_name} />
-                              ))}
-                            {(cellTasks.length + cellProjects.length)  < 3 && (
+                            {cellProjects.map((pro, j) => (
+                              <TaskCard key={j} task={pro.project_name} />
+                            ))}
+                            {(cellTasks.length + cellProjects.length) < 3 && (
                               <button 
                                 className="mt-auto text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors flex items-center justify-center gap-1"
                               >
