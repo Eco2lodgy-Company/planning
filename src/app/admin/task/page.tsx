@@ -11,8 +11,8 @@ import {
   User,
   Building2
 } from 'lucide-react';
-import AJouterTache from './add';
 import { ToastContainer } from 'react-toastify';
+import AjouterTache from "./add";
 
 // Types
 interface Task {
@@ -366,12 +366,12 @@ function TaskManagementPage() {
         </div>
       </div>
       {showTaskModal &&  (
-              <AJouterTache
-                
-                onClose={() => setShowTaskModal(false)}
-                isOpen={showTaskModal}
-              />
-            )}
+          <AjouterTache
+              isOpen={showTaskModal}
+              onClose={() => setShowTaskModal(false)}
+              setTasks={setTasks}
+          />
+      )}
     </div>
     
   );

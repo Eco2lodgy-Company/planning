@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-// Comprehensive Type Definitions
 interface Task {
   id_tache?: number;
   libelle: string;
@@ -29,7 +28,7 @@ interface Project {
 }
 
 interface Department {
-  id: number; 
+  id: number;
   titre: string;
 }
 
@@ -37,14 +36,15 @@ interface AjouterTacheProps {
   isOpen: boolean;
   onClose: () => void;
   onTaskAdded?: () => void;
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
 }
 
-export default function AjouterTache({ 
-  isOpen, 
-  onClose, 
-  onTaskAdded 
-}: AjouterTacheProps) {
-  // State Management
+export default function AjouterTache({
+                                       isOpen,
+                                       onClose,
+                                       onTaskAdded,
+                                       setTasks
+                                     }: AjouterTacheProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -60,15 +60,14 @@ export default function AjouterTache({
     id_user: 0,
   });
 
-  // Fetch Data Functions
   const fetchData = async (
-    endpoint: string, 
-    setter: React.Dispatch<React.SetStateAction<any[]>>
+      endpoint: string,
+      setter: React.Dispatch<React.SetStateAction<any[]>>
   ) => {
     try {
       const response = await fetch(endpoint);
       const result = await response.json();
-      
+
       if (response.ok) {
         setter(result.data || result);
       } else {
@@ -80,14 +79,13 @@ export default function AjouterTache({
     }
   };
 
-  // Fetch all necessary data on component mount
   useEffect(() => {
     fetchData("/api/users", setUsers);
     fetchData("/api/projects", setProjects);
     fetchData("/api/departement", setDepartments);
   }, []);
 
-  // Handle Task Submission
+
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -110,8 +108,11 @@ export default function AjouterTache({
         throw new Error("Erreur lors de l'ajout de la tâche");
       }
 
-      toast.success("Tâche ajoutée avec succès");
-      
+      const addedTask = await response.json(); // Supposons que la réponse contient la tâche ajoutée
+
+      // Mettre à jour la liste des tâches
+      setTasks((prevTasks) => [...prevTasks, addedTask]);
+
       // Reset form and close dialog
       setNewTask({
         libelle: "",
@@ -125,14 +126,15 @@ export default function AjouterTache({
         id_user: 0,
       });
 
-      // Optional callback for parent component
       onTaskAdded?.();
       onClose();
+      toast.success("Tâche ajoutée avec succès");
     } catch (error) {
       toast.error("Erreur lors de l'ajout de la tâche");
       console.error(error);
     }
   };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
