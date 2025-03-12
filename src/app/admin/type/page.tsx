@@ -16,27 +16,28 @@ export default function TypesPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchTypes = async () => {
-      try {
-        const response = await fetch("/api/types");
-        if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des types");
-        }
-        const data = await response.json();
-        setTypes(data);
-      } catch (error: unknown) {
-        if (error && typeof error === 'object' && 'message' in error) {
-          const e = error as { message: string };
-          console.error(e.message);
-        } else {
-          console.error("Unknown error", error);
-        }
-        toast.error("Erreur lors de la récupération des types");
-      }
-    };
-
     fetchTypes();
   }, []);
+
+
+  const fetchTypes = async () => {
+    try {
+      const response = await fetch("/api/types");
+      if (!response.ok) {
+        throw new Error("Erreur lors de la récupération des types");
+      }
+      const data = await response.json();
+      setTypes(data);
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'message' in error) {
+        const e = error as { message: string };
+        console.error(e.message);
+      } else {
+        console.error("Unknown error", error);
+      }
+      toast.error("Erreur lors de la récupération des types");
+    }
+  };
 
   const handleAddType = async () => {
     try {
@@ -52,8 +53,7 @@ export default function TypesPage() {
         throw new Error("Erreur lors de l'ajout du type");
       }
 
-      const addedType = await response.json();
-      setTypes((prevtypes) => [...prevtypes, addedType]);
+      fetchTypes();
       setNewType({
         type: "",
       });
@@ -91,12 +91,7 @@ export default function TypesPage() {
         throw new Error("Erreur lors de la mise à jour du type");
       }
 
-      const updatedType = await response.json();
-      setTypes((prevTypes) =>
-        prevTypes.map((type) =>
-          type.id_type === editingType.id_type ? { ...type, ...editingType } : type
-        )
-      );
+      fetchTypes();
 
       setIsEditModalOpen(false);
       setEditingType(null);
@@ -138,9 +133,7 @@ export default function TypesPage() {
         throw new Error("Erreur lors de la suppression du type");
       }
 
-      setTypes((prevTypes) =>
-        prevTypes.filter((type) => type.id_type !== id_type)
-      );
+      fetchTypes();
       toast.success("Type supprimé avec succès");
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'message' in error) {

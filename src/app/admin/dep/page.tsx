@@ -15,27 +15,27 @@ export default function DepartementsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchDepartements = async () => {
-      try {
-        const response = await fetch("/api/departement");
-        if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des départements");
-        }
-        const data = await response.json();
-        setDepartements(data);
-      } catch (error: unknown) {
-        if (error && typeof error === 'object' && 'message' in error) {
-          const e = error as { message: string };
-          console.error(e.message);
-        } else {
-          console.error("Unknown error", error);
-        }
-        toast.error("Erreur lors de la récupération des départements");
-      }
-    };
-
     fetchDepartements();
   }, []);
+
+  const fetchDepartements = async () => {
+    try {
+      const response = await fetch("/api/departement");
+      if (!response.ok) {
+        throw new Error("Erreur lors de la récupération des départements");
+      }
+      const data = await response.json();
+      setDepartements(data);
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'message' in error) {
+        const e = error as { message: string };
+        console.error(e.message);
+      } else {
+        console.error("Unknown error", error);
+      }
+      toast.error("Erreur lors de la récupération des départements");
+    }
+  };
 
   const handleAddDepartement = async () => {
     try {
@@ -51,8 +51,7 @@ export default function DepartementsPage() {
         throw new Error("Erreur lors de l'ajout du département");
       }
 
-      const addedDepartement = await response.json();
-      setDepartements((prevDepartements) => [...prevDepartements, addedDepartement]);
+      fetchDepartements();
       setNewDepartement({
         titre: "",
       });
@@ -88,12 +87,7 @@ export default function DepartementsPage() {
         throw new Error("Erreur lors de la mise à jour du département");
       }
 
-      const updatedDepartement = await response.json();
-      setDepartements((prevDepartements) =>
-        prevDepartements.map((dep) =>
-          dep.id === editingDepartement.id ? { ...dep, ...editingDepartement } : dep
-        )
-      );
+      fetchDepartements();
 
       setIsEditModalOpen(false);
       setEditingDepartement(null);
@@ -133,9 +127,7 @@ export default function DepartementsPage() {
         throw new Error("Erreur lors de la suppression du département");
       }
 
-      setDepartements((prevDepartements) =>
-        prevDepartements.filter((dep) => dep?.id !== id)
-      );
+      fetchDepartements();
       toast.success("Département supprimé avec succès");
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'message' in error) {
